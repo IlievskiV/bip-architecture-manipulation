@@ -19,23 +19,11 @@ import ch.epfl.risd.archman.extractor.InspectArchitecture;
  * This class contains the operands of the architecture, i.e. the operands that
  * have to be substituted, in order to have one instance of the architecture
  */
-public class ArchitectureOperands {
+public class ArchitectureOperands extends ArchitectureEntity {
 
 	/****************************************************************************/
 	/* VARIABLES */
 	/***************************************************************************/
-
-	/*
-	 * This is the model of the BIP file, where the information for the
-	 * architecture operands is stored
-	 */
-	private BIPFileModel bipFileModel;
-
-	/*
-	 * This argument contains (key, value) pairs of the parameters of the
-	 * architecture operands, like the list of all coordinators, list of ports
-	 */
-	private Hashtable<String, String> parameters;
 
 	/*
 	 * Which parameter operand from the Architecture Style maps to which set of
@@ -50,11 +38,8 @@ public class ArchitectureOperands {
 	/* PRIVATE(UTILITY) METHODS */
 	/****************************************************************************/
 
-	/**
-	 * This method reads the Architecture Extractor configuration file, parse
-	 * it, and stores the parameters in the hash table.
-	 */
-	private void readParameters(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
+	@Override
+	protected void readParameters(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
 		/* Instantiate the hash table */
 		parameters = new Hashtable<String, String>();
 
@@ -70,8 +55,12 @@ public class ArchitectureOperands {
 		/* Flag for existence PORTS parameter in the configuration file */
 		boolean hasPorts = false;
 
+		/* Get the absolute path to the configuration file */
+		String absolutePath = new File(pathToConfFile).getAbsolutePath();
+
 		/* Reading and parsing the configuration file */
-		Scanner scanner = new Scanner(new File(pathToConfFile));
+		Scanner scanner = new Scanner(new File(absolutePath));
+
 		while (scanner.hasNext()) {
 			String[] tokens = scanner.nextLine().split(":");
 
@@ -133,7 +122,8 @@ public class ArchitectureOperands {
 	 * 
 	 * @throws ConfigurationFileException
 	 */
-	private void parseParameters() throws ConfigurationFileException {
+	@Override
+	protected void parseParameters() throws ConfigurationFileException {
 
 		/* Concatenated string of all parameter operands in the Architecture */
 		String allOperands = this.parameters.get(ConstantFields.OPERANDS_PARAM);
@@ -179,6 +169,11 @@ public class ArchitectureOperands {
 		}
 
 		return result;
+	}
+
+	@Override
+	protected void validate() {
+		// TODO Auto-generated method stub
 	}
 
 	private void validateArchitectureOperands() throws ComponentNotFoundException, ArchitectureExtractorException {
@@ -288,7 +283,7 @@ public class ArchitectureOperands {
 	public Hashtable<String, Set<String>> getPortsMapping() {
 		return portsMapping;
 	}
-	
+
 	/* Testing methods (passed) */
 	public static void main(String[] args) {
 

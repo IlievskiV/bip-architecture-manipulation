@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -27,24 +28,11 @@ import ujf.verimag.bip.Core.Modules.impl.SystemImpl;
  * Architecture. From this architecture, given the operands, we can instantiate
  * one Architecture.
  */
-public class ArchitectureStyle {
+public class ArchitectureStyle extends ArchitectureEntity {
 
 	/****************************************************************************/
 	/* VARIABLES */
 	/***************************************************************************/
-
-	/*
-	 * This is the model of the BIP file, where the information for the
-	 * architecture style is stored
-	 */
-	private BIPFileModel bipFileModel;
-
-	/*
-	 * This argument contains (key, value) pairs of the parameters of the
-	 * architecture style, like the list of all coordinators, list of ports,
-	 * list of connectors.
-	 */
-	private Hashtable<String, String> parameters;
 
 	/* The set of all coordinators in the Architecture Style */
 	private Set<String> coordinators;
@@ -66,31 +54,24 @@ public class ArchitectureStyle {
 	 * This method reads the Architecture Extractor configuration file, parse
 	 * it, and stores the parameters in the hash table.
 	 */
-	private void readParameters(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
+	@Override
+	protected void readParameters(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
 		/* Instantiate the hash table */
 		parameters = new Hashtable<String, String>();
 
-		/* Flag for existence of the PATH parameter in the configuration file */
+		/* Existence of the PATH parameter in the configuration file */
 		boolean hasPath = false;
 
-		/*
-		 * Flag for existence of the COORDINATORS parameter in the configuration
-		 * file
-		 */
+		/* Existence of the COORDINATORS parameter in the configuration file */
 		boolean hasCoordinators = false;
 
-		/*
-		 * Flag for existence of the OPERANDS parameter in the configuration
-		 * file
-		 */
+		/* Existence of the OPERANDS parameter in the configuration file */
 		boolean hasOperands = false;
 
-		/* Flag for existence PORTS parameter in the configuration file */
+		/* Existence PORTS parameter in the configuration file */
 		boolean hasPorts = false;
 
-		/*
-		 * Flag for existence CONNECTORS parameter in the configuration file
-		 */
+		/* Existence CONNECTORS parameter in the configuration file */
 		boolean hasConnectors = false;
 
 		/* Get the absolute path to the configuration file */
@@ -98,8 +79,9 @@ public class ArchitectureStyle {
 
 		/* Reading and parsing the configuration file */
 		Scanner scanner = new Scanner(new File(absolutePath));
-		
+
 		while (scanner.hasNext()) {
+			/* Take the current line and split it where the semicolon is */
 			String[] tokens = scanner.nextLine().split(":");
 
 			/* No more than one colon in a line exception */
@@ -189,7 +171,7 @@ public class ArchitectureStyle {
 	 * 
 	 * @throws ConfigurationFileException
 	 */
-	private void parseParameters() throws ConfigurationFileException {
+	protected void parseParameters() throws ConfigurationFileException {
 
 		/* Concatenated string of all coordinator components */
 		String allCoordinators = this.parameters.get(ConstantFields.COORDINATORS_PARAM);
@@ -200,14 +182,16 @@ public class ArchitectureStyle {
 		/* Concatenated string of all interactions in the architecture */
 		String allConnectors = this.parameters.get(ConstantFields.CONNECTORS_PARAM);
 
+		String delim = ",";
+
 		/* Get all coordinators */
-		this.coordinators = this.parse(allCoordinators);
+		this.coordinators = (Set<String>) this.parseConcatenatedString(allCoordinators, delim);
 
 		/* Get all operands */
-		this.operands = this.parse(allOperands);
+		this.operands = (Set<String>) this.parseConcatenatedString(allOperands, delim);
 
 		/* Get all ports */
-		this.ports = this.parse(allPorts);
+		this.ports = (Set<String>) this.parseConcatenatedString(allPorts, delim);
 
 		/* Get all interactions */
 		this.connectors = this.parseConnectors(allConnectors);
@@ -221,9 +205,9 @@ public class ArchitectureStyle {
 	 *            - The concatenated string for splitting
 	 * @return The list containing the tokens from the concatenated string
 	 */
-	private Set<String> parse(String concatenatedString) {
+	protected Collection<String> parseConcatenatedString(String concatenatedString, String delim) {
 		/* Split the string */
-		String[] tokens = concatenatedString.split(",");
+		String[] tokens = concatenatedString.split(delim);
 
 		/* The resulting set */
 		Set<String> result = new HashSet<String>();
@@ -286,6 +270,11 @@ public class ArchitectureStyle {
 		}
 
 		return result;
+	}
+
+	@Override
+	protected void validate() {
+		// TODO Auto-generated method stub
 	}
 
 	private void validateArchitectureStyle() throws ArchitectureExtractorException {
@@ -374,20 +363,6 @@ public class ArchitectureStyle {
 
 		/* Validate the Architecture style */
 		validateArchitectureStyle();
-	}
-
-	/**
-	 * @return the BIP file model of the Architecture Style
-	 */
-	public BIPFileModel getBipFileModel() {
-		return bipFileModel;
-	}
-
-	/**
-	 * @return the parameters of the Architecture style
-	 */
-	public Hashtable<String, String> getParameters() {
-		return parameters;
 	}
 
 	/**

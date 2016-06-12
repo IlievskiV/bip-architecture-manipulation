@@ -2,26 +2,29 @@ package ch.epfl.risd.archman.model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
+import ch.epfl.risd.archman.constants.ConstantFields;
+import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
+
 /**
  * This class will represent one instance of the architecture when we will
  * substitute the parameter operands, with the exact operands.
  */
-public class ArchitectureInstance {
+public class ArchitectureInstance extends ArchitectureEntity {
 
 	/****************************************************************************/
 	/* VARIABLES */
 	/***************************************************************************/
 
-	/* The BIP file model for this Architecture Instance */
-	private BIPFileModel bipFileModel;
-
-	/* Parameters written in the Configuration file */
-	private Hashtable<String, String> parameters;
+	/* List of coordinators for this Architecture Instance */
+	private List<String> coordinators;
 
 	/* List of operands for this Architecture Instance */
 	private List<String> operands;
@@ -32,9 +35,227 @@ public class ArchitectureInstance {
 	/* List of interactions for this Architecture Instance */
 	private List<String> interactions;
 
+	/* List of terms in the predicate */
+	private String characteristicPredicate;
+
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
 	/****************************************************************************/
+
+	@Override
+	protected void readParameters(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
+		/* Instantiate the hash table */
+		parameters = new Hashtable<String, String>();
+
+		/* Existence of the PATH parameter in the configuration file */
+		boolean hasPath = false;
+
+		/* Existence of the COORDINATORS parameter in the configuration file */
+		boolean hasCoordinators = false;
+
+		/* Existence of the OPERANDS parameter in the configuration file */
+		boolean hasOperands = false;
+
+		/* Existence of the PORTS parameter in the configuration file */
+		boolean hasPorts = false;
+
+		/* Existence of the INTERACTIONS parameter in the configuration file */
+		boolean hasInteractions = false;
+
+		/* Get the absolute path to the configuration file */
+		String absolutePath = new File(pathToConfFile).getAbsolutePath();
+
+		/* Reading and parsing the configuration file */
+		Scanner scanner = new Scanner(new File(absolutePath));
+
+		while (scanner.hasNext()) {
+			/* Take the current line and split it where the semicolon is */
+			String[] tokens = scanner.nextLine().split(":");
+
+			/* No more than one colon in a line exception */
+			if (tokens.length > 2) {
+				throw new ConfigurationFileException("More than one colon (:) in the line");
+			}
+
+			/* Check for PATH parameter */
+			if (tokens[0].equals(ConstantFields.PATH_PARAM)) {
+				hasPath = true;
+
+				/* Check if value is missing */
+				if (tokens[1].trim().equals("")) {
+					throw new ConfigurationFileException("The value of the PATH parameter is missing");
+				}
+			}
+
+			/* Check for COORDINATORS parameter */
+			if (tokens[0].equals(ConstantFields.COORDINATORS_PARAM)) {
+				hasCoordinators = true;
+
+				/* Check if value is missing */
+				if (tokens[1].trim().equals("")) {
+					throw new ConfigurationFileException("The value of the COORDINATORS parameter is missing");
+				}
+			}
+
+			/* Check for OPERANDS parameter */
+			if (tokens[0].equals(ConstantFields.OPERANDS_PARAM)) {
+				hasOperands = true;
+
+				/* Check if value is missing */
+				if (tokens[1].trim().equals("")) {
+					throw new ConfigurationFileException("The value of the OPERANDS parameter is missing");
+				}
+			}
+
+			/* Check for PORTS parameter */
+			if (tokens[0].equals(ConstantFields.PORTS_PARAM)) {
+				hasPorts = true;
+
+				/* Check if value is missing */
+				if (tokens[1].trim().equals("")) {
+					throw new ConfigurationFileException("The value of the PORTS parameter is missing");
+				}
+			}
+
+			/* Check for PORTS parameter */
+			if (tokens[0].equals(ConstantFields.INTERACTIONS_PARAM)) {
+				hasInteractions = true;
+
+				/* Check if value is missing */
+				if (tokens[1].trim().equals("")) {
+					throw new ConfigurationFileException("The value of the INTERACTIONS parameter is missing");
+				}
+			}
+
+			/* Put the parameter in the hash table */
+			parameters.put(tokens[0], tokens[1]);
+		}
+
+		/* If there is not some of the mandatory parameters */
+		if (!hasPath) {
+			throw new ConfigurationFileException("PATH parameter is missing");
+		}
+
+		if (!hasCoordinators) {
+			throw new ConfigurationFileException("COORDINATORS parameter is missing");
+		}
+
+		if (!hasOperands) {
+			throw new ConfigurationFileException("OPERANDS parameter is missing");
+		}
+
+		if (!hasPorts) {
+			throw new ConfigurationFileException("PORTS parameter is missing");
+		}
+
+		if (!hasInteractions) {
+			throw new ConfigurationFileException("INTERACTIONS parameter is missing");
+		}
+	}
+
+	@Override
+	protected void parseParameters() throws ConfigurationFileException {
+		/* Concatenated string of all coordinator components */
+		String allCoordinators = this.parameters.get(ConstantFields.COORDINATORS_PARAM);
+		/* Concatenated string of all parameter operands */
+		String allOperands = this.parameters.get(ConstantFields.OPERANDS_PARAM);
+		/* Concatenated string of all ports */
+		String allPorts = this.parameters.get(ConstantFields.PORTS_PARAM);
+		/* Concatenated string of all interactions */
+		String allInteractions = this.parameters.get(ConstantFields.INTERACTIONS_PARAM);
+
+		String delim = ",";
+
+		/* Get all coordinators */
+		this.coordinators = (List<String>) this.parseConcatenatedString(allCoordinators, delim);
+
+		/* Get all operands */
+		this.operands = (List<String>) this.parseConcatenatedString(allOperands, delim);
+
+		/* Get all ports */
+		this.ports = (List<String>) this.parseConcatenatedString(allPorts, delim);
+
+		/* Get all interactions */
+		this.interactions = (List<String>) this.parseConcatenatedString(allInteractions, delim);
+	}
+
+	@Override
+	protected void validate() {
+
+	}
+
+	protected List<String> parseConcatenatedString(String concatenatedString, String delim) {
+		/* Split the string */
+		String[] tokens = concatenatedString.split(delim);
+
+		/* The resulting list */
+		List<String> result = new LinkedList<String>();
+		result.addAll(Arrays.asList(tokens));
+
+		return result;
+	}
+
+	/**
+	 * Method for calculating the characteristic predicate of this Architecture
+	 * Instance, as a list of terms from which the predicate is consisted. Right
+	 * now there is only one limitation which is, every port must be represented
+	 * as a one letter.
+	 * 
+	 * @return the list of terms in the characteristic predicate
+	 */
+	protected String calculateCharacteristicPredicate() {
+		/* List of predicate terms */
+		List<String> predicateTerms = new LinkedList<String>();
+
+		/* Iterate the interactions */
+		for (String interaction : interactions) {
+			/* Connector as in the Algebra of Connectors */
+			ch.epfl.risd.ac.model.ConnectorNode connectorNode = ch.epfl.risd.ac.model.Connector.FromString(interaction);
+			ch.epfl.risd.ac.model.Connector connector = new ch.epfl.risd.ac.model.Connector(new HashSet(),
+					connectorNode);
+			/* Transform it to the Causal Tree */
+			ch.epfl.risd.ac.model.CausalTree causalTree = connector.toCausalTree();
+			/* Get the possible interactions */
+			List<String> generatedInteractions = causalTree.getInteractions();
+
+			/* Iterate over the generated interactions */
+			for (String genInt : generatedInteractions) {
+				/* The current term in the predicate */
+				StringBuilder predicateTerm = new StringBuilder();
+
+				/* Iterate over the ports */
+				for (String port : ports) {
+					/* If the generated interaction contains the port */
+					if (genInt.contains(port)) {
+						predicateTerm.append(port);
+					} else {
+						predicateTerm.append("!" + port);
+					}
+					/* Append AND */
+					predicateTerm.append("&");
+				}
+
+				/* Cut the last & */
+				predicateTerm.setLength(predicateTerm.length() - 1);
+				/* Add the predicate term in the final predicate */
+				predicateTerms.add(predicateTerm.toString());
+			}
+		}
+
+		/* The resulting characteristic predicate */
+		StringBuilder predicate = new StringBuilder();
+
+		/* Iterate over predicate terms */
+		for (String pt : predicateTerms) {
+			predicate.append(pt);
+			predicate.append("|");
+		}
+
+		/* Cut the last | */
+		predicate.setLength(predicate.length() - 1);
+
+		return predicate.toString();
+	}
 
 	/****************************************************************************/
 	/* PUBLIC METHODS */
@@ -57,6 +278,8 @@ public class ArchitectureInstance {
 		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootName);
 		/* Instantiate the parameters */
 		this.parameters = new Hashtable<String, String>();
+		/* Instantiate the list of coordinators */
+		this.coordinators = new LinkedList<String>();
 		/* Instantiate the list of operands */
 		this.operands = new LinkedList<String>();
 		/* Instantiate the list of ports */
@@ -80,11 +303,12 @@ public class ArchitectureInstance {
 	 * @param interactions
 	 *            - the list of interactions
 	 */
-	public ArchitectureInstance(BIPFileModel bipFileModel, Hashtable<String, String> parameters, List<String> operands,
-			List<String> ports, List<String> interactions) {
+	public ArchitectureInstance(BIPFileModel bipFileModel, Hashtable<String, String> parameters,
+			List<String> coordinators, List<String> operands, List<String> ports, List<String> interactions) {
 		/* Assign the references */
 		this.bipFileModel = bipFileModel;
 		this.parameters = parameters;
+		this.coordinators = coordinators;
 		this.operands = operands;
 		this.ports = ports;
 		this.interactions = interactions;
@@ -97,33 +321,31 @@ public class ArchitectureInstance {
 	 * @param pathToConfFile
 	 *            - the path to the configuration file
 	 * @throws FileNotFoundException
+	 * @throws ConfigurationFileException
 	 */
-	public ArchitectureInstance(String pathToConfFile) throws FileNotFoundException {
+	public ArchitectureInstance(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
+		/* Read the parameters from the configuration file */
+		this.readParameters(pathToConfFile);
 
-		/* Get the absolute path to the configuration file */
-		String absolutePath = new File(pathToConfFile).getAbsolutePath();
+		/* After reading the parameters, parse parameters */
+		this.parseParameters();
 
-		/* Reading and parsing the configuration file */
-		Scanner scanner = new Scanner(new File(absolutePath));
+		/* Calculate the characteristic predicate */
+		this.characteristicPredicate = this.calculateCharacteristicPredicate();
 
-		while (scanner.hasNext()) {
-			
-		}
+		/* Parse the BIP file model */
+		this.bipFileModel = new BIPFileModel(this.parameters.get(ConstantFields.PATH_PARAM));
 
+		/* Validate the instance */
+		validate();
 	}
 
-	/**
-	 * @return the BIP file model
-	 */
-	public BIPFileModel getBipFileModel() {
-		return bipFileModel;
+	public String getCharacteristicPredicate() {
+		return characteristicPredicate;
 	}
 
-	/**
-	 * @return the parameters of the Architecture Instance
-	 */
-	public Hashtable<String, String> getParameters() {
-		return parameters;
+	public List<String> getCoordinators() {
+		return coordinators;
 	}
 
 	/**
@@ -146,5 +368,4 @@ public class ArchitectureInstance {
 	public List<String> getInteractions() {
 		return interactions;
 	}
-
 }
