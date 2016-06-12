@@ -1,2 +1,2 @@
 # bip-architecture-manipulation
-A Java library for manupulation of 
+A Java library for manupulation of architectures in BIP (Behavior,Interaction,Priority) component based framework.
