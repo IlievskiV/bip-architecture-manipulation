@@ -90,7 +90,7 @@ public interface ArchitectureIndependentEntities {
 	 */
 	public Behavior createBehavior(List<State> initialStates, Action initialAction, List<State> states,
 			List<Transition> transitions)
-					throws InvalidStateNameException, ListEmptyException, IllegalTransitionStatesException;
+			throws InvalidStateNameException, ListEmptyException, IllegalTransitionStatesException;
 
 	/**
 	 * This method returns a DataParameter. The DataParameter is used as the
@@ -127,19 +127,6 @@ public interface ArchitectureIndependentEntities {
 	 * @return the newly created DefinitionBinding object
 	 */
 	public DefinitionBinding createDefinitionBinding(PortDefinition portDefinition);
-
-	/**
-	 * This method returns new instance of Port.
-	 * 
-	 * @param innerName
-	 *            - the name of the port in the scope of one atom
-	 * @param interfaceName
-	 *            - the name used to access the port outside the atom
-	 * @param type
-	 *            - the type of the port
-	 * @return the newly created Port object
-	 */
-	public Port createPort(String innerName, String interfaceName, PortType type);
 
 	/**
 	 * This method returns PortDefinitionReference, which is used if we want to
@@ -225,22 +212,6 @@ public interface ArchitectureIndependentEntities {
 	 * @return the newly created inner port reference
 	 */
 	public InnerPortReference createInnerPortReference(PartElementReference partElementReference, Port port);
-
-	/**
-	 * This method creates Connector from a given Type
-	 * 
-	 * @param name
-	 *            - the name of the Connector
-	 * @param type
-	 *            - the Type of the Connector
-	 * @param parent
-	 *            - the Compound Type which is a parent
-	 * @param actualPortParameters
-	 *            - the list of input ports
-	 * @return
-	 */
-	public Connector createConnector(String name, ConnectorType type, CompoundType parent,
-			List<ActualPortParameter> actualPortParameters);
 
 	/**
 	 * This method returns Interaction between the involved ports passed as an

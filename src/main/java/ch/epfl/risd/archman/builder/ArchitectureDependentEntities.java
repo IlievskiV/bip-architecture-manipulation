@@ -20,8 +20,10 @@ import ujf.verimag.bip.Core.Behaviors.DataParameter;
 import ujf.verimag.bip.Core.Behaviors.Port;
 import ujf.verimag.bip.Core.Behaviors.PortType;
 import ujf.verimag.bip.Core.Behaviors.Variable;
+import ujf.verimag.bip.Core.Interactions.ActualPortParameter;
 import ujf.verimag.bip.Core.Interactions.Component;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
+import ujf.verimag.bip.Core.Interactions.Connector;
 import ujf.verimag.bip.Core.Interactions.ConnectorType;
 import ujf.verimag.bip.Core.Interactions.InteractionSpecification;
 import ujf.verimag.bip.Core.Interactions.PortParameter;
@@ -122,6 +124,19 @@ public interface ArchitectureDependentEntities {
 			throws ArchitectureExtractorException, InvalidPortTypeNameException;
 
 	/**
+	 * This method returns new instance of Port.
+	 * 
+	 * @param innerName
+	 *            - the name of the port in the scope of one atom
+	 * @param interfaceName
+	 *            - the name used to access the port outside the atom
+	 * @param type
+	 *            - the type of the port
+	 * @return the newly created Port object
+	 */
+	public Port createPort(String innerName, String interfaceName, PortType type);
+
+	/**
 	 * This method makes copy of the given port type
 	 * 
 	 * @param type
@@ -149,8 +164,24 @@ public interface ArchitectureDependentEntities {
 	 */
 	public ConnectorType createConnectorType(String connectorTypeName, List<PortParameter> portParameters,
 			PortExpression interactionDefinition, List<InteractionSpecification> interactionSpecifications)
-					throws ArchitectureExtractorException, InvalidConnectorTypeNameException,
-					InvalidPortParameterNameException, IllegalPortParameterReferenceException;
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException;
+
+	/**
+	 * This method creates Connector from a given Type
+	 * 
+	 * @param name
+	 *            - the name of the Connector
+	 * @param type
+	 *            - the Type of the Connector
+	 * @param parent
+	 *            - the Compound Type which is a parent
+	 * @param actualPortParameters
+	 *            - the list of input ports
+	 * @return
+	 */
+	public Connector createConnector(String name, ConnectorType type, CompoundType parent,
+			List<ActualPortParameter> actualPortParameters);
 
 	/**
 	 * This method makes copy of the given connector type
@@ -158,17 +189,18 @@ public interface ArchitectureDependentEntities {
 	 * @param type
 	 *            - The Connector Type to copy
 	 * @return the copy of the Connector Type
-	 * @throws ArchitectureExtractorException 
+	 * @throws ArchitectureExtractorException
 	 */
 	public ConnectorType copyConnectorType(ConnectorType type) throws ArchitectureExtractorException;
-	
+
 	/**
 	 * 
 	 * @param components
 	 * @param areCoordinators
-	 * @throws ArchitectureExtractorException 
-	 * @throws InvalidComponentNameException 
+	 * @throws ArchitectureExtractorException
+	 * @throws InvalidComponentNameException
 	 */
-	public void insertComponents(List<Component> components, boolean areCoordinators) throws ArchitectureExtractorException, InvalidComponentNameException;
-	
+	public void insertComponents(List<Component> components, boolean areCoordinators)
+			throws ArchitectureExtractorException, InvalidComponentNameException;
+
 }

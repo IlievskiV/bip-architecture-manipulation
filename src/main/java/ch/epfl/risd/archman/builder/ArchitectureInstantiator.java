@@ -22,11 +22,9 @@ import ch.epfl.risd.archman.exceptions.InvalidPortNameException;
 import ch.epfl.risd.archman.exceptions.InvalidPortParameterNameException;
 import ch.epfl.risd.archman.exceptions.InvalidPortTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidVariableNameException;
-import ch.epfl.risd.archman.extractor.ArchitectureOperandsExtractorImpl;
-import ch.epfl.risd.archman.extractor.ArchitectureStyleExtractorImpl;
-import ch.epfl.risd.archman.extractor.Extractor;
-import ch.epfl.risd.archman.extractor.ExtractorImpl;
-import ch.epfl.risd.archman.extractor.InspectArchitecture;
+import ch.epfl.risd.archman.extractor.ArchitectureOperandsExtractor;
+import ch.epfl.risd.archman.extractor.ArchitectureStyleExtractor;
+import ch.epfl.risd.archman.extractor.BIPExtractor;
 import ch.epfl.risd.archman.model.ArchitectureInstance;
 import ch.epfl.risd.archman.model.ArchitectureOperands;
 import ch.epfl.risd.archman.model.ArchitectureStyle;
@@ -64,12 +62,6 @@ public class ArchitectureInstantiator {
 
 	/* The builder for the Architecture Instance */
 	private ArchitectureInstanceBuilder architectureInstanceBuilder;
-
-	/* The inspector for the architecture instance */
-	private InspectArchitecture inspector;
-
-	/* The extractor for the instance */
-	private Extractor extractor;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -277,15 +269,14 @@ public class ArchitectureInstantiator {
 			InvalidVariableNameException, InvalidPortNameException, IllegalTransitionPortException {
 
 		/* Instantiate architecture operand extractor */
-		ArchitectureOperandsExtractorImpl architectureOperandsExtractor = new ArchitectureOperandsExtractorImpl(
+		ArchitectureOperandsExtractor architectureOperandsExtractor = new ArchitectureOperandsExtractor(
 				architectureOperands);
 
 		/* Instantiate architecture style extractor */
-		ArchitectureStyleExtractorImpl architectureStyleExtractor = new ArchitectureStyleExtractorImpl(
-				architectureStyle);
+		ArchitectureStyleExtractor architectureStyleExtractor = new ArchitectureStyleExtractor(architectureStyle);
 
 		/* Extractor for the architecture instance */
-		ExtractorImpl extractor = new ExtractorImpl(this.architectureInstance.getBipFileModel());
+		BIPExtractor extractor = new BIPExtractor(this.architectureInstance.getBipFileModel());
 
 		/* 1. Operands */
 
@@ -901,10 +892,10 @@ public class ArchitectureInstantiator {
 		this.architectureInstanceBuilder = new ArchitectureInstanceBuilder(this.architectureInstance);
 
 		/* Instantiate the inspector of the instance */
-		this.inspector = new ExtractorImpl(this.architectureInstance.getBipFileModel());
+		this.inspector = new BIPExtractor(this.architectureInstance.getBipFileModel());
 
 		/* Instantiate the extractor of the instance */
-		this.extractor = new ExtractorImpl(this.architectureInstance.getBipFileModel());
+		this.extractor = new BIPExtractor(this.architectureInstance.getBipFileModel());
 
 		/* 1. Calculate the Parameters */
 		this.calculateParameters();

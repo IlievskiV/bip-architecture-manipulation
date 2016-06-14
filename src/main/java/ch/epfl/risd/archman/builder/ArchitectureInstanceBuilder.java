@@ -3,6 +3,7 @@ package ch.epfl.risd.archman.builder;
 import java.util.LinkedList;
 import java.util.List;
 
+import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.IllegalPortParameterReferenceException;
@@ -18,9 +19,7 @@ import ch.epfl.risd.archman.exceptions.InvalidPortTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidStateNameException;
 import ch.epfl.risd.archman.exceptions.InvalidVariableNameException;
 import ch.epfl.risd.archman.exceptions.ListEmptyException;
-import ch.epfl.risd.archman.extractor.Extractor;
-import ch.epfl.risd.archman.extractor.ExtractorImpl;
-import ch.epfl.risd.archman.extractor.InspectArchitecture;
+import ch.epfl.risd.archman.extractor.BIPExtractor;
 import ch.epfl.risd.archman.factories.Factories;
 import ch.epfl.risd.archman.model.ArchitectureInstance;
 import ujf.verimag.bip.Core.ActionLanguage.Actions.AssignType;
@@ -85,17 +84,11 @@ import ujf.verimag.bip.Core.PortExpressions.PortExpression;
  * This class serves for building one Architecture Instance, given the
  * Architecture Style and Architecture Operands
  */
-public class ArchitectureInstanceBuilder implements ArchitectureDependentEntities, ArchitectureIndependentEntities {
+public class ArchitectureInstanceBuilder {
 
 	/****************************************************************************/
 	/* VARIABLES */
 	/***************************************************************************/
-
-	/* The Architecture Instance for building */
-	private ArchitectureInstance architectureInstance;
-
-	/* The inspector for the instance */
-	private InspectArchitecture inspector;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -109,7 +102,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 	 *            - a list of Variables for checking
 	 * @return true if there are duplicates, false otherwise
 	 */
-	private boolean checkDuplicateVariables(List<Variable> variables) {
+	protected static boolean checkDuplicateVariables(List<Variable> variables) {
 
 		/* Iterate all variables */
 		for (int i = 0; i < variables.size(); i++) {
@@ -132,7 +125,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 	 *            - a list of Ports for checking
 	 * @return true if there are duplicates, false otherwise
 	 */
-	private boolean checkDuplicatePorts(List<Port> ports) {
+	protected static boolean checkDuplicatePorts(List<Port> ports) {
 
 		/* Iterate ports */
 		for (int i = 0; i < ports.size(); i++) {
@@ -155,7 +148,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 	 *            - a list of states for checking
 	 * @return true if there are duplicates, false otherwise
 	 */
-	private boolean checkDuplicateStates(List<State> states) {
+	protected static boolean checkDuplicateStates(List<State> states) {
 
 		/* Iterate all states */
 		for (int i = 0; i < states.size(); i++) {
@@ -181,7 +174,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 	 * @return true if the ports labeling the transition are in the set, false
 	 *         otherwise
 	 */
-	private boolean checkTransitionPorts(Transition transition, List<Port> ports) {
+	protected static boolean checkTransitionPorts(Transition transition, List<Port> ports) {
 
 		/* Get the Reference to the Port Definition */
 		PortDefinitionReference reference = (PortDefinitionReference) transition.getTrigger();
@@ -208,7 +201,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 	 * @param states
 	 * @return
 	 */
-	private boolean checkTransitionStates(Transition transition, List<State> states) {
+	protected static boolean checkTransitionStates(Transition transition, List<State> states) {
 
 		/* Whether the list of States includes all origin States */
 		boolean containsOriginStates = false;
@@ -277,7 +270,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 	 *            - the port parameters to check
 	 * @return true if there are duplicates, false otherwise
 	 */
-	private boolean checkDuplicatePortParameters(List<PortParameter> portParameters) {
+	protected static boolean checkDuplicatePortParameters(List<PortParameter> portParameters) {
 
 		/* Iterate the list of Port Parameters */
 		for (int i = 0; i < portParameters.size(); i++) {
@@ -295,15 +288,15 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 	/* PUBLIC METHODS */
 	/***************************************************************************/
 
-	public ArchitectureInstanceBuilder(ArchitectureInstance architectureInstance) {
-		this.architectureInstance = architectureInstance;
-		this.inspector = new ExtractorImpl(this.architectureInstance.getBipFileModel());
-	}
+	/****************************************************************************/
+	/* ARCHITECTURE DEPENDENT METHODS */
+	/***************************************************************************/
 
-	public void addComponent(String name, ComponentType type, CompoundType parent, boolean isCoordinator)
+	public static void addComponent(ArchitectureInstance architectureInstance, String name, ComponentType type,
+			CompoundType parent, boolean isCoordinator)
 			throws ArchitectureExtractorException, InvalidComponentNameException {
 
-		if (this.inspector.componentExists(name)) {
+		if (BIPChecker.componentExists(architectureInstance.getBipFileModel(), name)) {
 			throw new InvalidComponentNameException(
 					"Component with a name " + name + " already exists in the architecture");
 		} else {
@@ -316,7 +309,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 
 			/* if the parent is null then the default parent is the root */
 			if (parent == null) {
-				component.setCompoundType(this.architectureInstance.getBipFileModel().getRootType());
+				component.setCompoundType(architectureInstance.getBipFileModel().getRootType());
 			} else {
 				/* Set the parent */
 				component.setCompoundType(parent);
@@ -328,28 +321,27 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 			 */
 			if (isCoordinator) {
 				/* If the parameter for coordinators is not defined */
-				if (this.architectureInstance.getParameters().get(ConstantFields.COORDINATORS_PARAM) == null) {
-					this.architectureInstance.getParameters().put(ConstantFields.COORDINATORS_PARAM, name);
+				if (architectureInstance.getParameters().get(ConstantFields.COORDINATORS_PARAM) == null) {
+					architectureInstance.getParameters().put(ConstantFields.COORDINATORS_PARAM, name);
 				}
 				/* If it is defined */
 				else {
 					/* First take and remove the old value */
-					String oldValue = this.architectureInstance.getParameters()
-							.remove(ConstantFields.COORDINATORS_PARAM);
+					String oldValue = architectureInstance.getParameters().remove(ConstantFields.COORDINATORS_PARAM);
 					/* Add the updated coordinators */
-					this.architectureInstance.getParameters().put(ConstantFields.COORDINATORS_PARAM,
-							oldValue + ";" + name);
+					architectureInstance.getParameters().put(ConstantFields.COORDINATORS_PARAM, oldValue + ";" + name);
 				}
 			}
 		}
 	}
 
-	public AtomType createAtomicType(String name, Behavior behavior, List<Port> ports, List<Variable> variables)
+	public static AtomType createAtomicType(ArchitectureInstance architectureInstance, String name, Behavior behavior,
+			List<Port> ports, List<Variable> variables)
 			throws ArchitectureExtractorException, InvalidAtomTypeNameException, InvalidVariableNameException,
 			InvalidPortNameException, IllegalTransitionPortException {
 
 		/* Check whether the Atom Type with the same name exists */
-		if (this.inspector.componentTypeExists(name)) {
+		if (BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), name)) {
 			throw new InvalidAtomTypeNameException(
 					"Atom Type with a name " + name + " already exists in the architecture");
 		}
@@ -359,7 +351,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		/* Set the name for the new type */
 		atomType.setName(name);
 		/* Set the system */
-		atomType.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		atomType.setModule(architectureInstance.getBipFileModel().getSystem());
 
 		/* Add all variables */
 		if (variables != null) {
@@ -388,7 +380,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		/* Check the match of Port References for every transition */
 		for (Transition t : transitions) {
 			/* no match */
-			if (!this.checkTransitionPorts(t, ports)) {
+			if (!ArchitectureInstanceBuilder.checkTransitionPorts(t, ports)) {
 				throw new IllegalTransitionPortException("Some transition in the Atom Type named " + name
 						+ " is operating with Port not defined in the same Atom Type");
 			}
@@ -400,7 +392,8 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return atomType;
 	}
 
-	public AtomType copyAtomicType(AtomType type) throws ArchitectureExtractorException {
+	public static AtomType copyAtomicType(ArchitectureInstance architectureInstance, AtomType type)
+			throws ArchitectureExtractorException {
 		/* Create the empty atom type */
 		AtomType copy = Factories.BEHAVIORS_FACTORY.createAtomType();
 
@@ -410,7 +403,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		 * set the module as the architecture instance module, not as the
 		 * original
 		 */
-		copy.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		copy.setModule(architectureInstance.getBipFileModel().getSystem());
 
 		/* Set variables */
 		copy.getVariable().addAll(type.getVariable());
@@ -427,19 +420,18 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 			PortType portType;
 
 			/* If the port type does not exist */
-			if (!this.inspector.portTypeExists(p.getType())) {
-				portType = this.copyPortType(p.getType());
+			if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), p.getType())) {
+				portType = ArchitectureInstanceBuilder.copyPortType(architectureInstance, p.getType());
 			}
 			/* If the port type exists */
 			else {
-				/* Instantiate new extractor */
-				Extractor extractor = new ExtractorImpl(this.architectureInstance.getBipFileModel());
 				/* Get the port type */
-				portType = extractor.getPortTypeByName(p.getType().getName());
+				portType = BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(),
+						p.getType().getName());
 			}
 
 			/* Add the port to the copy ports */
-			copyPorts.add(this.createPort(p.getName(), "", portType));
+			copyPorts.add(ArchitectureInstanceBuilder.createPort(architectureInstance, p.getName(), "", portType));
 		}
 
 		/* Set the behavior */
@@ -451,11 +443,11 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return copy;
 	}
 
-	public CompoundType createCompoundType(String name)
+	public static CompoundType createCompoundType(ArchitectureInstance architectureInstance, String name)
 			throws ArchitectureExtractorException, InvalidCompoundTypeNameException {
 
 		/* Check whether the Compound Type with the same name exists */
-		if (this.inspector.componentTypeExists(name)) {
+		if (BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), name)) {
 			throw new InvalidCompoundTypeNameException(
 					"Compound Type with a name " + name + " already exists in the architecture");
 		}
@@ -465,31 +457,31 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		/* Set the name for the new compound type */
 		compoundType.setName(name);
 		/* Set the system */
-		compoundType.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		compoundType.setModule(architectureInstance.getBipFileModel().getSystem());
 
 		/* subcomponents are missing */
 
 		return compoundType;
 	}
 
-	public CompoundType copyCompoundType(ComponentType type) {
+	public static CompoundType copyCompoundType(ArchitectureInstance architectureInstance, ComponentType type) {
 		/* Create new compound type */
 		CompoundType copy = Factories.INTERACTIONS_FACTORY.createCompoundType();
 		/* Set the name */
 		copy.setName(type.getName());
 		/* Set the system */
-		copy.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		copy.setModule(architectureInstance.getBipFileModel().getSystem());
 
 		/* subcomponents are missing */
 
 		return copy;
 	}
 
-	public PortType createPortType(String name, List<DataParameter> dataParameters)
-			throws ArchitectureExtractorException, InvalidPortTypeNameException {
+	public static PortType createPortType(ArchitectureInstance architectureInstance, String name,
+			List<DataParameter> dataParameters) throws ArchitectureExtractorException, InvalidPortTypeNameException {
 
 		/* Check whether the Port Type with the same name exists */
-		if (this.inspector.portTypeExists(name)) {
+		if (BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), name)) {
 			throw new InvalidPortTypeNameException(
 					"Port Type with a name " + name + " already exists in the architecture");
 		}
@@ -499,7 +491,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		/* Set the name of the type */
 		portType.setName(name);
 		/* Set the system of the type */
-		portType.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		portType.setModule(architectureInstance.getBipFileModel().getSystem());
 
 		/* Set the data parameters in the port */
 		if (dataParameters != null) {
@@ -509,7 +501,27 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return portType;
 	}
 
-	public PortType copyPortType(PortType type) {
+	public static Port createPort(ArchitectureInstance architectureInstance, String innerName, String interfaceName,
+			PortType type) {
+		/* First create Port Definition */
+		PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName, type);
+
+		/* Create Definition Binding */
+		DefinitionBinding binding = ArchitectureInstanceBuilder.createDefinitionBinding(portDefinition);
+
+		/* Create the new port */
+		Port port = Factories.BEHAVIORS_FACTORY.createPort();
+		/* Set the name of the port */
+		port.setName(innerName);
+		/* set the type of the port */
+		port.setBinding(binding);
+		/* Set the type of the port */
+		port.setType(type);
+
+		return port;
+	}
+
+	public static PortType copyPortType(ArchitectureInstance architectureInstance, PortType type) {
 		/* Create empty port type */
 		PortType copy = Factories.BEHAVIORS_FACTORY.createPortType();
 		/* Set the name of the port type */
@@ -518,20 +530,21 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		 * Set the module of the type same as module of the architecture
 		 * instance
 		 */
-		copy.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		copy.setModule(architectureInstance.getBipFileModel().getSystem());
 		/* Set data parameters */
 		copy.getDataParameter().addAll(type.getDataParameter());
 
 		return copy;
 	}
 
-	public ConnectorType createConnectorType(String connectorTypeName, List<PortParameter> portParameters,
-			PortExpression interactionDefinition, List<InteractionSpecification> interactionSpecifications)
+	public static ConnectorType createConnectorType(ArchitectureInstance architectureInstance, String connectorTypeName,
+			List<PortParameter> portParameters, PortExpression interactionDefinition,
+			List<InteractionSpecification> interactionSpecifications)
 			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
 			IllegalPortParameterReferenceException {
 
 		/* Check whether the Connector Type with the same name exists */
-		if (this.inspector.connectorTypeExists(connectorTypeName)) {
+		if (BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
 			throw new InvalidConnectorTypeNameException(
 					"Connector Type with a name " + connectorTypeName + " already exists in the architecture");
 		}
@@ -539,7 +552,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		/* Create new connector type */
 		ConnectorType connectorType = Factories.INTERACTIONS_FACTORY.createConnectorType();
 		/* Set module */
-		connectorType.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		connectorType.setModule(architectureInstance.getBipFileModel().getSystem());
 		/* Set name */
 		connectorType.setName(connectorTypeName);
 
@@ -568,13 +581,30 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return connectorType;
 	}
 
-	public ConnectorType copyConnectorType(ConnectorType type) throws ArchitectureExtractorException {
+	public static Connector createConnector(ArchitectureInstance architectureInstance, String name, ConnectorType type,
+			CompoundType parent, List<ActualPortParameter> actualPortParameters) {
+		/* Create the new Connector */
+		Connector connector = Factories.INTERACTIONS_FACTORY.createConnector();
+		/* Set the name of the Connector */
+		connector.setName(name);
+		/* set the type of the Connector */
+		connector.setType(type);
+		/* Set the parent of the Connector */
+		connector.setCompoundType(parent);
+		/* Set the input ports */
+		connector.getActualPort().addAll(actualPortParameters);
+
+		return connector;
+	}
+
+	public static ConnectorType copyConnectorType(ArchitectureInstance architectureInstance, ConnectorType type)
+			throws ArchitectureExtractorException {
 		/* Create new connector type */
 		ConnectorType copy = Factories.INTERACTIONS_FACTORY.createConnectorType();
 		/* Copy the name */
 		copy.setName(type.getName());
 		/* Set the module same as this architecture instance */
-		copy.setModule(this.architectureInstance.getBipFileModel().getSystem());
+		copy.setModule(architectureInstance.getBipFileModel().getSystem());
 
 		/* Instantiate an empty list of port parameters */
 		List<PortParameter> copyPortParameters = new LinkedList<PortParameter>();
@@ -586,19 +616,18 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 			PortType portType;
 
 			/* If the port type does not exist */
-			if (!this.inspector.portTypeExists(p.getType())) {
+			if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), p.getType())) {
 				/* copy the port type */
-				portType = this.copyPortType(p.getType());
+				portType = ArchitectureInstanceBuilder.copyPortType(architectureInstance, p.getType());
 			}
 			/* if the port type exists */
 			else {
-				/* Instantiate new extractor */
-				Extractor extractor = new ExtractorImpl(this.architectureInstance.getBipFileModel());
 				/* Get the port type */
-				portType = extractor.getPortTypeByName(p.getType().getName());
+				portType = BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(),
+						p.getType().getName());
 			}
 
-			copyPortParameters.add(this.createPortParameter(portType, p.getName()));
+			copyPortParameters.add(ArchitectureInstanceBuilder.createPortParameter(portType, p.getName()));
 		}
 
 		/* copy the port parameters */
@@ -611,10 +640,8 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return copy;
 	}
 
-	public void insertComponents(List<Component> components, boolean areCoordinators)
-			throws ArchitectureExtractorException, InvalidComponentNameException {
-		/* Extractor for the architecture instance */
-		ExtractorImpl extractor = new ExtractorImpl(this.architectureInstance.getBipFileModel());
+	public static void insertComponents(ArchitectureInstance architectureInstance, List<Component> components,
+			boolean areCoordinators) throws ArchitectureExtractorException, InvalidComponentNameException {
 
 		/* Iterate components */
 		for (Component c : components) {
@@ -623,19 +650,20 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 				/* Declare atom type */
 				AtomType atomType;
 				/* if the type does not exist */
-				if (!this.inspector.componentTypeExists(c.getType())) {
+				if (!BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), c.getType())) {
 					/* copy the type */
-					atomType = this.copyAtomicType((AtomType) c.getType());
+					atomType = ArchitectureInstanceBuilder.copyAtomicType(architectureInstance, (AtomType) c.getType());
 				}
 				/* if the type exists */
 				else {
 					/* search for the type */
-					atomType = extractor.getAtomTypeByName(c.getType().getName());
+					atomType = BIPExtractor.getAtomTypeByName(architectureInstance.getBipFileModel(),
+							c.getType().getName());
 				}
 
 				/* Add the new component */
-				this.addComponent(c.getName(), atomType, this.architectureInstance.getBipFileModel().getRootType(),
-						areCoordinators);
+				ArchitectureInstanceBuilder.addComponent(architectureInstance, c.getName(), atomType,
+						architectureInstance.getBipFileModel().getRootType(), areCoordinators);
 
 			}
 			/* If the component is composite */
@@ -645,7 +673,11 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		}
 	}
 
-	public Behavior createBehavior(List<State> initialStates, Action initialAction, List<State> states,
+	/****************************************************************************/
+	/* ARCHITECTURE INDEPENDENT METHODS */
+	/***************************************************************************/
+
+	public static Behavior createBehavior(List<State> initialStates, Action initialAction, List<State> states,
 			List<Transition> transitions)
 			throws InvalidStateNameException, ListEmptyException, IllegalTransitionStatesException {
 		/* Create the behavior */
@@ -714,7 +746,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return net;
 	}
 
-	public DataParameter createDataParameter(String name, OpaqueElement type) {
+	public static DataParameter createDataParameter(String name, OpaqueElement type) {
 		/* Create the new Data Parameter */
 		DataParameter dataParameter = Factories.BEHAVIORS_FACTORY.createDataParameter();
 		/* Set the name of the new data parameter */
@@ -725,7 +757,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return dataParameter;
 	}
 
-	public PortDefinition createPortDefinition(String interfaceName, PortType type) {
+	public static PortDefinition createPortDefinition(String interfaceName, PortType type) {
 		/* First create Port Definition */
 		PortDefinition portDefinition = Factories.BEHAVIORS_FACTORY.createPortDefinition();
 		/* set port type to the port definition */
@@ -736,7 +768,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return portDefinition;
 	}
 
-	public DefinitionBinding createDefinitionBinding(PortDefinition portDefinition) {
+	public static DefinitionBinding createDefinitionBinding(PortDefinition portDefinition) {
 		/* Create Definition Binding */
 		DefinitionBinding binding = Factories.BEHAVIORS_FACTORY.createDefinitionBinding();
 		/* Set definition to the binding */
@@ -745,26 +777,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return binding;
 	}
 
-	public Port createPort(String innerName, String interfaceName, PortType type) {
-		/* First create Port Definition */
-		PortDefinition portDefinition = this.createPortDefinition(interfaceName, type);
-
-		/* Create Definition Binding */
-		DefinitionBinding binding = this.createDefinitionBinding(portDefinition);
-
-		/* Create the new port */
-		Port port = Factories.BEHAVIORS_FACTORY.createPort();
-		/* Set the name of the port */
-		port.setName(innerName);
-		/* set the type of the port */
-		port.setBinding(binding);
-		/* Set the type of the port */
-		port.setType(type);
-
-		return port;
-	}
-
-	public PortDefinitionReference createPortDefinitionReference(PortDefinition portDefinition) {
+	public static PortDefinitionReference createPortDefinitionReference(PortDefinition portDefinition) {
 		/* Create port definition reference */
 		PortDefinitionReference portDefinitionReference = Factories.BEHAVIORS_FACTORY.createPortDefinitionReference();
 		/* set Port definition */
@@ -773,7 +786,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return portDefinitionReference;
 	}
 
-	public State createState(String name) {
+	public static State createState(String name) {
 		/* Create the state */
 		State state = (StateImpl) Factories.BEHAVIORS_FACTORY.createState();
 		/* Set the name of the state */
@@ -782,7 +795,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return state;
 	}
 
-	public List<State> createStates(List<String> names) {
+	public static List<State> createStates(List<String> names) {
 		/* Initialize the list */
 		List<State> states = new LinkedList<State>();
 
@@ -798,8 +811,8 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return states;
 	}
 
-	public Transition createTransition(PortDefinitionReference portDefinitionReference, State origin, State destination,
-			Expression guard, Action action) {
+	public static Transition createTransition(PortDefinitionReference portDefinitionReference, State origin,
+			State destination, Expression guard, Action action) {
 		/* Create new transition */
 		Transition transition = Factories.BEHAVIORS_FACTORY.createTransition();
 		/* set port reference */
@@ -820,7 +833,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return transition;
 	}
 
-	public Variable createVariable(String name, OpaqueElement type, boolean isExternal) {
+	public static Variable createVariable(String name, OpaqueElement type, boolean isExternal) {
 		/* Create the new variable */
 		Variable variable = Factories.BEHAVIORS_FACTORY.createVariable();
 		/* Set the name of the variable */
@@ -833,7 +846,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return variable;
 	}
 
-	public PartElementReference createPartElementReference(Part part) {
+	public static PartElementReference createPartElementReference(Part part) {
 		/* Create an empty part element reference */
 		PartElementReference partElementReference = Factories.INTERACTIONS_FACTORY.createPartElementReference();
 		/* Set the target part */
@@ -842,7 +855,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return partElementReference;
 	}
 
-	public InnerPortReference createInnerPortReference(PartElementReference partElementReference, Port port) {
+	public static InnerPortReference createInnerPortReference(PartElementReference partElementReference, Port port) {
 		/* Create an empty inner port reference */
 		InnerPortReference innerPortReference = Factories.INTERACTIONS_FACTORY.createInnerPortReference();
 		/*
@@ -857,30 +870,14 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return innerPortReference;
 	}
 
-	public Connector createConnector(String name, ConnectorType type, CompoundType parent,
-			List<ActualPortParameter> actualPortParameters) {
-		/* Create the new Connector */
-		Connector connector = Factories.INTERACTIONS_FACTORY.createConnector();
-		/* Set the name of the Connector */
-		connector.setName(name);
-		/* set the type of the Connector */
-		connector.setType(type);
-		/* Set the parent of the Connector */
-		connector.setCompoundType(parent);
-		/* Set the input ports */
-		connector.getActualPort().addAll(actualPortParameters);
-
-		return connector;
-	}
-
-	public Interaction createInteraction(List<PortParameter> portParameters) {
+	public static Interaction createInteraction(List<PortParameter> portParameters) {
 		/* Create the new interaction */
 		Interaction interaction = Factories.INTERACTIONS_FACTORY.createInteraction();
 
 		/* Create Port Parameter References */
 		List<PortParameterReference> portParamRefs = new LinkedList<PortParameterReference>();
 		for (PortParameter p : portParameters) {
-			PortParameterReference portParamRef = this.createPortParameterReference(p);
+			PortParameterReference portParamRef = ArchitectureInstanceBuilder.createPortParameterReference(p);
 			portParamRefs.add(portParamRef);
 		}
 
@@ -890,7 +887,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return interaction;
 	}
 
-	public InteractionSpecification createInteractionSpecification(Action downAction, Expression guard,
+	public static InteractionSpecification createInteractionSpecification(Action downAction, Expression guard,
 			Interaction interaction, Action upAction) {
 
 		/* create the new Interaction Specification */
@@ -909,7 +906,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 
 	}
 
-	public PortParameter createPortParameter(PortType portType, String name) {
+	public static PortParameter createPortParameter(PortType portType, String name) {
 		/* Create the new Port Parameter */
 		PortParameter portParam = Factories.INTERACTIONS_FACTORY.createPortParameter();
 		/* set the port type of the port parameter */
@@ -920,7 +917,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return portParam;
 	}
 
-	public BinaryExpression createBinaryExpression(Expression leftOperand, Expression rightOperand,
+	public static BinaryExpression createBinaryExpression(Expression leftOperand, Expression rightOperand,
 			BinaryOperator operator) {
 		/* Create the binary expression */
 		BinaryExpression binaryExpression = Factories.EXPRESSIONS_FACTORY.createBinaryExpression();
@@ -934,7 +931,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return binaryExpression;
 	}
 
-	public UnaryExpression createUnaryExpression(Expression operand, UnaryOperator operator, boolean isPostfix) {
+	public static UnaryExpression createUnaryExpression(Expression operand, UnaryOperator operator, boolean isPostfix) {
 		/* Create the unary expression */
 		UnaryExpression unaryExpression = Factories.EXPRESSIONS_FACTORY.createUnaryExpression();
 		/* Set the operand */
@@ -947,7 +944,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return unaryExpression;
 	}
 
-	public DataParameterReference createDataParameterReference(DataParameter parameter) {
+	public static DataParameterReference createDataParameterReference(DataParameter parameter) {
 		/* Create the new data parameter reference */
 		DataParameterReference dataParameterReference = Factories.EXPRESSIONS_FACTORY.createDataParameterReference();
 		/* Set the target parameter */
@@ -956,7 +953,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return dataParameterReference;
 	}
 
-	public VariableReference createVariableReference(Variable variable) {
+	public static VariableReference createVariableReference(Variable variable) {
 		/* Create the new variable reference */
 		VariableReference variableReference = Factories.EXPRESSIONS_FACTORY.createVariableReference();
 		/* Set the variable */
@@ -965,7 +962,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return variableReference;
 	}
 
-	public PortParameterReference createPortParameterReference(PortParameter portParameter) {
+	public static PortParameterReference createPortParameterReference(PortParameter portParameter) {
 		/* Create the new port parameter reference */
 		PortParameterReference portParamRef = Factories.INTERACTIONS_FACTORY.createPortParameterReference();
 		/* Set the target */
@@ -974,7 +971,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return portParamRef;
 	}
 
-	public BooleanLiteral createBooleanLiteral(boolean value) {
+	public static BooleanLiteral createBooleanLiteral(boolean value) {
 		/* Create new boolean literal */
 		BooleanLiteral booleanLiteral = Factories.EXPRESSIONS_FACTORY.createBooleanLiteral();
 		/* set the value of the literal */
@@ -983,7 +980,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return booleanLiteral;
 	}
 
-	public IntegerLiteral createIntegerLiteral(int value) {
+	public static IntegerLiteral createIntegerLiteral(int value) {
 		/* Create new Integer Literal */
 		IntegerLiteral integerLiteral = Factories.EXPRESSIONS_FACTORY.createIntegerLiteral();
 		/* Set the value of the literal */
@@ -992,7 +989,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return integerLiteral;
 	}
 
-	public RealLiteral createRealLiteral(double value) {
+	public static RealLiteral createRealLiteral(double value) {
 		/* Create new real literal */
 		RealLiteral realLiteral = Factories.EXPRESSIONS_FACTORY.createRealLiteral();
 		/* Set the value */
@@ -1001,7 +998,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return realLiteral;
 	}
 
-	public StringLiteral createStringLiteral(String value) {
+	public static StringLiteral createStringLiteral(String value) {
 		/* Create new string literal */
 		StringLiteral stringLiteral = Factories.EXPRESSIONS_FACTORY.createStringLiteral();
 		/* set the value of the literal */
@@ -1010,7 +1007,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return stringLiteral;
 	}
 
-	public AssignmentAction createAssignmentAction(DataReference target, Expression value, AssignType operand) {
+	public static AssignmentAction createAssignmentAction(DataReference target, Expression value, AssignType operand) {
 		/* Create the assignment action */
 		AssignmentAction assignmentAction = Factories.ACTIONS_FACTORY.createAssignmentAction();
 		/* Set the target(left side) */
@@ -1023,7 +1020,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return assignmentAction;
 	}
 
-	public IfAction createIfAction(Expression condition, Action ifCase, Action elseCase) {
+	public static IfAction createIfAction(Expression condition, Action ifCase, Action elseCase) {
 		/* Create the 'if' action */
 		IfAction ifAction = Factories.ACTIONS_FACTORY.createIfAction();
 		/* Set condition */
@@ -1036,7 +1033,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return ifAction;
 	}
 
-	public CompositeAction createCompositeAction(List<Action> actions) {
+	public static CompositeAction createCompositeAction(List<Action> actions) {
 		/* Create the composite action */
 		CompositeAction compositeAction = Factories.ACTIONS_FACTORY.createCompositeAction();
 		/* Set the list of all sub actions */
@@ -1045,7 +1042,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return compositeAction;
 	}
 
-	public ACFusion createACFusion(List<ACExpression> expressions) {
+	public static ACFusion createACFusion(List<ACExpression> expressions) {
 		/* Create new ACFusion */
 		ACFusion acFusion = Factories.PORT_EXP_FACTORY.createACFusion();
 		/* Set the list of AC expressions */
@@ -1054,7 +1051,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return acFusion;
 	}
 
-	public ACUnion createACUnion(List<ACExpression> expressions) {
+	public static ACUnion createACUnion(List<ACExpression> expressions) {
 		/* Create new ACUnion */
 		ACUnion acUnion = Factories.PORT_EXP_FACTORY.createACUnion();
 		/* Set the list of AC expressions */
@@ -1063,21 +1060,21 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return acUnion;
 	}
 
-	public ACFusionNeutral createACFusionNeutral() {
+	public static ACFusionNeutral createACFusionNeutral() {
 		/* Create ACFusionNeutral */
 		ACFusionNeutral acFusionNeutral = Factories.PORT_EXP_FACTORY.createACFusionNeutral();
 
 		return acFusionNeutral;
 	}
 
-	public ACUnionNeutral createACUnionNeutral() {
+	public static ACUnionNeutral createACUnionNeutral() {
 		/* Create ACUnionNeutral */
 		ACUnionNeutral acUnionNeutral = Factories.PORT_EXP_FACTORY.createACUnionNeutral();
 
 		return acUnionNeutral;
 	}
 
-	public ACTyping createACTyping(ACTypingKind type, ACExpression expression) {
+	public static ACTyping createACTyping(ACTypingKind type, ACExpression expression) {
 		/* Create new ACTyping */
 		ACTyping acTyping = Factories.PORT_EXP_FACTORY.createACTyping();
 		/* Set the AC expression */
@@ -1088,7 +1085,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return acTyping;
 	}
 
-	public AISynchro createAISynchro(List<AIExpression> expressions) {
+	public static AISynchro createAISynchro(List<AIExpression> expressions) {
 		/* Create new AISynchro */
 		AISynchro aiSynchro = Factories.PORT_EXP_FACTORY.createAISynchro();
 		/* Set the list of AI expressions */
@@ -1097,7 +1094,7 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return aiSynchro;
 	}
 
-	public AIUnion createAIUnion(List<AIExpression> expressions) {
+	public static AIUnion createAIUnion(List<AIExpression> expressions) {
 		/* Create new AIUnion */
 		AIUnion aiUnion = Factories.PORT_EXP_FACTORY.createAIUnion();
 		/* Set the list of AI expressions */
@@ -1106,21 +1103,21 @@ public class ArchitectureInstanceBuilder implements ArchitectureDependentEntitie
 		return aiUnion;
 	}
 
-	public AISynchroNeutral createAISynchroNeutral() {
+	public static AISynchroNeutral createAISynchroNeutral() {
 		/* Create new AISynchroNeutral */
 		AISynchroNeutral aiSynchroNeutral = Factories.PORT_EXP_FACTORY.createAISynchroNeutral();
 
 		return aiSynchroNeutral;
 	}
 
-	public AIUnionNeutral createAIUnionNeutral() {
+	public static AIUnionNeutral createAIUnionNeutral() {
 		/* Create new AIUnionNeutral */
 		AIUnionNeutral aiUnionNeutral = Factories.PORT_EXP_FACTORY.createAIUnionNeutral();
 
 		return aiUnionNeutral;
 	}
 
-	public OpaqueElement createOpaqueElement(String body, boolean isHeader) {
+	public static OpaqueElement createOpaqueElement(String body, boolean isHeader) {
 		/* create the new opaque element */
 		OpaqueElement element = Factories.MODULES_FACTORY.createOpaqueElement();
 		/* set the body of the element */

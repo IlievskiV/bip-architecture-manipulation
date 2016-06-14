@@ -12,16 +12,14 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.ConnectorNotFoundException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
-import ch.epfl.risd.archman.extractor.ExtractorImpl;
-import ch.epfl.risd.archman.extractor.InspectArchitecture;
 import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
-import ujf.verimag.bip.Core.Modules.impl.SystemImpl;
 
 /**
  * This class is representing one architecture style, that is a parameterized
@@ -273,62 +271,52 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	}
 
 	@Override
-	protected void validate() {
-		// TODO Auto-generated method stub
+	protected void validate() throws ComponentNotFoundException, ArchitectureExtractorException {
+		validateCoordinators();
+		validatePorts();
+		validateOperands();
+		validateConnectors();
 	}
 
-	private void validateArchitectureStyle() throws ArchitectureExtractorException {
-
-		/* Instantiate new inspector */
-		InspectArchitecture inspector = new ExtractorImpl(this.bipFileModel);
-
-		validateCoordinators(inspector);
-		validatePorts(inspector);
-		validateOperands(inspector);
-		validateConnectors(inspector);
-	}
-
-	private void validateCoordinators(InspectArchitecture inspector)
-			throws ComponentNotFoundException, ArchitectureExtractorException {
+	private void validateCoordinators() throws ComponentNotFoundException, ArchitectureExtractorException {
 
 		/* Iterate the set of coordinators in the Architecture Style */
-		for (String s : this.coordinators) {
-			if (!inspector.componentExists(s)) {
-				throw new ComponentNotFoundException("The component with name " + s + "does not exist in the BIP file");
+		for (String componentName : this.coordinators) {
+			if (!BIPChecker.componentExists(this.bipFileModel, componentName)) {
+				throw new ComponentNotFoundException(
+						"The component with name " + componentName + "does not exist in the BIP file");
 			}
 		}
 
 	}
 
-	private void validatePorts(InspectArchitecture inspector)
-			throws PortNotFoundException, ArchitectureExtractorException {
+	private void validatePorts() throws PortNotFoundException, ArchitectureExtractorException {
 		/* Iterate the set of ports in the Architecture Ports */
 		for (String s : this.ports) {
 			String[] tokens = s.split("\\.");
 			String portName = tokens[1];
 			String componentName = tokens[0];
-			if (!inspector.portExists(portName, componentName)) {
+			if (!BIPChecker.portExists(this.bipFileModel, portName, componentName)) {
 				throw new PortNotFoundException("The port with name " + portName + " in the component with name "
 						+ componentName + " does not exist");
 			}
 		}
 	}
 
-	private void validateOperands(InspectArchitecture inspector)
-			throws ComponentNotFoundException, ArchitectureExtractorException {
+	private void validateOperands() throws ComponentNotFoundException, ArchitectureExtractorException {
 		/* Iterate the set of operands */
-		for (String s : this.operands) {
-			if (!inspector.componentExists(s)) {
+		for (String componentName : this.operands) {
+			if (!BIPChecker.componentExists(this.bipFileModel, componentName)) {
 				throw new ComponentNotFoundException(
-						"The component with name " + s + " does not exist in the BIP file");
+						"The component with name " + componentName + " does not exist in the BIP file");
 			}
 		}
 	}
 
-	private void validateConnectors(InspectArchitecture inspector) throws ArchitectureExtractorException {
+	private void validateConnectors() throws ArchitectureExtractorException {
 		/* Iterate the connector tuples */
 		for (ConnectorTuple tuple : this.connectors) {
-			if (!inspector.connectorExists(tuple.getConnectorInstanceName())) {
+			if (!BIPChecker.connectorExists(this.bipFileModel, tuple.getConnectorInstanceName())) {
 				throw new ConnectorNotFoundException("The connector instance with name "
 						+ tuple.getConnectorInstanceName() + " does not exist in the BIP file");
 			}
@@ -362,7 +350,7 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		this.bipFileModel = new BIPFileModel(this.parameters.get(ConstantFields.PATH_PARAM));
 
 		/* Validate the Architecture style */
-		validateArchitectureStyle();
+		this.validate();
 	}
 
 	/**

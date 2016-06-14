@@ -4,15 +4,11 @@ import java.util.List;
 
 import BIPTransformation.TransformationFunction;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
-import ch.epfl.risd.archman.extractor.Extractor;
-import ch.epfl.risd.archman.extractor.ExtractorImpl;
+import ch.epfl.risd.archman.extractor.BIPExtractor;
 import ch.epfl.risd.archman.factories.Factories;
 import ujf.verimag.bip.Core.Behaviors.ComponentType;
-import ujf.verimag.bip.Core.Behaviors.Port;
 import ujf.verimag.bip.Core.Behaviors.PortType;
-import ujf.verimag.bip.Core.Interactions.Component;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
-import ujf.verimag.bip.Core.Interactions.Connector;
 import ujf.verimag.bip.Core.Interactions.ConnectorType;
 import ujf.verimag.bip.Core.Modules.impl.RootImpl;
 import ujf.verimag.bip.Core.Modules.impl.SystemImpl;
@@ -39,9 +35,8 @@ public class BIPFileModel {
 	private RootImpl root;
 
 	/**
-	 * The type of the root in the architecture. The definition of type is
-	 * similar with the definition of class in OOP. This is BIP specific
-	 * variable.
+	 * The type of the root in the BIP system. The definition of type is similar
+	 * with the definition of class in OOP. This is BIP specific variable.
 	 */
 	private CompoundType rootType;
 
@@ -62,9 +57,9 @@ public class BIPFileModel {
 	public BIPFileModel(String path) {
 		/* Parse the BIP model */
 		this.rootType = TransformationFunction.ParseBIPFile(path);
-		
+
 		System.out.println(path);
-		
+
 		/* Get the system of the BIP model */
 		this.system = (SystemImpl) this.rootType.getModule();
 
@@ -110,14 +105,12 @@ public class BIPFileModel {
 	 */
 	public void changeSystem(SystemImpl systemImpl) throws ArchitectureExtractorException {
 
-		/* Instantiate extractor */
-		Extractor extractor = new ExtractorImpl(this);
 		/* Get all components */
-		List<ComponentType> allComponentTypes = extractor.getAllComponentTypes();
+		List<ComponentType> allComponentTypes = BIPExtractor.getAllComponentTypes(this);
 		/* Get all ports */
-		List<PortType> allPortTypes = extractor.getAllPortTypes();
+		List<PortType> allPortTypes = BIPExtractor.getAllPortTypes(this);
 		/* Get all connectors */
-		List<ConnectorType> allConnectorTypes = extractor.getAllConnectorTypes();
+		List<ConnectorType> allConnectorTypes = BIPExtractor.getAllConnectorTypes(this);
 
 		/* Iterate component types */
 		for (ComponentType ct : allComponentTypes) {
@@ -136,13 +129,13 @@ public class BIPFileModel {
 			/* Change the module of the connector type */
 			ct.setModule(systemImpl);
 		}
-		
+
 		/* Change the module of the root type */
 		this.rootType.setModule(systemImpl);
-		
+
 		/* Change the system */
 		this.system = systemImpl;
-		
+
 	}
 
 	/**

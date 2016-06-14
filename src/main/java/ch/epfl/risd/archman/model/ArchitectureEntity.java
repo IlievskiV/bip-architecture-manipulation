@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.Hashtable;
 
+import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
+import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 
 /**
@@ -54,8 +56,11 @@ public abstract class ArchitectureEntity {
 	 * This method validates the Architecture Entity, i.e. it checks whether the
 	 * Architecture Entity is consistent with the information in the
 	 * configuration file.
+	 * 
+	 * @throws ArchitectureExtractorException
+	 * @throws ComponentNotFoundException
 	 */
-	protected abstract void validate();
+	protected abstract void validate() throws ComponentNotFoundException, ArchitectureExtractorException;
 
 	/****************************************************************************/
 	/* PUBLIC METHODS */

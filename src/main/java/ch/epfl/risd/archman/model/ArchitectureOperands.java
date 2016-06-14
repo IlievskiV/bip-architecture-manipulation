@@ -7,13 +7,12 @@ import java.util.Hashtable;
 import java.util.Scanner;
 import java.util.Set;
 
+import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
-import ch.epfl.risd.archman.extractor.ExtractorImpl;
-import ch.epfl.risd.archman.extractor.InspectArchitecture;
 
 /**
  * This class contains the operands of the architecture, i.e. the operands that
@@ -172,20 +171,12 @@ public class ArchitectureOperands extends ArchitectureEntity {
 	}
 
 	@Override
-	protected void validate() {
-		// TODO Auto-generated method stub
+	protected void validate() throws ComponentNotFoundException, ArchitectureExtractorException {
+		validateOperands();
+		validatePorts();
 	}
 
-	private void validateArchitectureOperands() throws ComponentNotFoundException, ArchitectureExtractorException {
-		/* Instantiate new inspector */
-		InspectArchitecture inspector = new ExtractorImpl(this.bipFileModel);
-
-		validateOperands(inspector);
-		validatePorts(inspector);
-	}
-
-	private void validateOperands(InspectArchitecture inspector)
-			throws ComponentNotFoundException, ArchitectureExtractorException {
+	private void validateOperands() throws ComponentNotFoundException, ArchitectureExtractorException {
 		/* Get the key set of operands mapping */
 		Set<String> keySet = this.operandsMapping.keySet();
 
@@ -196,7 +187,7 @@ public class ArchitectureOperands extends ArchitectureEntity {
 
 			/* Iterate value set */
 			for (String value : valueSet) {
-				if (!inspector.componentExists(value)) {
+				if (!BIPChecker.componentExists(this.bipFileModel, value)) {
 					throw new ComponentNotFoundException(
 							"The component with name " + value + " does not exist in the BIP file");
 				}
@@ -204,8 +195,7 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		}
 	}
 
-	private void validatePorts(InspectArchitecture inspector)
-			throws PortNotFoundException, ArchitectureExtractorException {
+	private void validatePorts() throws PortNotFoundException, ArchitectureExtractorException {
 		/* Get the key set of the ports mapping */
 		Set<String> keySet = this.portsMapping.keySet();
 
@@ -219,7 +209,7 @@ public class ArchitectureOperands extends ArchitectureEntity {
 				String[] tokens = value.split("\\.");
 				String portName = tokens[1];
 				String componentName = tokens[0];
-				if (!inspector.portExists(portName, componentName)) {
+				if (!BIPChecker.portExists(this.bipFileModel, portName, componentName)) {
 					throw new PortNotFoundException("The port with name " + portName + " in the component with name "
 							+ componentName + " does not exist");
 				}
@@ -253,7 +243,7 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		this.bipFileModel = new BIPFileModel(this.parameters.get(ConstantFields.PATH_PARAM));
 
 		/* Validate architecture operands */
-		this.validateArchitectureOperands();
+		this.validate();
 	}
 
 	/**

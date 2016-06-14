@@ -3,12 +3,18 @@ package ch.epfl.risd.archman.model;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+
+import com.bpodgursky.jbool_expressions.And;
+import com.bpodgursky.jbool_expressions.Expression;
+import com.bpodgursky.jbool_expressions.Or;
+import com.bpodgursky.jbool_expressions.Variable;
+import com.bpodgursky.jbool_expressions.parsers.ExprParser;
+import com.bpodgursky.jbool_expressions.rules.RuleSet;
 
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
@@ -197,9 +203,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 	/**
 	 * Method for calculating the characteristic predicate of this Architecture
-	 * Instance, as a list of terms from which the predicate is consisted. Right
-	 * now there is only one limitation which is, every port must be represented
-	 * as a one letter.
+	 * Instance, if the set of interactions is already given
 	 * 
 	 * @return the list of terms in the characteristic predicate
 	 */
@@ -257,6 +261,46 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		return predicate.toString();
 	}
 
+	/**
+	 * Method for calculating the set of interactions, if the characteristic
+	 * predicate is given. We assume that the characteristic predicate in the
+	 * Disjunctive Normal Form, i.e. disjunctions of conjunctions
+	 * 
+	 * @return
+	 */
+	protected List<String> calculateInteractions() {
+		/* The resulting set */
+		List<String> result = new LinkedList<String>();
+
+		/* The characteristic predicate in terms of boolean algebra */
+		Expression<String> boolPredicate = RuleSet.simplify(ExprParser.parse(characteristicPredicate));
+
+		/* Due to the assumption, cast it to disjunction */
+		Expression<String>[] expressions = ((Or<String>) boolPredicate).expressions;
+
+		/* Iterate over the expressions in the disjunction */
+		for (int i = 0; i < expressions.length; i++) {
+			/* Due to the assumption, the sub-expressions are conjunctions */
+			Expression<String>[] subExpressions = ((And<String>) expressions[i]).expressions;
+			/* The resulting interaction */
+			StringBuilder interaction = new StringBuilder();
+
+			/* Iterate over the sub expressions */
+			for (int j = 0; j < subExpressions.length; j++) {
+				/* It is variable or negation */
+				if (subExpressions[j] instanceof Variable<?>) {
+					/* Append the port in the interaction */
+					interaction.append(((Variable<String>) subExpressions[j]).getValue());
+				}
+			}
+			/* Add the interaction */
+			result.add(interaction.toString());
+			System.out.println(interaction.toString());
+		}
+
+		return result;
+	}
+
 	/****************************************************************************/
 	/* PUBLIC METHODS */
 	/***************************************************************************/
@@ -286,11 +330,13 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		this.ports = new LinkedList<String>();
 		/* Instantiate the list of interactions */
 		this.interactions = new LinkedList<String>();
+		/* Empty characteristic predicate */
+		this.characteristicPredicate = new String();
 	}
 
 	/**
-	 * Constructor for this class, when all field of the architecture instance
-	 * are already given.
+	 * Constructor for this class, when all fields of the architecture instance
+	 * are already given, execpt the characteristic predicate
 	 * 
 	 * @param bipFileModel
 	 *            - the BIP file where the architecture is written
@@ -312,6 +358,15 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		this.operands = operands;
 		this.ports = ports;
 		this.interactions = interactions;
+		this.characteristicPredicate = this.calculateCharacteristicPredicate();
+	}
+
+	public ArchitectureInstance(String pathToBIPFile, String pathtoConfFile, List<String> coordinators,
+			List<String> operands, List<String> ports, String characteristicPredicate) {
+
+		this.characteristicPredicate = characteristicPredicate;
+		this.interactions = this.calculateInteractions();
+
 	}
 
 	/**

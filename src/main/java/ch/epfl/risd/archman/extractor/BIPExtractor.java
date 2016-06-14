@@ -48,14 +48,7 @@ import ujf.verimag.bip.Core.Interactions.ConnectorType;
 import ujf.verimag.bip.Core.Modules.OpaqueElement;
 import ujf.verimag.bip.Core.PortExpressions.PortExpression;
 
-public class ExtractorImpl implements Extractor, InspectArchitecture {
-
-	/****************************************************************************/
-	/* VARIABLES */
-	/***************************************************************************/
-
-	/* The BIP file model for extracting */
-	private BIPFileModel bipFileModel;
+public class BIPExtractor {
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -72,7 +65,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 	 *            - the depth of the current component type
 	 * @throws ArchitectureExtractorException
 	 */
-	private void printStructureTemp(ComponentType componentType, String name, int depth)
+	protected static void printStructureTemp(ComponentType componentType, String name, int depth)
 			throws ArchitectureExtractorException {
 
 		/* Print spaces according to the depth of the component */
@@ -120,7 +113,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 	 * @return The list of all subcomponents
 	 * @throws ArchitectureExtractorException
 	 */
-	private List<Component> getAllComponentsTemp(Component component, List<Component> components)
+	protected static List<Component> getAllComponentsTemp(Component component, List<Component> components)
 			throws ArchitectureExtractorException {
 
 		/* Check whether the resulting list is initialized */
@@ -168,7 +161,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 	 * @return The list of all ports
 	 * @throws ArchitectureExtractorException
 	 */
-	private List<Port> getAllPortsTemp(ComponentType componentType, List<Port> ports)
+	protected static List<Port> getAllPortsTemp(ComponentType componentType, List<Port> ports)
 			throws ArchitectureExtractorException {
 		/* Check whether the resulting list is initialized */
 		if (ports == null) {
@@ -215,7 +208,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 	 * @return The list of all connectors
 	 * @throws ArchitectureExtractorException
 	 */
-	private List<Connector> getAllConnectorsTemp(ComponentType componentType, List<Connector> connectors)
+	protected static List<Connector> getAllConnectorsTemp(ComponentType componentType, List<Connector> connectors)
 			throws ArchitectureExtractorException {
 		/* Check whether the resulting list is initialized */
 		if (connectors == null) {
@@ -256,7 +249,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 	 * @param operator
 	 *            - The name of the operator
 	 */
-	private void printOperator(String operator) {
+	protected static void printOperator(String operator) {
 		/* Everything is self-descriptive */
 		if (operator.equals("addition"))
 			System.out.print("+");
@@ -287,7 +280,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 	 * @param exp
 	 *            - The expression for printing
 	 */
-	private void printExpression(Expression exp) {
+	protected static void printExpression(Expression exp) {
 
 		/* If the expression is binary, i.e. we have left and right operand */
 		if (exp instanceof BinaryExpression) {
@@ -380,7 +373,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		System.out.println();
 	}
 
-	private void printAction(Action act) {
+	protected static void printAction(Action act) {
 		if (act instanceof AssignmentAction) {
 			AssignmentAction assignAct = (AssignmentAction) act;
 			DataReference dataRef = assignAct.getAssignedTarget();
@@ -426,44 +419,17 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 	/* PUBLIC METHODS */
 	/****************************************************************************/
 
-	/**
-	 * Constructor for the class. It creates the architecture for extracting.
-	 * 
-	 * @param pathToConfFile
-	 *            - path to the BIP file
-	 */
-	public ExtractorImpl(String path) {
-		this.bipFileModel = new BIPFileModel(path);
-	}
-
-	/**
-	 * @param architecture
-	 *            - already created BIP file model
-	 */
-	public ExtractorImpl(BIPFileModel bipFileModel) {
-		this.bipFileModel = bipFileModel;
-	}
-
-	/**
-	 * @return the BIP file model
-	 */
-	public BIPFileModel getBipFileModel() {
-		return bipFileModel;
-	}
-
-	@Override
-	public void printStructure() throws ArchitectureExtractorException {
+	public static void printStructure(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		System.out.println("The structure of the BIP model is: ");
-		this.printStructureTemp(this.bipFileModel.getRootType(), "", 0);
+		BIPExtractor.printStructureTemp(bipFileModel.getRootType(), "", 0);
 		System.out.println();
 	}
 
-	@Override
-	public List<Component> getAllComponents() throws ArchitectureExtractorException {
+	public static List<Component> getAllComponents(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		List<Component> components = new LinkedList<Component>();
 
 		/* Get all subcomponents of the architecture */
-		EList<Component> architectureComponents = (this.bipFileModel.getRootType()).getSubcomponent();
+		EList<Component> architectureComponents = (bipFileModel.getRootType()).getSubcomponent();
 		for (Component c : architectureComponents) {
 			components.addAll(getAllComponentsTemp(c, new LinkedList<Component>()));
 		}
@@ -471,10 +437,9 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return components;
 	}
 
-	@Override
-	public List<String> getAllComponentsNames() throws ArchitectureExtractorException {
+	public static List<String> getAllComponentsNames(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Get all components in the architecture */
-		List<Component> allComponents = this.getAllComponents();
+		List<Component> allComponents = BIPExtractor.getAllComponents(bipFileModel);
 		/* We will get the name of each component */
 		List<String> allComponentNames = new LinkedList<String>();
 
@@ -486,22 +451,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return allComponentNames;
 	}
 
-	@Override
-	public boolean componentExists(Component component) throws ArchitectureExtractorException {
-		return this.getAllComponentsNames().contains(component.getName());
-	}
-
-	@Override
-	public boolean componentExists(String componentName) throws ArchitectureExtractorException {
-		return this.getAllComponentsNames().contains(componentName);
-	}
-
-	@Override
-	public List<Component> getAllAtoms() throws ArchitectureExtractorException {
+	public static List<Component> getAllAtoms(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Instantiate the list of all atoms */
 		List<Component> atoms = new LinkedList<Component>();
 		/* Get all components from the architecture */
-		List<Component> components = this.getAllComponents();
+		List<Component> components = BIPExtractor.getAllComponents(bipFileModel);
 
 		/* Iterate components */
 		for (Component c : components) {
@@ -514,10 +468,9 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return atoms;
 	}
 
-	@Override
-	public void printAtoms() throws ArchitectureExtractorException {
+	public static void printAtoms(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Get all atoms */
-		List<Component> atoms = this.getAllAtoms();
+		List<Component> atoms = BIPExtractor.getAllAtoms(bipFileModel);
 
 		System.out.println("Atoms are: ");
 		/* Iterate atoms */
@@ -528,12 +481,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		System.out.println();
 	}
 
-	@Override
-	public List<Component> getAllCompounds() throws ArchitectureExtractorException {
+	public static List<Component> getAllCompounds(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Instantiate the list of all atoms */
 		List<Component> compounds = new LinkedList<Component>();
 		/* Get all components from the architecture */
-		List<Component> components = this.getAllComponents();
+		List<Component> components = BIPExtractor.getAllComponents(bipFileModel);
 
 		/* Iterate components */
 		for (Component c : components) {
@@ -546,10 +498,9 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return compounds;
 	}
 
-	@Override
-	public void printCompounds() throws ArchitectureExtractorException {
+	public static void printCompounds(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Get all compounds in the architecture */
-		List<Component> compounds = this.getAllCompounds();
+		List<Component> compounds = BIPExtractor.getAllCompounds(bipFileModel);
 
 		System.out.println("Compounds are: ");
 		/* Iterate compounds */
@@ -560,8 +511,8 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		System.out.println();
 	}
 
-	@Override
-	public List<ComponentType> getAllComponentTypes() throws ArchitectureExtractorException {
+	public static List<ComponentType> getAllComponentTypes(BIPFileModel bipFileModel)
+			throws ArchitectureExtractorException {
 		/* The list of all Component Types in the Architecture */
 		List<ComponentType> types = new LinkedList<ComponentType>();
 
@@ -569,7 +520,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		 * This will return me all Component Types, Port Types and Connector
 		 * Types in the Architecture
 		 */
-		List<BipType> allTypes = this.bipFileModel.getSystem().getBipType();
+		List<BipType> allTypes = bipFileModel.getSystem().getBipType();
 
 		/* Iterate all BIP Types */
 		for (BipType bt : allTypes) {
@@ -583,10 +534,10 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return types;
 	}
 
-	@Override
-	public List<String> getAllComponentTypesNames() throws ArchitectureExtractorException {
+	public static List<String> getAllComponentTypesNames(BIPFileModel bipFileModel)
+			throws ArchitectureExtractorException {
 		/* Get all component types in the architecture */
-		List<ComponentType> allTypes = this.getAllComponentTypes();
+		List<ComponentType> allTypes = BIPExtractor.getAllComponentTypes(bipFileModel);
 		/* We will get the name of each component type */
 		List<String> allTypesNames = new LinkedList<String>();
 
@@ -598,22 +549,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return allTypesNames;
 	}
 
-	@Override
-	public boolean componentTypeExists(ComponentType componentType) throws ArchitectureExtractorException {
-		return this.getAllComponentTypesNames().contains(componentType.getName());
-	}
-
-	@Override
-	public boolean componentTypeExists(String componentTypeName) throws ArchitectureExtractorException {
-		return this.getAllComponentTypesNames().contains(componentTypeName);
-	}
-
-	@Override
-	public List<AtomType> getAllAtomTypes() throws ArchitectureExtractorException {
+	public static List<AtomType> getAllAtomTypes(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		List<AtomType> atomTypes = new LinkedList<AtomType>();
 
 		/* Get all types in the architecture */
-		List<ComponentType> allTypes = this.getAllComponentTypes();
+		List<ComponentType> allTypes = BIPExtractor.getAllComponentTypes(bipFileModel);
 
 		/* Iterate types */
 		for (ComponentType t : allTypes) {
@@ -625,27 +565,27 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return atomTypes;
 	}
 
-	@Override
-	public AtomType getAtomTypeByName(String atomTypeName) throws ArchitectureExtractorException{
+	public static AtomType getAtomTypeByName(BIPFileModel bipFileModel, String atomTypeName)
+			throws ArchitectureExtractorException {
 		/* Get the list of all atom types */
-		List<AtomType> allAtomTypes = this.getAllAtomTypes();
-		
+		List<AtomType> allAtomTypes = BIPExtractor.getAllAtomTypes(bipFileModel);
+
 		/* Iterate all atom types */
-		for(AtomType a : allAtomTypes){
-			if(a.getName().equals(atomTypeName)){
+		for (AtomType a : allAtomTypes) {
+			if (a.getName().equals(atomTypeName)) {
 				return a;
 			}
 		}
-		
+
 		throw new ComponentTypeNotFoundException("The atom type with a name " + atomTypeName + " is not found");
 	}
 
-	@Override
-	public List<CompoundType> getAllCompoundTypes() throws ArchitectureExtractorException {
+	public static List<CompoundType> getAllCompoundTypes(BIPFileModel bipFileModel)
+			throws ArchitectureExtractorException {
 		List<CompoundType> compoundTypes = new LinkedList<CompoundType>();
 
 		/* Get all types in the architecture */
-		List<ComponentType> allTypes = this.getAllComponentTypes();
+		List<ComponentType> allTypes = BIPExtractor.getAllComponentTypes(bipFileModel);
 
 		/* Iterate types */
 		for (ComponentType t : allTypes) {
@@ -657,10 +597,10 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return compoundTypes;
 	}
 
-	@Override
-	public Component getComponentByName(String name) throws ArchitectureExtractorException {
+	public static Component getComponentByName(BIPFileModel bipFileModel, String name)
+			throws ArchitectureExtractorException {
 		/* Get all components in the architecture */
-		List<Component> components = this.getAllComponents();
+		List<Component> components = BIPExtractor.getAllComponents(bipFileModel);
 
 		/* Iterate components */
 		for (Component c : components) {
@@ -672,11 +612,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		throw new ComponentNotFoundException("A component with the name " + name + " does not exist");
 	}
 
-	@Override
-	public List<Component> getComponentsByType(String type) throws ArchitectureExtractorException {
+	public static List<Component> getComponentsByType(BIPFileModel bipFileModel, String type)
+			throws ArchitectureExtractorException {
 		List<Component> result = new LinkedList<Component>();
 		/* Get all components in the architecture */
-		List<Component> components = this.getAllComponents();
+		List<Component> components = BIPExtractor.getAllComponents(bipFileModel);
 
 		/* Iterate components */
 		for (Component c : components) {
@@ -693,8 +633,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return result;
 	}
 
-	@Override
-	public List<State> getAtomStates(Component atom) throws IllegalComponentException {
+	public static List<State> getAtomStates(Component atom) throws IllegalComponentException {
 		List<State> states = new LinkedList<State>();
 
 		/* If the provided component is not atomic */
@@ -711,10 +650,9 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return states;
 	}
 
-	@Override
-	public void printAtomStates(Component atom) throws IllegalComponentException {
+	public static void printAtomStates(Component atom) throws IllegalComponentException {
 		/* Get all states of the atom */
-		List<State> states = this.getAtomStates(atom);
+		List<State> states = BIPExtractor.getAtomStates(atom);
 		/* Print the states */
 		System.out.println("States of the atom " + atom.getName() + " are: ");
 		for (State s : states) {
@@ -723,12 +661,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		System.out.println();
 	}
 
-	@Override
-	public List<String> getAtomStatesNames(Component atom) throws IllegalComponentException {
+	public static List<String> getAtomStatesNames(Component atom) throws IllegalComponentException {
 		/* Initialize the list of all state names */
 		List<String> atomStatesNames = new LinkedList<String>();
 		/* Get all states for the given atom */
-		List<State> allAtomStates = this.getAtomStates(atom);
+		List<State> allAtomStates = BIPExtractor.getAtomStates(atom);
 
 		/* Iterate states */
 		for (State s : allAtomStates) {
@@ -739,12 +676,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return atomStatesNames;
 	}
 
-	public boolean stateExists(String name, Component atom) throws IllegalComponentException {
-		return getAtomStatesNames(atom).contains(name);
-	}
-
-	@Override
-	public List<Transition> getAtomTransitions(Component atom) throws IllegalComponentException {
+	public static List<Transition> getAtomTransitions(Component atom) throws IllegalComponentException {
 		/* Initialize the list of all transitions */
 		List<Transition> transitions = new LinkedList<Transition>();
 
@@ -762,10 +694,9 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return transitions;
 	}
 
-	@Override
-	public void printAtomTransitions(Component atom) throws IllegalComponentException {
+	public static void printAtomTransitions(Component atom) throws IllegalComponentException {
 		/* Get all transitions of the atom */
-		List<Transition> transitions = this.getAtomTransitions(atom);
+		List<Transition> transitions = BIPExtractor.getAtomTransitions(atom);
 
 		/* Iterate transitions */
 		for (Transition t : transitions) {
@@ -797,52 +728,45 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		System.out.println();
 	}
 
-	@Override
-	public List<State> getTransitionOrigins(Transition transition) {
+	public static List<State> getTransitionOrigins(Transition transition) {
 		List<State> states = new LinkedList<State>();
 		states.addAll(transition.getOrigin());
 		return states;
 	}
 
-	@Override
-	public List<State> getTransitionDestinations(Transition transition) {
+	public static List<State> getTransitionDestinations(Transition transition) {
 		List<State> states = new LinkedList<State>();
 		states.addAll(transition.getDestination());
 		return states;
 	}
 
-	@Override
-	public List<Transition> getIncomingTransitions(State state) {
+	public static List<Transition> getIncomingTransitions(State state) {
 		List<Transition> transitions = new LinkedList<Transition>();
 		transitions.addAll(state.getIncoming());
 		return transitions;
 	}
 
-	@Override
-	public List<AbstractTransition> getOutgoingTransitions(State state) {
+	public static List<AbstractTransition> getOutgoingTransitions(State state) {
 		List<AbstractTransition> transitions = new LinkedList<AbstractTransition>();
 		transitions.addAll(state.getOutgoing());
 		return transitions;
 	}
 
-	@Override
-	public List<Port> getAllPorts() throws ArchitectureExtractorException {
-		return getAllPortsTemp(this.bipFileModel.getRootType(), new LinkedList<Port>());
+	public static List<Port> getAllPorts(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
+		return getAllPortsTemp(bipFileModel.getRootType(), new LinkedList<Port>());
 	}
 
-	@Override
-	public void printAllPorts() throws ArchitectureExtractorException {
+	public void printAllPorts(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		System.out.println("Ports are: ");
-		for (Port p : this.getAllPorts()) {
+		for (Port p : getAllPorts(bipFileModel)) {
 			System.out.println("\t Name: " + p.getName() + "(type: " + p.getType().getName()
 					+ ") in a component of type: " + p.getComponentType().getName());
 		}
 	}
 
-	@Override
-	public List<String> getAllPortNames() throws ArchitectureExtractorException {
+	public static List<String> getAllPortNames(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Get all ports in the architecture */
-		List<Port> allPorts = this.getAllPorts();
+		List<Port> allPorts = BIPExtractor.getAllPorts(bipFileModel);
 
 		/* We will get the name of each port in the architecture */
 		List<String> allPortNames = new LinkedList<String>();
@@ -855,22 +779,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return allPortNames;
 	}
 
-	@Override
-	public boolean portExists(Port port, Component component) throws ArchitectureExtractorException {
-		return getComponentPortNames(component).contains(port.getName());
-	}
-
-	@Override
-	public boolean portExists(String portName, String componentName) throws ArchitectureExtractorException {
-		return getComponentPortNames(getComponentByName(componentName)).contains(portName);
-	}
-
-	@Override
-	public List<PortType> getAllPortTypes() throws ArchitectureExtractorException {
+	public static List<PortType> getAllPortTypes(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		List<PortType> portTypes = new LinkedList<PortType>();
 
 		/* Get all BIP types in the architecture */
-		List<BipType> bipTypes = this.bipFileModel.getSystem().getBipType();
+		List<BipType> bipTypes = bipFileModel.getSystem().getBipType();
 
 		/* Iterate all BIP Types */
 		for (BipType p : bipTypes) {
@@ -883,10 +796,9 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return portTypes;
 	}
 
-	@Override
-	public List<String> getAllPortTypesNames() throws ArchitectureExtractorException {
+	public static List<String> getAllPortTypesNames(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Get all port types in the architecture */
-		List<PortType> allPortTypes = this.getAllPortTypes();
+		List<PortType> allPortTypes = BIPExtractor.getAllPortTypes(bipFileModel);
 
 		/* We will get the name of each port type in the architecture */
 		List<String> allPortTypesNames = new LinkedList<String>();
@@ -899,20 +811,9 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return allPortTypesNames;
 	}
 
-	@Override
-	public boolean portTypeExists(PortType portType) throws ArchitectureExtractorException {
-		return this.getAllPortTypesNames().contains(portType.getName());
-	}
-
-	@Override
-	public boolean portTypeExists(String portTypeName) throws ArchitectureExtractorException {
-		return this.getAllPortTypesNames().contains(portTypeName);
-	}
-
-	@Override
-	public Port getPortByName(String name) throws ArchitectureExtractorException {
+	public static Port getPortByName(BIPFileModel bipFileModel, String name) throws ArchitectureExtractorException {
 		/* Get all ports in the architecture */
-		List<Port> ports = this.getAllPorts();
+		List<Port> ports = BIPExtractor.getAllPorts(bipFileModel);
 
 		/* Iterate ports */
 		for (Port p : ports) {
@@ -924,9 +825,10 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		throw new PortNotFoundException("A port with the name " + name + " does not exist");
 	}
 
-	public PortType getPortTypeByName(String name) throws ArchitectureExtractorException {
+	public static PortType getPortTypeByName(BIPFileModel bipFileModel, String name)
+			throws ArchitectureExtractorException {
 		/* Get all port types */
-		List<PortType> allPortTypes = this.getAllPortTypes();
+		List<PortType> allPortTypes = BIPExtractor.getAllPortTypes(bipFileModel);
 
 		/* Iterate port types for match */
 		for (PortType p : allPortTypes) {
@@ -939,11 +841,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		throw new PortTypeNotFoundException("The port type with name " + name + "is not found");
 	}
 
-	@Override
-	public List<Port> getPortsByType(String type) throws ArchitectureExtractorException {
+	public static List<Port> getPortsByType(BIPFileModel bipFileModel, String type)
+			throws ArchitectureExtractorException {
 		List<Port> result = new LinkedList<Port>();
 		/* Get all ports in the architecture */
-		List<Port> ports = this.getAllPorts();
+		List<Port> ports = BIPExtractor.getAllPorts(bipFileModel);
 
 		/* Iterate ports */
 		for (Port p : ports) {
@@ -960,13 +862,11 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return result;
 	}
 
-	@Override
-	public List<Port> getComponentPorts(Component component) throws ArchitectureExtractorException {
+	public static List<Port> getComponentPorts(Component component) throws ArchitectureExtractorException {
 		return getAllPortsTemp(component.getType(), new LinkedList<Port>());
 	}
 
-	@Override
-	public List<String> getComponentPortNames(Component component) throws ArchitectureExtractorException {
+	public static List<String> getComponentPortNames(Component component) throws ArchitectureExtractorException {
 		/* Get all ports of the component */
 		List<Port> allPorts = getComponentPorts(component);
 		List<String> result = new LinkedList<String>();
@@ -980,18 +880,16 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return result;
 	}
 
-	@Override
-	public void printComponentPorts(Component component) throws ArchitectureExtractorException {
+	public static void printComponentPorts(Component component) throws ArchitectureExtractorException {
 
 		System.out.println("Ports of the component " + component.getName() + " are:");
 		/* Iterate ports */
-		for (Port p : this.getComponentPorts(component)) {
+		for (Port p : BIPExtractor.getComponentPorts(component)) {
 			System.out.println("\t Name: " + p.getName() + "(type: " + p.getType().getName() + ")");
 		}
 	}
 
-	@Override
-	public List<DataParameter> getPortVariables(Port port) {
+	public static List<DataParameter> getPortVariables(Port port) {
 		List<DataParameter> variables = new LinkedList<DataParameter>();
 
 		PortType portType = port.getType();
@@ -1000,8 +898,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return variables;
 	}
 
-	@Override
-	public void printPortVariables(Port port) {
+	public static void printPortVariables(Port port) {
 		/* Get all variables of the port */
 		List<DataParameter> variables = getPortVariables(port);
 
@@ -1015,8 +912,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		}
 	}
 
-	@Override
-	public List<Variable> getComponentVariables(Component atom) throws IllegalComponentException {
+	public static List<Variable> getComponentVariables(Component atom) throws IllegalComponentException {
 		List<Variable> variables = new LinkedList<Variable>();
 
 		/* If the provided component is not atomic */
@@ -1031,13 +927,12 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return variables;
 	}
 
-	@Override
-	public void printComponentVariables(Component atom) throws IllegalComponentException {
+	public static void printComponentVariables(Component component) throws IllegalComponentException {
 		/* Get all variables of the atom */
-		List<Variable> variables = getComponentVariables(atom);
+		List<Variable> variables = getComponentVariables(component);
 
-		System.out.println("The variables of the atom named " + atom.getName() + " from type "
-				+ atom.getType().getName() + " are: ");
+		System.out.println("The variables of the atom named " + component.getName() + " from type "
+				+ component.getType().getName() + " are: ");
 
 		/* Iterate variables */
 		for (Variable v : variables) {
@@ -1054,24 +949,21 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		}
 	}
 
-	@Override
-	public List<Connector> getAllConnectors() throws ArchitectureExtractorException {
-		return getAllConnectorsTemp(this.bipFileModel.getRootType(), new LinkedList<Connector>());
+	public static List<Connector> getAllConnectors(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
+		return getAllConnectorsTemp(bipFileModel.getRootType(), new LinkedList<Connector>());
 	}
 
-	@Override
-	public void printConnectors() throws ArchitectureExtractorException {
+	public static void printConnectors(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		System.out.println("Connectors are: ");
-		for (Connector c : this.getAllConnectors()) {
+		for (Connector c : BIPExtractor.getAllConnectors(bipFileModel)) {
 			System.out.println("\t Name: " + c.getName() + " of type: " + c.getType().getName()
 					+ " in compound of type " + c.getCompoundType().getName());
 		}
 	}
 
-	@Override
-	public List<String> getAllConnectorsNames() throws ArchitectureExtractorException {
+	public static List<String> getAllConnectorsNames(BIPFileModel bipFileModel) throws ArchitectureExtractorException {
 		/* Get all connectors in the architecture */
-		List<Connector> allConnectors = this.getAllConnectors();
+		List<Connector> allConnectors = BIPExtractor.getAllConnectors(bipFileModel);
 
 		/* We will get the name of each connector name */
 		List<String> allConnectorsNames = new LinkedList<String>();
@@ -1084,22 +976,12 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return allConnectorsNames;
 	}
 
-	@Override
-	public boolean connectorExists(Connector connector) throws ArchitectureExtractorException {
-		return this.getAllConnectorsNames().contains(connector.getName());
-	}
-
-	@Override
-	public boolean connectorExists(String connectorName) throws ArchitectureExtractorException {
-		return this.getAllConnectorsNames().contains(connectorName);
-	}
-
-	@Override
-	public List<ConnectorType> getAllConnectorTypes() throws ArchitectureExtractorException {
+	public static List<ConnectorType> getAllConnectorTypes(BIPFileModel bipFileModel)
+			throws ArchitectureExtractorException {
 		List<ConnectorType> connectorTypes = new LinkedList<ConnectorType>();
 
 		/* Get all BIP types in the architecture */
-		List<BipType> bipTypes = this.bipFileModel.getSystem().getBipType();
+		List<BipType> bipTypes = bipFileModel.getSystem().getBipType();
 
 		/* Iterate BIP Types connectors */
 		for (BipType c : bipTypes) {
@@ -1111,10 +993,10 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return connectorTypes;
 	}
 
-	@Override
-	public List<String> getAllConnectorTypesNames() throws ArchitectureExtractorException {
+	public static List<String> getAllConnectorTypesNames(BIPFileModel bipFileModel)
+			throws ArchitectureExtractorException {
 		/* Get all connector types in the architecture */
-		List<ConnectorType> allConnectorTypes = this.getAllConnectorTypes();
+		List<ConnectorType> allConnectorTypes = BIPExtractor.getAllConnectorTypes(bipFileModel);
 
 		/* We will get the name of each connector name */
 		List<String> allConnectorTypesNames = new LinkedList<String>();
@@ -1127,20 +1009,10 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return allConnectorTypesNames;
 	}
 
-	@Override
-	public boolean connectorTypeExists(ConnectorType connectorType) throws ArchitectureExtractorException {
-		return this.getAllConnectorTypesNames().contains(connectorType.getName());
-	}
-
-	@Override
-	public boolean connectorTypeExists(String connectorTypeName) throws ArchitectureExtractorException {
-		return this.getAllConnectorTypesNames().contains(connectorTypeName);
-	}
-
-	@Override
-	public Connector getConnectorByName(String name) throws ArchitectureExtractorException {
+	public static Connector getConnectorByName(BIPFileModel bipFileModel, String name)
+			throws ArchitectureExtractorException {
 		/* Get all connectors in the architecture */
-		List<Connector> connectors = this.getAllConnectors();
+		List<Connector> connectors = BIPExtractor.getAllConnectors(bipFileModel);
 
 		/* Iterate connectors */
 		for (Connector c : connectors) {
@@ -1152,10 +1024,10 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		throw new ConnectorNotFoundException("A connector with the name " + name + " does not exist");
 	}
 
-	@Override
-	public ConnectorType getConnectorTypeByName(String name) throws ArchitectureExtractorException {
+	public static ConnectorType getConnectorTypeByName(BIPFileModel bipFileModel, String name)
+			throws ArchitectureExtractorException {
 		/* Get all connector types */
-		List<ConnectorType> connectorTypes = this.getAllConnectorTypes();
+		List<ConnectorType> connectorTypes = BIPExtractor.getAllConnectorTypes(bipFileModel);
 
 		/* Iterate connector types */
 		for (ConnectorType c : connectorTypes) {
@@ -1167,12 +1039,12 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		throw new ConnectorTypeNotFoundException("A connector type with name " + name + " does not exist");
 	}
 
-	@Override
-	public List<Connector> getConnectorsByType(String type) throws ArchitectureExtractorException {
+	public static List<Connector> getConnectorsByType(BIPFileModel bipFileModel, String type)
+			throws ArchitectureExtractorException {
 		List<Connector> result = new LinkedList<Connector>();
 
 		/* Get all connectors in the architecture */
-		List<Connector> connectors = this.getAllConnectors();
+		List<Connector> connectors = BIPExtractor.getAllConnectors(bipFileModel);
 
 		/* Iterate connectors */
 		for (Connector c : connectors) {
@@ -1189,7 +1061,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return result;
 	}
 
-	public String getConnectorInteractionDefinition(ConnectorType connectorType) {
+	public static String getConnectorInteractionDefinition(ConnectorType connectorType) {
 		StringBuilder sb = new StringBuilder();
 
 		/* Get the port expression */
@@ -1197,7 +1069,7 @@ public class ExtractorImpl implements Extractor, InspectArchitecture {
 		return sb.toString();
 	}
 
-	public String getConnectorInteractionDefinition(String connectorTypeName) {
+	public static String getConnectorInteractionDefinition(String connectorTypeName) {
 		StringBuilder sb = new StringBuilder();
 
 		return sb.toString();
