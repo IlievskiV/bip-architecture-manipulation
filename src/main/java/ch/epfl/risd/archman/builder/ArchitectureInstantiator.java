@@ -3,6 +3,7 @@ package ch.epfl.risd.archman.builder;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
@@ -18,13 +19,16 @@ import ch.epfl.risd.archman.model.ConnectorTuple;
 import ch.epfl.risd.archman.model.PortTuple;
 import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
 import ujf.verimag.bip.Core.Behaviors.AtomType;
-import ujf.verimag.bip.Core.Behaviors.Port;
 import ujf.verimag.bip.Core.Behaviors.PortType;
+import ujf.verimag.bip.Core.Interactions.ActualPortParameter;
 import ujf.verimag.bip.Core.Interactions.Component;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
-import ujf.verimag.bip.Core.Interactions.Connector;
 import ujf.verimag.bip.Core.Interactions.ConnectorType;
+import ujf.verimag.bip.Core.Interactions.InteractionSpecification;
 import ujf.verimag.bip.Core.Interactions.PortParameter;
+import ujf.verimag.bip.Core.Interactions.PortParameterReference;
+import ujf.verimag.bip.Core.PortExpressions.ACExpression;
+import ujf.verimag.bip.Core.PortExpressions.ACFusion;
 
 public class ArchitectureInstantiator {
 
@@ -128,27 +132,28 @@ public class ArchitectureInstantiator {
 	}
 
 	/**
-	 * Helper method for creating connector type, given the information in the
-	 * connector tuple
+	 * Helper method to create one connector type with multiple input port
+	 * parameters, but only one instance
 	 * 
-	 * @param connectorTypeName
-	 *            - the name of the connector type
 	 * @param connectorTuple
-	 * @return
+	 * @param architectureInstance
 	 * @throws ArchitectureExtractorException
 	 */
-	protected ConnectorType createConnectorTypeHelper(String connectorTypeName, ConnectorTuple connectorTuple,
-			ArchitectureInstance architectureInstance) throws ArchitectureExtractorException {
+	protected void connectorTypeOneInstance(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
+			ArchitectureOperands architectureOperands) throws ArchitectureExtractorException {
 
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
 		/* 2.Get operand port tuples */
-		List<PortTuple> operandPortTuples = connectorTuple.getOperandPortTuples();
+		PortTuple operandPortTuple = connectorTuple.getOperandPortTuples().get(0);
 
-		/* 3. Create empty list of port parameters */
+		/* 3.Create an empty list of actual port parameters */
+		List<ActualPortParameter> actualPortParameters = new LinkedList<ActualPortParameter>();
+
+		/* 4. Create empty list of port parameters */
 		List<PortParameter> portParameters = new LinkedList<PortParameter>();
 
-		/* 3.1. Create coordinator port parameter */
+		/* 4.1. Create coordinator port parameter */
 		String coordinatorPortInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[1];
 		String coordinatorPortTypeName = BIPExtractor
 				.getPortByName(architectureInstance.getBipFileModel(), coordinatorPortInstanceName).getType().getName();
@@ -156,9 +161,61 @@ public class ArchitectureInstantiator {
 		portParameters.add(ArchitectureInstanceBuilder.createPortParameter(
 				BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(), coordinatorPortTypeName),
 				coordinatorPortInstanceName));
-		
-		
-		return null;
+
+		/* 4.2. Create an actual port reference */
+		String coordinatorInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[0];
+		actualPortParameters.add(ArchitectureInstanceBuilder.createInnerPortReference(
+				ArchitectureInstanceBuilder.createPartElementReference(BIPExtractor
+						.getComponentByName(architectureInstance.getBipFileModel(), coordinatorInstanceName)),
+				BIPExtractor.getPortByName(architectureInstance.getBipFileModel(), coordinatorPortInstanceName)));
+
+		/* 5. Get the set of mapping ports */
+		Set<String> operandMappingPorts = architectureOperands.getPortsMapping()
+				.get((String) operandPortTuple.getPortInstanceName());
+
+		/*
+		 * 6. For every mapping port create port parameter and actual port
+		 * parameter
+		 */
+		for (String operandPort : operandMappingPorts) {
+			/* 6.1. Create operand port parameter */
+			String operandPortInstanceName = operandPort.split("\\.")[1];
+			String operandPortTypeName = BIPExtractor
+					.getPortByName(architectureInstance.getBipFileModel(), operandPortInstanceName).getType().getName();
+
+			portParameters.add(ArchitectureInstanceBuilder.createPortParameter(
+					BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(), operandPortTypeName),
+					operandPortInstanceName));
+
+			/* 6.2. Create operand actual port parameter */
+			String operandInstanceName = operandPort.split("\\.")[0];
+			actualPortParameters.add(ArchitectureInstanceBuilder.createInnerPortReference(
+					ArchitectureInstanceBuilder.createPartElementReference(BIPExtractor
+							.getComponentByName(architectureInstance.getBipFileModel(), operandInstanceName)),
+					BIPExtractor.getPortByName(architectureInstance.getBipFileModel(), operandPortInstanceName)));
+		}
+
+		/* 7.Create a list of port parameter references */
+		List<PortParameterReference> portParameterReferences = new LinkedList<PortParameterReference>();
+		for (PortParameter pp : portParameters) {
+
+			PortParameterReference portParameterReference = ArchitectureInstanceBuilder
+					.createPortParameterReference(pp);
+			portParameterReferences.add(portParameterReference);
+		}
+
+		/* 8. Create a list of AC Expressions */
+		List<ACExpression> expressions = new LinkedList<ACExpression>();
+		expressions.addAll(portParameterReferences);
+
+		/* 9.Create the ACFusion */
+		ACFusion acFusion = ArchitectureInstanceBuilder.createACFusion(expressions);
+
+		/* 10. Create an empty list of interactions */
+		List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
+
+		/* To be continued */
+
 	}
 
 	protected static void degCoord1MultOpN(ArchitectureStyle architectureStyle, ConnectorTuple connectorTuple) {
