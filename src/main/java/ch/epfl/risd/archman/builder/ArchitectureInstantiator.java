@@ -135,15 +135,29 @@ public class ArchitectureInstantiator {
 	 *            - the name of the connector type
 	 * @param connectorTuple
 	 * @return
+	 * @throws ArchitectureExtractorException
 	 */
-	protected ConnectorType createConnectorTypeHelper(String connectorTypeName, ConnectorTuple connectorTuple) {
+	protected ConnectorType createConnectorTypeHelper(String connectorTypeName, ConnectorTuple connectorTuple,
+			ArchitectureInstance architectureInstance) throws ArchitectureExtractorException {
 
 		/* 1.Get coordinator port tuple */
-		
+		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
+		/* 2.Get operand port tuples */
+		List<PortTuple> operandPortTuples = connectorTuple.getOperandPortTuples();
 
-		/* 1. Create list of port parameters */
+		/* 3. Create empty list of port parameters */
 		List<PortParameter> portParameters = new LinkedList<PortParameter>();
 
+		/* 3.1. Create coordinator port parameter */
+		String coordinatorPortInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[1];
+		String coordinatorPortTypeName = BIPExtractor
+				.getPortByName(architectureInstance.getBipFileModel(), coordinatorPortInstanceName).getType().getName();
+
+		portParameters.add(ArchitectureInstanceBuilder.createPortParameter(
+				BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(), coordinatorPortTypeName),
+				coordinatorPortInstanceName));
+		
+		
 		return null;
 	}
 
