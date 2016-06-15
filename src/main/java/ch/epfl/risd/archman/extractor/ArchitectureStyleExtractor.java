@@ -154,20 +154,10 @@ public class ArchitectureStyleExtractor {
 	 */
 	public static List<Port> getArchitectureStylePorts(ArchitectureStyle architectureStyle)
 			throws ArchitectureExtractorException {
-		/* The resulting list */
-		List<Port> result = new LinkedList<Port>();
-
 		/* Get all ports in the Architecture Style */
 		List<Port> allPorts = BIPExtractor.getAllPorts(architectureStyle.getBipFileModel());
 
-		/* Iterate the list of all ports */
-		for (Port p : allPorts) {
-			if (architectureStyle.getPorts().contains(p.getName())) {
-				result.add(p);
-			}
-		}
-
-		return result;
+		return allPorts;
 	}
 
 	/**
@@ -208,7 +198,7 @@ public class ArchitectureStyleExtractor {
 		/* Iterate all connectors */
 		for (Connector c : allConnectors) {
 			/* Iterate Connector Tuples */
-			for (ConnectorTuple tuple : architectureStyle.getConnectors()) {
+			for (ConnectorTuple tuple : architectureStyle.getConnectorsTuples()) {
 				if (tuple.getConnectorInstanceName().equals(c.getName())) {
 					result.add(c);
 					break;

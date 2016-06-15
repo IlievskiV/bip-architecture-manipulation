@@ -2,6 +2,8 @@ package ch.epfl.risd.archman.model;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -16,6 +18,7 @@ import com.bpodgursky.jbool_expressions.Variable;
 import com.bpodgursky.jbool_expressions.parsers.ExprParser;
 import com.bpodgursky.jbool_expressions.rules.RuleSet;
 
+import BIPTransformation.TransformationFunction;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 
@@ -190,6 +193,17 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 	}
 
+	/**
+	 * Method to initialize the parameters
+	 */
+	protected void initializeParameters() {
+		parameters.put(ConstantFields.PATH_PARAM, "");
+		parameters.put(ConstantFields.COORDINATORS_PARAM, "");
+		parameters.put(ConstantFields.OPERANDS_PARAM, "");
+		parameters.put(ConstantFields.PORTS_PARAM, "");
+		parameters.put(ConstantFields.INTERACTIONS_PARAM, "");
+	}
+
 	protected List<String> parseConcatenatedString(String concatenatedString, String delim) {
 		/* Split the string */
 		String[] tokens = concatenatedString.split(delim);
@@ -301,6 +315,22 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		return result;
 	}
 
+	/**
+	 * Method to add new value in the parameters
+	 * 
+	 * @param key
+	 *            - the key to the value
+	 * @param value
+	 *            - the value of the parameter
+	 */
+	protected void addToParameters(String key, String value) {
+		if (this.parameters.get(key).equals("")) {
+			this.parameters.put(key, value);
+		} else {
+			this.parameters.put(key, this.parameters.get(key) + "," + value);
+		}
+	}
+
 	/****************************************************************************/
 	/* PUBLIC METHODS */
 	/***************************************************************************/
@@ -314,14 +344,35 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	 *            - the name of the BIP system
 	 * @param rootTypeName
 	 *            - the name of the root type in the BIP system
-	 * @param rootName
+	 * @param rootInstanceName
 	 *            - the name of the root component in the BIP system
 	 */
-	public ArchitectureInstance(String systemName, String rootTypeName, String rootName) {
+	public ArchitectureInstance(String systemName, String rootTypeName, String rootInstanceName) {
 		/* Create empty BIP file model */
-		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootName);
+		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
 		/* Instantiate the parameters */
 		this.parameters = new Hashtable<String, String>();
+		/* Initialize parameters */
+		this.initializeParameters();
+		/* Instantiate the list of coordinators */
+		this.coordinators = new LinkedList<String>();
+		/* Instantiate the list of operands */
+		this.operands = new LinkedList<String>();
+		/* Instantiate the list of ports */
+		this.ports = new LinkedList<String>();
+		/* Instantiate the list of interactions */
+		this.interactions = new LinkedList<String>();
+		/* Empty characteristic predicate */
+		this.characteristicPredicate = new String();
+	}
+
+	public ArchitectureInstance(BIPFileModel bipFileModel) {
+		/* Assign the BIP file */
+		this.bipFileModel = bipFileModel;
+		/* Instantiate the parameters */
+		this.parameters = new Hashtable<String, String>();
+		/* Initialize parameters */
+		this.initializeParameters();
 		/* Instantiate the list of coordinators */
 		this.coordinators = new LinkedList<String>();
 		/* Instantiate the list of operands */
@@ -336,7 +387,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 	/**
 	 * Constructor for this class, when all fields of the architecture instance
-	 * are already given, execpt the characteristic predicate
+	 * are already given, except the characteristic predicate
 	 * 
 	 * @param bipFileModel
 	 *            - the BIP file where the architecture is written
@@ -395,10 +446,140 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		validate();
 	}
 
+	/**
+	 * Method to add the coordinator instance name to both, the list of
+	 * coordinators and the parameters
+	 * 
+	 * @param coordinatorInstanceName
+	 *            - the name of the coordinator component instance
+	 */
+	public void addCoordinator(String coordinatorInstanceName) {
+		/* Add to the list */
+		this.coordinators.add(coordinatorInstanceName);
+		/* Add the parameter */
+		this.addToParameters(ConstantFields.COORDINATORS_PARAM, coordinatorInstanceName);
+	}
+
+	/**
+	 * Method to add the operand instance name to both, the list of operands and
+	 * the parameters
+	 * 
+	 * @param operandInstanceName
+	 *            - the name of the operand component instance
+	 */
+	public void addOperand(String operandInstanceName) {
+		/* Add to the list */
+		this.operands.add(operandInstanceName);
+		/* Add the parameter */
+		this.addToParameters(ConstantFields.OPERANDS_PARAM, operandInstanceName);
+	}
+
+	/**
+	 * Method to add the port instance name to both, the list of ports and the
+	 * parameters
+	 * 
+	 * @param portInstanceName
+	 *            - the name of the port instance
+	 */
+	public void addPort(String portInstanceName) {
+		/* Add to the list */
+		this.operands.add(portInstanceName);
+		/* Add the parameter */
+		this.addToParameters(ConstantFields.PORTS_PARAM, portInstanceName);
+	}
+
+	/**
+	 * Method to add an interaction to both, the list of interactions and the
+	 * parameters
+	 * 
+	 * @param interactionName
+	 *            - the name of the port instance
+	 */
+	public void addInteraction(String interactionName) {
+		/* Add to the list */
+		this.operands.add(interactionName);
+		/* Add the parameter */
+		this.addToParameters(ConstantFields.INTERACTIONS_PARAM, interactionName);
+	}
+
+	/**
+	 * Method to generate the resulting BIP file
+	 * 
+	 * @param pathToBIPFile
+	 *            - absolute or relative path, where the BIP file should be
+	 *            written
+	 * @throws FileNotFoundException
+	 */
+	public void generateBipFile(String pathToBIPFile) throws FileNotFoundException {
+		/* Get the absolute path */
+		String absolutePath = new File(pathToBIPFile).getAbsolutePath();
+
+		/* Add the absolute path in the parameters */
+		this.setPathToBipFile(absolutePath);
+
+		/* Write the generated code in the file */
+		TransformationFunction.CreateBIPFile(absolutePath, this.bipFileModel.getSystem());
+	}
+
+	/**
+	 * Method to generate the resulting configuration file
+	 * 
+	 * @param pathToConfFile
+	 *            - relative or absolute path to the configuration file
+	 * @throws IOException
+	 */
+	public void generateConfigurationFile(String pathToConfFile) throws IOException {
+		/* Get the absolute path */
+		String absolutePath = new File(pathToConfFile).getAbsolutePath();
+
+		/* Create the file */
+		File confFile = new File(absolutePath);
+
+		if (!confFile.exists()) {
+			confFile.createNewFile();
+		}
+
+		PrintWriter printer = null;
+
+		try {
+			printer = new PrintWriter(confFile);
+
+			/* Print the path to the BIP file */
+			printer.println(ConstantFields.PATH_PARAM + ":" + this.parameters.get((String) ConstantFields.PATH_PARAM));
+
+			/* Print the coordinators */
+			printer.println(ConstantFields.COORDINATORS_PARAM + ":"
+					+ this.parameters.get((String) ConstantFields.COORDINATORS_PARAM));
+
+			/* Print the operands */
+			printer.println(
+					ConstantFields.OPERANDS_PARAM + ":" + this.parameters.get((String) ConstantFields.OPERANDS_PARAM));
+
+			/* Print the ports */
+			printer.println(
+					ConstantFields.PORTS_PARAM + ":" + this.parameters.get((String) ConstantFields.PORTS_PARAM));
+
+			/* Print the interactions */
+			printer.println(ConstantFields.INTERACTIONS_PARAM + ":"
+					+ this.parameters.get((String) ConstantFields.INTERACTIONS_PARAM));
+		} finally {
+			if (printer != null) {
+				printer.flush();
+				printer.close();
+			}
+		}
+	}
+
+	/**
+	 * @return the characteristic predicate for this Architecture Instance
+	 */
 	public String getCharacteristicPredicate() {
 		return characteristicPredicate;
 	}
 
+	/**
+	 * @return the list of coordinators for this Architecture Instance
+	 */
 	public List<String> getCoordinators() {
 		return coordinators;
 	}

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.Hashtable;
 
+import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
@@ -78,5 +79,15 @@ public abstract class ArchitectureEntity {
 	 */
 	public Hashtable<String, String> getParameters() {
 		return parameters;
+	}
+
+	/**
+	 * Method to set the path to the BIP file in the parameters
+	 * 
+	 * @param pathToBipFile
+	 *            - absolute path to the BIP file
+	 */
+	public void setPathToBipFile(String pathToBipFile) {
+		parameters.put(ConstantFields.PATH_PARAM, pathToBipFile);
 	}
 }

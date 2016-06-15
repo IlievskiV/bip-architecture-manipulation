@@ -74,11 +74,11 @@ public class BIPFileModel {
 	 *            - the name of the system
 	 * @param rootTypeName
 	 *            - the name of the type definition of the root
-	 * @param rootName
+	 * @param rootInstanceName
 	 *            - the name of the root component, which is instance of the
 	 *            type of the root
 	 */
-	public BIPFileModel(String systemName, String rootTypeName, String rootName) {
+	public BIPFileModel(String systemName, String rootTypeName, String rootInstanceName) {
 		/* Create new system and set name */
 		this.system = (SystemImpl) Factories.MODULES_FACTORY.createSystem();
 		this.system.setName(systemName);
@@ -92,7 +92,7 @@ public class BIPFileModel {
 		RootImpl root = (RootImpl) Factories.MODULES_FACTORY.createRoot();
 		root.setSystem(this.system);
 		root.setType(rootType);
-		root.setName(rootName);
+		root.setName(rootInstanceName);
 	}
 
 	/**

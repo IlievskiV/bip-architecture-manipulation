@@ -42,7 +42,7 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	private Set<String> ports;
 
 	/* The set of all connectors in the Architecture Style */
-	private List<ConnectorTuple> connectors;
+	private List<ConnectorTuple> connectorTuples;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -192,7 +192,7 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		this.ports = (Set<String>) this.parseConcatenatedString(allPorts, delim);
 
 		/* Get all interactions */
-		this.connectors = this.parseConnectors(allConnectors);
+		this.connectorTuples = this.parseConnectors(allConnectors);
 	}
 
 	/**
@@ -315,7 +315,7 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 	private void validateConnectors() throws ArchitectureExtractorException {
 		/* Iterate the connector tuples */
-		for (ConnectorTuple tuple : this.connectors) {
+		for (ConnectorTuple tuple : this.connectorTuples) {
 			if (!BIPChecker.connectorExists(this.bipFileModel, tuple.getConnectorInstanceName())) {
 				throw new ConnectorNotFoundException("The connector instance with name "
 						+ tuple.getConnectorInstanceName() + " does not exist in the BIP file");
@@ -377,8 +377,8 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	/**
 	 * @return the connector tuples of the Architecture Style
 	 */
-	public List<ConnectorTuple> getConnectors() {
-		return connectors;
+	public List<ConnectorTuple> getConnectorsTuples() {
+		return connectorTuples;
 	}
 
 	/* Test the methods provided here (passed) */
@@ -394,7 +394,7 @@ public class ArchitectureStyle extends ArchitectureEntity {
 			Set<String> coordinators = architectureStyle.getCoordinators();
 			Set<String> operands = architectureStyle.getOperands();
 			Set<String> ports = architectureStyle.getPorts();
-			List<ConnectorTuple> connectorTuples = architectureStyle.getConnectors();
+			List<ConnectorTuple> connectorTuples = architectureStyle.getConnectorsTuples();
 
 			/* Iterate coordinators */
 			System.out.println("Coordinators are: ");
