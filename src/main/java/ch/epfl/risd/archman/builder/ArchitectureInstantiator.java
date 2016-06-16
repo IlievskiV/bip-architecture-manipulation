@@ -5,9 +5,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
+import ch.epfl.risd.archman.exceptions.IllegalPortParameterReferenceException;
+import ch.epfl.risd.archman.exceptions.InvalidConnectorTypeNameException;
+import ch.epfl.risd.archman.exceptions.InvalidPortParameterNameException;
 import ch.epfl.risd.archman.extractor.ArchitectureOperandsExtractor;
 import ch.epfl.risd.archman.extractor.ArchitectureStyleExtractor;
 import ch.epfl.risd.archman.extractor.BIPExtractor;
@@ -138,9 +142,14 @@ public class ArchitectureInstantiator {
 	 * @param connectorTuple
 	 * @param architectureInstance
 	 * @throws ArchitectureExtractorException
+	 * @throws IllegalPortParameterReferenceException
+	 * @throws InvalidPortParameterNameException
+	 * @throws InvalidConnectorTypeNameException
 	 */
 	protected void connectorTypeOneInstance(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
-			ArchitectureOperands architectureOperands) throws ArchitectureExtractorException {
+			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
 
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
@@ -214,7 +223,32 @@ public class ArchitectureInstantiator {
 		/* 10. Create an empty list of interactions */
 		List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
 
-		/* To be continued */
+		/* 11. Get the name of the connector type */
+		String connecotrTypeName = BIPExtractor
+				.getConnectorByName(architectureStyle.getBipFileModel(), connectorTuple.getConnectorInstanceName())
+				.getType().getName();
+
+		ConnectorType connectorType;
+
+		/*
+		 * 11.1 Create the connector type if not exists and one instance of it
+		 */
+		if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connecotrTypeName)) {
+			connectorType = ArchitectureInstanceBuilder.createConnectorType(architectureInstance, connecotrTypeName,
+					portParameters, acFusion, interactionSpecifications);
+
+			ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
+					connectorTuple.getConnectorInstanceName(), connectorType,
+					architectureInstance.getBipFileModel().getRootType(), actualPortParameters);
+		}
+		/* 11.2 If connector type exists create only one instance */
+		else {
+			connectorType = BIPExtractor.getConnectorTypeByName(architectureInstance.getBipFileModel(),
+					connecotrTypeName);
+			ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
+					connectorTuple.getConnectorInstanceName(), connectorType,
+					architectureInstance.getBipFileModel().getRootType(), actualPortParameters);
+		}
 
 	}
 

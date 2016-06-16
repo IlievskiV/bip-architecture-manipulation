@@ -580,9 +580,10 @@ public class ArchitectureInstanceBuilder {
 	 * @param allPortTypes
 	 * @throws ArchitectureExtractorException
 	 */
-	public static void copyAllPortTypes(ArchitectureInstance architectureInstance, List<PortType> allPortTypes) throws ArchitectureExtractorException {
+	public static void copyAllPortTypes(ArchitectureInstance architectureInstance, List<PortType> allPortTypes)
+			throws ArchitectureExtractorException {
 		/* Iterate and copy */
-		for(PortType type : allPortTypes){
+		for (PortType type : allPortTypes) {
 			ArchitectureInstanceBuilder.copyPortType(architectureInstance, type);
 		}
 	}
@@ -710,7 +711,7 @@ public class ArchitectureInstanceBuilder {
 
 			return copy;
 		} else {
-			return type;
+			return BIPExtractor.getConnectorTypeByName(architectureInstance.getBipFileModel(), type.getName());
 		}
 	}
 

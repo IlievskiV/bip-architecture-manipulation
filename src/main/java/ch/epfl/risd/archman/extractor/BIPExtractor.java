@@ -1024,19 +1024,19 @@ public class BIPExtractor {
 		throw new ConnectorNotFoundException("A connector with the name " + name + " does not exist");
 	}
 
-	public static ConnectorType getConnectorTypeByName(BIPFileModel bipFileModel, String name)
+	public static ConnectorType getConnectorTypeByName(BIPFileModel bipFileModel, String connectorTypeName)
 			throws ArchitectureExtractorException {
 		/* Get all connector types */
 		List<ConnectorType> connectorTypes = BIPExtractor.getAllConnectorTypes(bipFileModel);
 
 		/* Iterate connector types */
 		for (ConnectorType c : connectorTypes) {
-			if (c.getName().equals(name)) {
+			if (c.getName().equals(connectorTypeName)) {
 				return c;
 			}
 		}
 
-		throw new ConnectorTypeNotFoundException("A connector type with name " + name + " does not exist");
+		throw new ConnectorTypeNotFoundException("A connector type with name " + connectorTypeName + " does not exist");
 	}
 
 	public static List<Connector> getConnectorsByType(BIPFileModel bipFileModel, String type)
