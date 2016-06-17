@@ -597,6 +597,21 @@ public class BIPExtractor {
 		return compoundTypes;
 	}
 
+	public static CompoundType getCompoundTypeByName(BIPFileModel bipFileModel, String typeName)
+			throws ArchitectureExtractorException {
+		/* Get all compound types */
+		List<CompoundType> allCompoundTypes = BIPExtractor.getAllCompoundTypes(bipFileModel);
+
+		/* Iterate over them */
+		for (CompoundType c : allCompoundTypes) {
+			if (c.getName().equals(typeName)) {
+				return c;
+			}
+		}
+
+		throw new ComponentTypeNotFoundException("The atom type with a name " + typeName + " is not found");
+	}
+
 	public static Component getComponentByName(BIPFileModel bipFileModel, String name)
 			throws ArchitectureExtractorException {
 		/* Get all components in the architecture */

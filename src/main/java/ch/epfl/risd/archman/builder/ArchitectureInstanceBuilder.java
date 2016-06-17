@@ -441,7 +441,7 @@ public class ArchitectureInstanceBuilder {
 
 			return copy;
 		} else {
-			return type;
+			return BIPExtractor.getAtomTypeByName(architectureInstance.getBipFileModel(), type.getName());
 		}
 	}
 
@@ -500,7 +500,7 @@ public class ArchitectureInstanceBuilder {
 
 			return copy;
 		} else {
-			return type;
+			return BIPExtractor.getCompoundTypeByName(architectureInstance.getBipFileModel(), type.getName());
 		}
 	}
 
@@ -568,7 +568,7 @@ public class ArchitectureInstanceBuilder {
 
 			return copy;
 		} else {
-			return type;
+			return BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(), type.getName());
 		}
 
 	}
