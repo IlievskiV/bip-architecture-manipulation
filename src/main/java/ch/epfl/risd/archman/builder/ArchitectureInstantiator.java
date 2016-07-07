@@ -146,7 +146,7 @@ public class ArchitectureInstantiator {
 	 * @throws InvalidPortParameterNameException
 	 * @throws InvalidConnectorTypeNameException
 	 */
-	protected void connectorTypeOneInstance(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
+	protected static void degCoord1MultOpN(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
 			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
 			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
 			IllegalPortParameterReferenceException {
@@ -224,7 +224,7 @@ public class ArchitectureInstantiator {
 		List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
 
 		/* 11. Get the name of the connector type */
-		String connecotrTypeName = BIPExtractor
+		String connectorTypeName = BIPExtractor
 				.getConnectorByName(architectureStyle.getBipFileModel(), connectorTuple.getConnectorInstanceName())
 				.getType().getName();
 
@@ -233,8 +233,8 @@ public class ArchitectureInstantiator {
 		/*
 		 * 11.1 Create the connector type if not exists and one instance of it
 		 */
-		if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connecotrTypeName)) {
-			connectorType = ArchitectureInstanceBuilder.createConnectorType(architectureInstance, connecotrTypeName,
+		if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
+			connectorType = ArchitectureInstanceBuilder.createConnectorType(architectureInstance, connectorTypeName,
 					portParameters, acFusion, interactionSpecifications);
 
 			ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
@@ -244,19 +244,109 @@ public class ArchitectureInstantiator {
 		/* 11.2 If connector type exists create only one instance */
 		else {
 			connectorType = BIPExtractor.getConnectorTypeByName(architectureInstance.getBipFileModel(),
-					connecotrTypeName);
+					connectorTypeName);
 			ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
 					connectorTuple.getConnectorInstanceName(), connectorType,
 					architectureInstance.getBipFileModel().getRootType(), actualPortParameters);
 		}
-
 	}
 
-	protected static void degCoord1MultOpN(ArchitectureStyle architectureStyle, ConnectorTuple connectorTuple) {
+	protected static void degCoordNMultOp1(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
+			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
+		/* 1.Get coordinator port tuple */
+		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
+		/* 2.Get operand port tuples */
+		PortTuple operandPortTuple = connectorTuple.getOperandPortTuples().get(0);
+		/* 3. Create an empty list of port parameters */
+		List<PortParameter> portParameters = new LinkedList<PortParameter>();
 
-	}
+		/* 3.1. Create coordinator port parameter */
+		String coordinatorPortInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[1];
+		String coordinatorPortTypeName = BIPExtractor
+				.getPortByName(architectureInstance.getBipFileModel(), coordinatorPortInstanceName).getType().getName();
 
-	protected static void degCoordNMultOp1(ArchitectureStyle architectureStyle, ConnectorTuple connectorTuple) {
+		portParameters.add(ArchitectureInstanceBuilder.createPortParameter(
+				BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(), coordinatorPortTypeName),
+				coordinatorPortInstanceName));
+
+		/* 3.2 Create operand port parameter */
+		String operandPortInstanceName = operandPortTuple.getPortInstanceName().split("\\.")[1];
+		String operandPortTypeName = BIPExtractor
+				.getPortByName(architectureInstance.getBipFileModel(), operandPortInstanceName).getType().getName();
+
+		portParameters.add(ArchitectureInstanceBuilder.createPortParameter(
+				BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(), operandPortTypeName),
+				operandPortInstanceName));
+
+		/* 4.Create a list of port parameter references */
+		List<PortParameterReference> portParameterReferences = new LinkedList<PortParameterReference>();
+		for (PortParameter pp : portParameters) {
+
+			PortParameterReference portParameterReference = ArchitectureInstanceBuilder
+					.createPortParameterReference(pp);
+			portParameterReferences.add(portParameterReference);
+		}
+
+		/* 5. Create a list of AC Expressions */
+		List<ACExpression> expressions = new LinkedList<ACExpression>();
+		expressions.addAll(portParameterReferences);
+
+		/* 6.Create the ACFusion */
+		ACFusion acFusion = ArchitectureInstanceBuilder.createACFusion(expressions);
+
+		/* 7. Create an empty list of interactions */
+		List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
+
+		/* 8. Get the name of the connector type */
+		String connectorTypeName = BIPExtractor
+				.getConnectorByName(architectureStyle.getBipFileModel(), connectorTuple.getConnectorInstanceName())
+				.getType().getName();
+		/* 9. Get the connector type */
+		ConnectorType connectorType;
+
+		/* 9.1. Create if not exists */
+		if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
+			connectorType = ArchitectureInstanceBuilder.createConnectorType(architectureInstance, connectorTypeName,
+					portParameters, acFusion, interactionSpecifications);
+		}
+		/* 9.2. Extract it, if it exists */
+		else {
+			connectorType = BIPExtractor.getConnectorTypeByName(architectureInstance.getBipFileModel(),
+					connectorTypeName);
+		}
+
+		/* 10. Get the mapped ports */
+		Set<String> operandMappingPorts = architectureOperands.getPortsMapping()
+				.get((String) operandPortTuple.getPortInstanceName());
+		int i = 0;
+
+		/* 10.1. Iterate ever the mapped ports */
+		for (String operandPort : operandMappingPorts) {
+			/* 10.1.1.Create an empty list of actual port parameters */
+			List<ActualPortParameter> actualPortParameters = new LinkedList<ActualPortParameter>();
+
+			/* 10.1.2. Actual port parameter for the coordinator side */
+			String coordinatorInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[0];
+			actualPortParameters.add(ArchitectureInstanceBuilder.createInnerPortReference(
+					ArchitectureInstanceBuilder.createPartElementReference(BIPExtractor
+							.getComponentByName(architectureInstance.getBipFileModel(), coordinatorInstanceName)),
+					BIPExtractor.getPortByName(architectureInstance.getBipFileModel(), coordinatorPortInstanceName)));
+
+			/* 10.1.3. Actual port parameter for the operand side */
+			String operandInstanceName = operandPort.split("\\.")[0];
+			actualPortParameters.add(ArchitectureInstanceBuilder.createInnerPortReference(
+					ArchitectureInstanceBuilder.createPartElementReference(BIPExtractor
+							.getComponentByName(architectureInstance.getBipFileModel(), operandInstanceName)),
+					BIPExtractor.getPortByName(architectureInstance.getBipFileModel(), operandPortInstanceName)));
+
+			/* 10.1.4. Create connector instance */
+			ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
+					connectorTuple.getConnectorInstanceName() + "_" + (i + 1), connectorType,
+					architectureInstance.getBipFileModel().getRootType(), actualPortParameters);
+			i++;
+		}
 
 	}
 
@@ -302,9 +392,16 @@ public class ArchitectureInstantiator {
 		List<Component> coordinators = ArchitectureStyleExtractor.getArchitectureStyleCoordinators(architectureStyle);
 		for (Component c : coordinators) {
 			if (c.getType() instanceof AtomType) {
-				ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
+				AtomType atomType = ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
+				/* 4.1. Make an atomic type instance of the coordinator */
+				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), atomType,
+						instance.getBipFileModel().getRootType(), true);
 			} else {
-				ArchitectureInstanceBuilder.copyCompoundType(instance, (CompoundType) c.getType());
+				CompoundType compoundType = ArchitectureInstanceBuilder.copyCompoundType(instance,
+						(CompoundType) c.getType());
+				/* 4.1. Make a compound type instance of the coordinator */
+				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), compoundType,
+						instance.getBipFileModel().getRootType(), true);
 			}
 		}
 
@@ -312,14 +409,19 @@ public class ArchitectureInstantiator {
 		List<Component> operands = ArchitectureOperandsExtractor.getArchitectureOperands(architectureOperands);
 		for (Component c : operands) {
 			if (c.getType() instanceof AtomType) {
-				ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
+				AtomType atomType = ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
+				/* 5.1. Make an atomic type instance of the operand */
+				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), atomType,
+						instance.getBipFileModel().getRootType(), false);
 			} else {
-				ArchitectureInstanceBuilder.copyCompoundType(instance, (CompoundType) c.getType());
+				/* 5.1. Make a compound type instance of the operand */
+				CompoundType compoundType = ArchitectureInstanceBuilder.copyCompoundType(instance,
+						(CompoundType) c.getType());
+				/* 4.1. Make a compound type instance of the coordinator */
+				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), compoundType,
+						instance.getBipFileModel().getRootType(), false);
 			}
 		}
-
-		/* 6.Calculate parameters */
-		ArchitectureInstantiator.calculateParameters(architectureStyle, architectureOperands);
 
 		/* 7.Iterate over the connector tuples */
 		List<ConnectorTuple> connectorTuples = architectureStyle.getConnectorsTuples();
@@ -331,20 +433,36 @@ public class ArchitectureInstantiator {
 				 */
 				if (connectorTuple.getCoordinatorPortTuples().get(0).getCalculatedDegree() == 1
 						&& connectorTuple.getOperandPortTuples().get(0).getCalculatedMultiplicity() > 1) {
-					ArchitectureInstantiator.degCoord1MultOpN(architectureStyle, connectorTuple);
+					ArchitectureInstantiator.degCoord1MultOpN(connectorTuple, instance, architectureOperands,
+							architectureStyle);
 				}
 				/*
 				 * 7.1.2.Case: degree coordinator = N, multiplicity operand = 1
 				 */
 				else if (connectorTuple.getCoordinatorPortTuples().get(0).getCalculatedDegree() > 1
 						&& connectorTuple.getOperandPortTuples().get(0).getCalculatedMultiplicity() == 1) {
-					ArchitectureInstantiator.degCoordNMultOp1(architectureStyle, connectorTuple);
+
+					System.out.println(connectorTuple.getCoordinatorPortTuples().get(0).getCalculatedMultiplicity());
+					System.out.println(connectorTuple.getCoordinatorPortTuples().get(0).getCalculatedDegree());
+
+					System.out.println(connectorTuple.getOperandPortTuples().get(0).getCalculatedMultiplicity());
+					System.out.println(connectorTuple.getOperandPortTuples().get(0).getCalculatedDegree());
+
+					ArchitectureInstantiator.degCoordNMultOp1(connectorTuple, instance, architectureOperands,
+							architectureStyle);
 				}
 				/*
 				 * 7.1.3.Case: degree coordinator = 1, multiplicity operand = 1
 				 */
 				else if (connectorTuple.getCoordinatorPortTuples().get(0).getCalculatedDegree() == 1
 						&& connectorTuple.getOperandPortTuples().get(0).getCalculatedMultiplicity() == 1) {
+
+					System.out.println(connectorTuple.getCoordinatorPortTuples().get(0).getCalculatedMultiplicity());
+					System.out.println(connectorTuple.getCoordinatorPortTuples().get(0).getCalculatedDegree());
+
+					System.out.println(connectorTuple.getOperandPortTuples().get(0).getCalculatedMultiplicity());
+					System.out.println(connectorTuple.getOperandPortTuples().get(0).getCalculatedDegree());
+
 					ArchitectureInstantiator.degCoord1MultOp1(architectureStyle, connectorTuple);
 				}
 			}

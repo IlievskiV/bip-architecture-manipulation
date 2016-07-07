@@ -167,7 +167,9 @@ public class BIPExtractor {
 		if (ports == null) {
 			throw new NullPointerException("The resulting list of all ports is not initalized");
 		}
-
+		
+		System.out.println("Component type name: " + componentType.getName());
+		
 		/*
 		 * If the component is composite structure, it contains other
 		 * subcomponents that maybe contain some other ports
@@ -830,8 +832,12 @@ public class BIPExtractor {
 		/* Get all ports in the architecture */
 		List<Port> ports = BIPExtractor.getAllPorts(bipFileModel);
 
+		System.out.println("Size of all ports: " + ports.size());
+		System.out.println("Actual name of the port: " + name);
+
 		/* Iterate ports */
 		for (Port p : ports) {
+			System.out.println("Name of the port: " + p.getName());
 			if (p.getName().equals(name)) {
 				return p;
 			}

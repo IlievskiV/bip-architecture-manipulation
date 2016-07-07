@@ -52,6 +52,8 @@ import ujf.verimag.bip.Core.Behaviors.PortType;
 import ujf.verimag.bip.Core.Behaviors.State;
 import ujf.verimag.bip.Core.Behaviors.Transition;
 import ujf.verimag.bip.Core.Behaviors.Variable;
+import ujf.verimag.bip.Core.Behaviors.impl.DefinitionBindingImpl;
+import ujf.verimag.bip.Core.Behaviors.impl.PortDefinitionImpl;
 import ujf.verimag.bip.Core.Behaviors.impl.StateImpl;
 import ujf.verimag.bip.Core.Interactions.ActualPortParameter;
 import ujf.verimag.bip.Core.Interactions.Component;
@@ -406,6 +408,8 @@ public class ArchitectureInstanceBuilder {
 			/* Get all ports of the original atom type */
 			List<Port> originalPorts = type.getPort();
 
+			// System.out.println("Ports : " + originalPorts.size());
+
 			/* Instantiate empty list of ports */
 			List<Port> copyPorts = new LinkedList<Port>();
 
@@ -416,10 +420,12 @@ public class ArchitectureInstanceBuilder {
 
 				/* If the port type does not exist */
 				if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), p.getType())) {
+					// System.out.println("The port type does not exist");
 					portType = ArchitectureInstanceBuilder.copyPortType(architectureInstance, p.getType());
 				}
 				/* If the port type exists */
 				else {
+					// System.out.println("The port type exists");
 					/* Get the port type */
 					portType = BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(),
 							p.getType().getName());
@@ -428,16 +434,35 @@ public class ArchitectureInstanceBuilder {
 				/* We should add it to the list of ports */
 				architectureInstance.addPort(((DefinitionBinding) p.getBinding()).getOuterPort().getName());
 
+				// System.out.println(p);
+
+				/* They are same */
+				// System.out.println("Inner name: " + p.getName());
+				// System.out.println(
+				// "Interface name: " + ((DefinitionBindingImpl)
+				// p.getBinding()).getDefinition().getName());
+				//
+				// System.out.println(
+				// "Atom Type: " + ((DefinitionBindingImpl)
+				// p.getBinding()).getDefinition().getAtomType());
+
 				/* Add the port to the copy ports */
-				copyPorts.add(ArchitectureInstanceBuilder.createPortInstance(architectureInstance, p.getName(), "",
-						portType));
+				Port newPort = ArchitectureInstanceBuilder.createPortInstance(architectureInstance, p.getName(),
+						((DefinitionBindingImpl) p.getBinding()).getDefinition().getName(), portType);
+
+				copyPorts.add(newPort);
 			}
+
+			// System.out.println("Copied ports: " + copyPorts.size());
 
 			/* Set the behavior */
 			copy.setBehavior(type.getBehavior());
 
 			/* Add all ports */
 			copy.getPort().addAll(copyPorts);
+
+			// System.out.println("Ports in the component: " +
+			// copy.getPort().size());
 
 			return copy;
 		} else {
