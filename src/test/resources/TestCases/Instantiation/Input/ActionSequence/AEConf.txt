@@ -1,0 +1,5 @@
+path:/home/vladimir/Architecture_examples/Archive/ActionSequence/ActionSequence.bip
+coordinators:C
+operands:B
+ports:C.actBeginC,C.actEndC,B.actBeginO,B.actEndO
+connectors:{B_to_C_begin B.actBeginO 1 1 C.actBeginC 1 1},{B_to_C_finish B.actEndO 1 1 C.actEndC 1 1}

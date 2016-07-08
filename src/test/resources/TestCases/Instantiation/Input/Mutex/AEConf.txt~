@@ -1,0 +1,5 @@
+path:/home/vladimir/Architecture_examples/Archive/Mutex/MutualExclusion.bip
+coordinators:C
+operands:B
+ports:C.take,C.release,B.begin,B.finish
+connectors:{B_to_C_begin B.begin 1 n C.take 1 1},{B_to_C_finish B.finish 1 n C.release 1 1}

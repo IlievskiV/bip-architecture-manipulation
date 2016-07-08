@@ -72,73 +72,83 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		/* Existence CONNECTORS parameter in the configuration file */
 		boolean hasConnectors = false;
 
-		/* Get the absolute path to the configuration file */
-		String absolutePath = new File(pathToConfFile).getAbsolutePath();
+		/* Set scanner to null */
+		Scanner scanner = null;
 
-		/* Reading and parsing the configuration file */
-		Scanner scanner = new Scanner(new File(absolutePath));
+		try {
+			/* Get the absolute path to the configuration file */
+			String absolutePath = new File(pathToConfFile).getAbsolutePath();
 
-		while (scanner.hasNext()) {
-			/* Take the current line and split it where the semicolon is */
-			String[] tokens = scanner.nextLine().split(":");
+			/* Initialize the scanner */
+			scanner = new Scanner(new File(absolutePath));
 
-			/* No more than one colon in a line exception */
-			if (tokens.length > 2) {
-				throw new ConfigurationFileException("More than one colon (:) in the line");
-			}
+			/* Reading and parsing the configuration file */
+			while (scanner.hasNext()) {
+				/* Take the current line and split it where the semicolon is */
+				String[] tokens = scanner.nextLine().split(":");
 
-			/* Check for PATH parameter */
-			if (tokens[0].equals(ConstantFields.PATH_PARAM)) {
-				hasPath = true;
-
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the PATH parameter is missing");
+				/* No more than one colon in a line exception */
+				if (tokens.length > 2) {
+					throw new ConfigurationFileException("More than one colon (:) in the line");
 				}
-			}
 
-			/* Check for COORDINATORS parameter */
-			if (tokens[0].equals(ConstantFields.COORDINATORS_PARAM)) {
-				hasCoordinators = true;
+				/* Check for PATH parameter */
+				if (tokens[0].equals(ConstantFields.PATH_PARAM)) {
+					hasPath = true;
 
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the COORDINATORS parameter is missing");
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new ConfigurationFileException("The value of the PATH parameter is missing");
+					}
 				}
-			}
 
-			/* Check for OPERANDS parameter */
-			if (tokens[0].equals(ConstantFields.OPERANDS_PARAM)) {
-				hasOperands = true;
+				/* Check for COORDINATORS parameter */
+				if (tokens[0].equals(ConstantFields.COORDINATORS_PARAM)) {
+					hasCoordinators = true;
 
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the OPERANDS parameter is missing");
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new ConfigurationFileException("The value of the COORDINATORS parameter is missing");
+					}
 				}
-			}
 
-			/* Check for PORTS parameter */
-			if (tokens[0].equals(ConstantFields.PORTS_PARAM)) {
-				hasPorts = true;
+				/* Check for OPERANDS parameter */
+				if (tokens[0].equals(ConstantFields.OPERANDS_PARAM)) {
+					hasOperands = true;
 
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the PORTS parameter is missing");
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new ConfigurationFileException("The value of the OPERANDS parameter is missing");
+					}
 				}
-			}
 
-			/* Check for CONNECTORS parameter */
-			if (tokens[0].equals(ConstantFields.CONNECTORS_PARAM)) {
-				hasConnectors = true;
+				/* Check for PORTS parameter */
+				if (tokens[0].equals(ConstantFields.PORTS_PARAM)) {
+					hasPorts = true;
 
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the CONNECTORS parameter is missing");
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new ConfigurationFileException("The value of the PORTS parameter is missing");
+					}
 				}
-			}
 
-			/* Put the parameter in the hash table */
-			parameters.put(tokens[0], tokens[1]);
+				/* Check for CONNECTORS parameter */
+				if (tokens[0].equals(ConstantFields.CONNECTORS_PARAM)) {
+					hasConnectors = true;
+
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new ConfigurationFileException("The value of the CONNECTORS parameter is missing");
+					}
+				}
+
+				/* Put the parameter in the hash table */
+				parameters.put(tokens[0], tokens[1]);
+			}
+		} finally {
+			/* Close the scanner */
+			if (scanner != null)
+				scanner.close();
 		}
 
 		/* If there is not some of the mandatory parameters */

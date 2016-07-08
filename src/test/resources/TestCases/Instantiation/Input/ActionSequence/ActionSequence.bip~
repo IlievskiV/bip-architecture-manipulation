@@ -1,0 +1,49 @@
+model ActionSequence
+
+	port type ActionBeginPort
+	port type ActionEndPort
+
+	atomic type Operand
+		
+		export port ActionBeginPort actBeginO
+		export port ActionEndPort actEndO
+
+		place work, sleep
+		initial to sleep	
+
+		on actBeginO from sleep to work	
+		on actEndO from work to sleep
+	end
+
+
+	atomic type Coordinator
+		
+		export port ActionBeginPort actBeginC
+		export port ActionEndPort actEndC
+
+		place wait, next
+		initial to next
+
+		on actBeginC from next to wait
+		on actEndC from wait to next
+	end
+
+
+	connector type beginConnector(ActionBeginPort bOp, ActionBeginPort bCoord)
+		define bOp bCoord
+	end
+
+	connector type finishConnector(ActionEndPort eOp, ActionEndPort eCoord)
+		define eOp eCoord
+	end
+
+	compound type ActionSequence
+		component Coordinator C
+		component Operand B
+
+		connector beginConnector B_to_C_begin(B.actBeginO,C.actBeginC)
+		connector finishConnector B_to_C_finish(B.actEndO,C.actEndC)
+	end
+
+	component ActionSequence actionSequence
+end

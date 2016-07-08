@@ -23,4 +23,21 @@ public final class ConstantFields {
 	/* The name of the INTERACTIONS parameter in the configuration file */
 	public static final String INTERACTIONS_PARAM = "interactions";
 
+	/*
+	 * The name of the ARCH_STYLE_CONF_FILE_PATH parameter in the test
+	 * configuration file
+	 */
+	public static final String ARCH_STYLE_CONF_FILE_PATH_PARAM = "architecture_style_conf_file_path";
+
+	/*
+	 * The name of the ARCH_OP_CONF_FILE_PATH parameter in the test
+	 * configuration file
+	 */
+	public static final String ARCH_OP_CONF_FILE_PATH_PARAM = "architecture_operands_conf_file_path";
+
+	/*
+	 * The name of the OUTPUT_FOLDER_PATH parameter in the test configuration
+	 * file
+	 */
+	public static final String OUTPUT_FOLDER_PATH_PARAM = "ouput_folder_path";
 }

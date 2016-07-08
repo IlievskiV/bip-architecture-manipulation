@@ -1,11 +1,15 @@
 package ch.epfl.risd.archman.builder;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import ch.epfl.risd.archman.checker.BIPChecker;
+import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
@@ -13,6 +17,7 @@ import ch.epfl.risd.archman.exceptions.IllegalPortParameterReferenceException;
 import ch.epfl.risd.archman.exceptions.InvalidConnectorTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidPortParameterNameException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
+import ch.epfl.risd.archman.exceptions.TestConfigurationFileException;
 import ch.epfl.risd.archman.extractor.ArchitectureOperandsExtractor;
 import ch.epfl.risd.archman.extractor.ArchitectureStyleExtractor;
 import ch.epfl.risd.archman.extractor.BIPExtractor;
@@ -357,6 +362,8 @@ public class ArchitectureInstantiator {
 		Port deletedPort = ArchitectureInstanceBuilder.deletePortInstance(BIPExtractor
 				.getComponentByName(architectureInstance.getBipFileModel(), coordinatorInstanceName).getType(),
 				coordinatorPortInstanceName);
+		/* Remove the port from the configuration file */
+		architectureInstance.removePort(coordinatorInstanceName + "." + deletedPort.getName());
 
 		/* 6. Delete transitions labeled by the deleted port */
 		List<Transition> deletedTransitions = ArchitectureInstanceBuilder.deleteTransitions(
@@ -375,14 +382,16 @@ public class ArchitectureInstantiator {
 			List<ActualPortParameter> actualPortParameters = new LinkedList<ActualPortParameter>();
 
 			/* 12.1.2. Create port instance in the coordinator */
-			Port newPort = ArchitectureInstanceBuilder.createPortInstance(architectureInstance,
-					operandPort.split("\\.")[1], operandPort.split("\\.")[1], deletedPort.getType());
-			
+			Port newPort = ArchitectureInstanceBuilder.createPortInstance(operandPort.split("\\.")[1],
+					operandPort.split("\\.")[1], deletedPort.getType());
+
 			/* Get the coordinator type */
 			AtomType coordinatorType = (AtomType) BIPExtractor
 					.getComponentByName(architectureInstance.getBipFileModel(), coordinatorInstanceName).getType();
 			/* 12.1.3. Add the new port in the coordinator */
 			coordinatorType.getPort().add(newPort);
+			/* Add the new port in the configuration file too */
+			architectureInstance.addPort(coordinatorInstanceName + "." + newPort.getName());
 
 			/* Recreate transitions */
 			List<Transition> newTranstitions = new LinkedList<Transition>();
@@ -394,13 +403,12 @@ public class ArchitectureInstantiator {
 				newTranstitions.add(ArchitectureInstanceBuilder.createTransition(portDefinitionReference,
 						t.getOrigin().get(0), t.getDestination().get(0), t.getGuard(), t.getAction()));
 			}
-			
+
 			/* Get the coordinator Petri Net and change it */
 			PetriNet petriNet = (PetriNet) coordinatorType.getBehavior();
 			petriNet.getTransition().addAll(newTranstitions);
 			coordinatorType.setBehavior(petriNet);
-			
-			
+
 			actualPortParameters.add(ArchitectureInstanceBuilder.createInnerPortReference(
 					ArchitectureInstanceBuilder.createPartElementReference(BIPExtractor
 							.getComponentByName(architectureInstance.getBipFileModel(), coordinatorInstanceName)),
@@ -673,6 +681,144 @@ public class ArchitectureInstantiator {
 		return instance;
 	}
 
+	/**
+	 * Function for instantiation of architecture, when the test configuration
+	 * file is given. Should change the name of the function probably
+	 * 
+	 * @param pathToTestConfFile
+	 *            - absolute path to the configuration file
+	 * @throws TestConfigurationFileException
+	 * @throws ArchitectureExtractorException
+	 * @throws ConfigurationFileException
+	 * @throws IOException
+	 * @throws ArchitectureBuilderException
+	 */
+	public static ArchitectureInstance instantiateArchitecture(String pathToTestConfFile)
+			throws TestConfigurationFileException, ConfigurationFileException, ArchitectureExtractorException,
+			ArchitectureBuilderException, IOException {
+
+		/*
+		 * Set to null the three required entities to instantiate architecture
+		 */
+		ArchitectureStyle architectureStyle = null;
+		ArchitectureOperands architectureOperands = null;
+		String outputFolderPath = null;
+
+		/* Existence of the ARCH_STYLE_CONF_FILE_PATH parameter */
+		boolean hasArchStyleConfFilePath = false;
+
+		/* Existence of the ARCH_OP_CONF_FILE_PATH parameter */
+		boolean hasArchOpConfFilePath = false;
+
+		/* Existence of the OUTPUT_FOLDER_PATH parameter */
+		boolean hasOutputFolderPath = false;
+
+		/* Set scanner to null */
+		Scanner scanner = null;
+
+		try {
+
+			/* Initialize the scanner */
+			scanner = new Scanner(new File(pathToTestConfFile));
+
+			/* Reading and parsing the configuration file */
+			while (scanner.hasNext()) {
+				/* Take the current line and split it where the semicolon is */
+				String[] tokens = scanner.nextLine().split(":");
+
+				/* No more than one colon in a line exception */
+				if (tokens.length > 2) {
+					throw new TestConfigurationFileException("More than one colon (:) in the line");
+				}
+
+				/* Check for ARCH_STYLE_CONF_FILE_PATH parameter */
+				if (tokens[0].equals(ConstantFields.ARCH_STYLE_CONF_FILE_PATH_PARAM)) {
+					hasArchStyleConfFilePath = true;
+
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new TestConfigurationFileException(
+								"The value of the ARCH_STYLE_CONF_FILE_PATH parameter is missing");
+					} else {
+						/* Instantiate the architecture style */
+						architectureStyle = new ArchitectureStyle(new File(tokens[1]).getAbsolutePath());
+					}
+				}
+
+				/* Check for ARCH_OP_CONF_FILE_PATH_PARAM parameter */
+				if (tokens[0].equals(ConstantFields.ARCH_OP_CONF_FILE_PATH_PARAM)) {
+					hasArchOpConfFilePath = true;
+
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new TestConfigurationFileException(
+								"The value of the ARCH_OP_CONF_FILE_PATH parameter is missing");
+					} else {
+						/* Instantiate the architecture operands */
+						architectureOperands = new ArchitectureOperands(new File(tokens[1]).getAbsolutePath());
+					}
+				}
+
+				/* Check for OUTPUT_FOLDER_PATH_PARAM parameter */
+				if (tokens[0].equals(ConstantFields.OUTPUT_FOLDER_PATH_PARAM)) {
+					hasOutputFolderPath = true;
+
+					/* Check if value is missing */
+					if (tokens[1].trim().equals("")) {
+						throw new TestConfigurationFileException(
+								"The value of the OUTPUT_FOLDER_PATH parameter is missing");
+					} else {
+						/* Instantiate the output folder path */
+						outputFolderPath = new File(tokens[1]).getAbsolutePath();
+					}
+				}
+			}
+
+		} finally {
+			/* Close the scanner */
+			if (scanner != null)
+				scanner.close();
+		}
+
+		/* If there is not some of the mandatory parameters */
+		if (!hasArchStyleConfFilePath) {
+			throw new TestConfigurationFileException("ARCH_STYLE_CONF_FILE_PATH parameter is missing");
+		}
+
+		if (!hasArchOpConfFilePath) {
+			throw new TestConfigurationFileException("ARCH_OP_CONF_FILE_PATH parameter is missing");
+		}
+
+		if (!hasOutputFolderPath) {
+			throw new TestConfigurationFileException("OUTPUT_FOLDER_PATH is missing");
+		}
+
+		/* The name of the module */
+		String systemName = architectureStyle.getBipFileModel().getSystem().getName();
+		/* The name of the root type in the module */
+		String rootTypeName = architectureStyle.getBipFileModel().getRootType().getName();
+		/* The name of the root type instance in the module */
+		String rootInstanceName = architectureStyle.getBipFileModel().getRoot().getName();
+
+		/* Create the BIP File Model for the instance */
+		BIPFileModel bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
+
+		/* Create the output folder if not exists */
+		File outputFolder = new File(outputFolderPath);
+		if (!outputFolder.exists()) {
+			outputFolder.mkdirs();
+		}
+
+		/* Create the path to the resulting BIP file */
+		String pathToSaveBIPFile = outputFolderPath + "/" + systemName + ".bip";
+		/* Create the path to the resulting configuration file */
+		String pathToSaveConfFile = outputFolderPath + "/" + systemName + "Conf.txt";
+
+		/* Create the instance */
+		return ArchitectureInstantiator.createArchitectureInstance(architectureStyle, architectureOperands,
+				bipFileModel, pathToSaveBIPFile, pathToSaveConfFile);
+	}
+
 	public static void main(String[] args) throws ConfigurationFileException, ArchitectureExtractorException,
 			IOException, ArchitectureBuilderException {
 		try {
@@ -681,10 +827,10 @@ public class ArchitectureInstantiator {
 
 		}
 
-		String archStylePath = "/home/vladimir/Architecture_examples/Archive/Mutex/AEConf.txt";
+		String archStylePath = "/home/vladimir/Architecture_examples/Archive/Modes2/AEConf.txt";
 		ArchitectureStyle architectureStyle = new ArchitectureStyle(archStylePath);
 
-		String archOperandsPath = "/home/vladimir/Architecture_examples/Archive/Mutex/AEConf-instance2.txt";
+		String archOperandsPath = "/home/vladimir/Architecture_examples/Archive/Modes2/AEConf-instance2.txt";
 		ArchitectureOperands architectureOperands = new ArchitectureOperands(archOperandsPath);
 
 		BIPFileModel bipFileModel = new BIPFileModel("Mutex", "Mutex", "mutex");

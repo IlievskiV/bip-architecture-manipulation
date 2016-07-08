@@ -21,6 +21,7 @@ import com.bpodgursky.jbool_expressions.rules.RuleSet;
 import BIPTransformation.TransformationFunction;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
+import ch.epfl.risd.archman.exceptions.PortNotFoundException;
 
 /**
  * This class will represent one instance of the architecture when we will
@@ -331,6 +332,31 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		}
 	}
 
+	protected void removeFromParameters(String key, String value) {
+		/* Get the string of parameters */
+		String params = this.parameters.get((String) key);
+
+		/* String Builder for the result */
+		StringBuilder sb = new StringBuilder();
+
+		/* Split to tokens */
+		String[] tokens = params.split(",");
+
+		/* Iterate over them */
+		for (String t : tokens) {
+			if (!t.equals(value)) {
+				sb.append(t).append(",");
+			}
+		}
+
+		/* Cut the last comma */
+		sb.setLength(sb.length() - 1);
+
+		/* Update parameters */
+		this.parameters.put(key, sb.toString());
+
+	}
+
 	/****************************************************************************/
 	/* PUBLIC METHODS */
 	/***************************************************************************/
@@ -483,9 +509,26 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	 */
 	public void addPort(String portInstanceName) {
 		/* Add to the list */
-		this.operands.add(portInstanceName);
+		this.ports.add(portInstanceName);
 		/* Add the parameter */
 		this.addToParameters(ConstantFields.PORTS_PARAM, portInstanceName);
+	}
+
+	public void removePort(String portInstanceName) throws PortNotFoundException {
+
+		for (String p : ports) {
+			System.out.println(p);
+		}
+
+		if (ports.indexOf(portInstanceName) != -1) {
+			this.ports.remove(ports.indexOf(portInstanceName));
+			this.removeFromParameters(ConstantFields.PORTS_PARAM, portInstanceName);
+
+		} else {
+			throw new PortNotFoundException(
+					"Port with name " + portInstanceName + " does not exist in the configuration file");
+		}
+
 	}
 
 	/**
@@ -497,7 +540,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	 */
 	public void addInteraction(String interactionName) {
 		/* Add to the list */
-		this.operands.add(interactionName);
+		this.interactions.add(interactionName);
 		/* Add the parameter */
 		this.addToParameters(ConstantFields.INTERACTIONS_PARAM, interactionName);
 	}

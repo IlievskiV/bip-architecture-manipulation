@@ -326,6 +326,12 @@ public class ArchitectureInstanceBuilder {
 			} else {
 				architectureInstance.addOperand(name);
 			}
+
+			/* Add port instances in the configuration file */
+			List<Port> allPorts = type.getPort();
+			for (Port p : allPorts) {
+				architectureInstance.addPort(name + "." + p.getName());
+			}
 		}
 	}
 
@@ -364,6 +370,7 @@ public class ArchitectureInstanceBuilder {
 						"There are Ports in the Atom Type named " + name + " with the same name");
 			}
 			atomType.getPort().addAll(ports);
+			/* */
 		}
 
 		/* Cast the Behavior to Petri-Net */
@@ -408,8 +415,6 @@ public class ArchitectureInstanceBuilder {
 			/* Get all ports of the original atom type */
 			List<Port> originalPorts = type.getPort();
 
-			// System.out.println("Ports : " + originalPorts.size());
-
 			/* Instantiate empty list of ports */
 			List<Port> copyPorts = new LinkedList<Port>();
 
@@ -420,49 +425,27 @@ public class ArchitectureInstanceBuilder {
 
 				/* If the port type does not exist */
 				if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), p.getType())) {
-					// System.out.println("The port type does not exist");
 					portType = ArchitectureInstanceBuilder.copyPortType(architectureInstance, p.getType());
 				}
 				/* If the port type exists */
 				else {
-					// System.out.println("The port type exists");
 					/* Get the port type */
 					portType = BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(),
 							p.getType().getName());
 				}
 
-				/* We should add it to the list of ports */
-				architectureInstance.addPort(((DefinitionBinding) p.getBinding()).getOuterPort().getName());
-
-				// System.out.println(p);
-
-				/* They are same */
-				// System.out.println("Inner name: " + p.getName());
-				// System.out.println(
-				// "Interface name: " + ((DefinitionBindingImpl)
-				// p.getBinding()).getDefinition().getName());
-				//
-				// System.out.println(
-				// "Atom Type: " + ((DefinitionBindingImpl)
-				// p.getBinding()).getDefinition().getAtomType());
-
 				/* Add the port to the copy ports */
-				Port newPort = ArchitectureInstanceBuilder.createPortInstance(architectureInstance, p.getName(),
+				Port newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(),
 						((DefinitionBindingImpl) p.getBinding()).getDefinition().getName(), portType);
 
 				copyPorts.add(newPort);
 			}
-
-			// System.out.println("Copied ports: " + copyPorts.size());
 
 			/* Set the behavior */
 			copy.setBehavior(type.getBehavior());
 
 			/* Add all ports */
 			copy.getPort().addAll(copyPorts);
-
-			// System.out.println("Ports in the component: " +
-			// copy.getPort().size());
 
 			return copy;
 		} else {
@@ -553,8 +536,7 @@ public class ArchitectureInstanceBuilder {
 		return portType;
 	}
 
-	public static Port createPortInstance(ArchitectureInstance architectureInstance, String innerName,
-			String interfaceName, PortType type) {
+	public static Port createPortInstance(String innerName, String interfaceName, PortType type) {
 		/* First create Port Definition */
 		PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName, type);
 
@@ -569,8 +551,6 @@ public class ArchitectureInstanceBuilder {
 		port.setBinding(binding);
 		/* Set the type of the port */
 		port.setType(type);
-		/* Add it to the list of ports */
-		architectureInstance.addPort(innerName);
 
 		return port;
 	}
@@ -683,10 +663,12 @@ public class ArchitectureInstanceBuilder {
 		/* Create the interaction */
 		StringBuilder interaction = new StringBuilder();
 		for (ActualPortParameter app : actualPortParameters) {
-			interaction.append(((InnerPortReference) app).getTargetPort().getName());
+			interaction.append(((InnerPortReference) app).getTargetInstance().getTargetPart().getName() + "."
+					+ ((InnerPortReference) app).getTargetPort().getName()).append(" ");
 		}
 
 		/* Set the interaction */
+		interaction.setLength(interaction.length() - 1);
 		architectureInstance.addInteraction(interaction.toString());
 
 		return connector;
