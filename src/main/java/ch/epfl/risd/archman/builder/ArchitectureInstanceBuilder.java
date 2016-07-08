@@ -4,7 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import ch.epfl.risd.archman.checker.BIPChecker;
-import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.IllegalPortParameterReferenceException;
 import ch.epfl.risd.archman.exceptions.IllegalTransitionPortException;
@@ -19,6 +18,7 @@ import ch.epfl.risd.archman.exceptions.InvalidPortTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidStateNameException;
 import ch.epfl.risd.archman.exceptions.InvalidVariableNameException;
 import ch.epfl.risd.archman.exceptions.ListEmptyException;
+import ch.epfl.risd.archman.exceptions.PortNotFoundException;
 import ch.epfl.risd.archman.extractor.BIPExtractor;
 import ch.epfl.risd.archman.factories.Factories;
 import ch.epfl.risd.archman.model.ArchitectureInstance;
@@ -37,6 +37,7 @@ import ujf.verimag.bip.Core.ActionLanguage.Expressions.StringLiteral;
 import ujf.verimag.bip.Core.ActionLanguage.Expressions.UnaryExpression;
 import ujf.verimag.bip.Core.ActionLanguage.Expressions.UnaryOperator;
 import ujf.verimag.bip.Core.ActionLanguage.Expressions.VariableReference;
+import ujf.verimag.bip.Core.Behaviors.AbstractTransition;
 import ujf.verimag.bip.Core.Behaviors.Action;
 import ujf.verimag.bip.Core.Behaviors.AtomType;
 import ujf.verimag.bip.Core.Behaviors.Behavior;
@@ -53,7 +54,6 @@ import ujf.verimag.bip.Core.Behaviors.State;
 import ujf.verimag.bip.Core.Behaviors.Transition;
 import ujf.verimag.bip.Core.Behaviors.Variable;
 import ujf.verimag.bip.Core.Behaviors.impl.DefinitionBindingImpl;
-import ujf.verimag.bip.Core.Behaviors.impl.PortDefinitionImpl;
 import ujf.verimag.bip.Core.Behaviors.impl.StateImpl;
 import ujf.verimag.bip.Core.Interactions.ActualPortParameter;
 import ujf.verimag.bip.Core.Interactions.Component;
@@ -1225,5 +1225,79 @@ public class ArchitectureInstanceBuilder {
 		/* set is it header */
 		element.setIsHeader(isHeader);
 		return element;
+	}
+
+	public static Port deletePortInstance(ComponentType componentType, String portInstanceName)
+			throws PortNotFoundException {
+		/* Get all port instances in the component type */
+		List<Port> allPortInstances = componentType.getPort();
+
+		/* Initialize new list of port instances */
+		List<Port> newPortInstances = new LinkedList<Port>();
+
+		/* The deleted port */
+		Port deletedPort = null;
+
+		/* Iterate over them */
+		for (Port p : allPortInstances) {
+			if (p.getName().equals(portInstanceName)) {
+				deletedPort = p;
+			} else {
+				newPortInstances.add(p);
+			}
+		}
+
+		if (deletedPort != null) {
+			componentType.getPort().clear();
+			componentType.getPort().addAll(newPortInstances);
+			return deletedPort;
+		} else {
+			throw new PortNotFoundException("Port instance with a name " + portInstanceName
+					+ " was not found in the component type named " + componentType.getName());
+		}
+	}
+
+	/**
+	 * Delete all transitions in which the port instance is the trigger
+	 * 
+	 * @param atomType
+	 * @param portInstance
+	 * @return
+	 */
+	public static List<Transition> deleteTransitions(AtomType atomType, Port portInstance) {
+
+		/* List of all transitions in the atom type */
+		List<Transition> allTransitions = ((PetriNet) atomType.getBehavior()).getTransition();
+
+		/* List of the new transitions */
+		List<Transition> newTransitions = new LinkedList<Transition>();
+
+		/* Deleted transitions */
+		List<Transition> deletedTransitions = new LinkedList<Transition>();
+
+		/* Iterate over all transitions */
+		for (Transition t : allTransitions) {
+			/* Not sure about this */
+
+			System.out
+					.println("Transition triger: " + ((PortDefinitionReference) t.getTrigger()).getTarget().getName());
+			System.out.println("Interface name of the port: "
+					+ ((DefinitionBindingImpl) portInstance.getBinding()).getDefinition().getName());
+			System.out.println("Inner name of the port: " + portInstance.getName());
+
+			if (((PortDefinitionReference) t.getTrigger()).getTarget().getName().equals(portInstance.getName())) {
+				deletedTransitions.add(t);
+			} else {
+				newTransitions.add(t);
+			}
+		}
+
+		if (deletedTransitions.size() != 0) {
+			((PetriNet) atomType.getBehavior()).getTransition().clear();
+			((PetriNet) atomType.getBehavior()).getTransition().addAll(newTransitions);
+			return deletedTransitions;
+		} else {
+			return null;
+		}
 	}
 }
