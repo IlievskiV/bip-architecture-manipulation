@@ -1,7 +1,6 @@
 package ch.epfl.risd.archman.builder;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -827,10 +826,10 @@ public class ArchitectureInstantiator {
 
 		}
 
-		String archStylePath = "/home/vladimir/Architecture_examples/Archive/Modes2/AEConf.txt";
+		String archStylePath = "/home/vladimir/Architecture_examples/Archive/Mutex/AEConf.txt";
 		ArchitectureStyle architectureStyle = new ArchitectureStyle(archStylePath);
 
-		String archOperandsPath = "/home/vladimir/Architecture_examples/Archive/Modes2/AEConf-instance2.txt";
+		String archOperandsPath = "/home/vladimir/Architecture_examples/Archive/Mutex/AEConf-instance2.txt";
 		ArchitectureOperands architectureOperands = new ArchitectureOperands(archOperandsPath);
 
 		BIPFileModel bipFileModel = new BIPFileModel("Mutex", "Mutex", "mutex");

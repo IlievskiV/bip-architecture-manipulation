@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import com.bpodgursky.jbool_expressions.And;
 import com.bpodgursky.jbool_expressions.Expression;
@@ -34,16 +35,16 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	/***************************************************************************/
 
 	/* List of coordinators for this Architecture Instance */
-	private List<String> coordinators;
+	private Set<String> coordinators;
 
 	/* List of operands for this Architecture Instance */
-	private List<String> operands;
+	private Set<String> operands;
 
 	/* List of ports for this Architecture Instance */
-	private List<String> ports;
+	private Set<String> ports;
 
 	/* List of interactions for this Architecture Instance */
-	private List<String> interactions;
+	private Set<String> interactions;
 
 	/* List of terms in the predicate */
 	private String characteristicPredicate;
@@ -177,16 +178,16 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		String delim = ",";
 
 		/* Get all coordinators */
-		this.coordinators = (List<String>) this.parseConcatenatedString(allCoordinators, delim);
+		this.coordinators = (Set<String>) this.parseConcatenatedString(allCoordinators, delim);
 
 		/* Get all operands */
-		this.operands = (List<String>) this.parseConcatenatedString(allOperands, delim);
+		this.operands = (Set<String>) this.parseConcatenatedString(allOperands, delim);
 
 		/* Get all ports */
-		this.ports = (List<String>) this.parseConcatenatedString(allPorts, delim);
+		this.ports = (Set<String>) this.parseConcatenatedString(allPorts, delim);
 
 		/* Get all interactions */
-		this.interactions = (List<String>) this.parseConcatenatedString(allInteractions, delim);
+		this.interactions = (Set<String>) this.parseConcatenatedString(allInteractions, delim);
 	}
 
 	@Override
@@ -205,12 +206,12 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		parameters.put(ConstantFields.INTERACTIONS_PARAM, "");
 	}
 
-	protected List<String> parseConcatenatedString(String concatenatedString, String delim) {
+	protected Set<String> parseConcatenatedString(String concatenatedString, String delim) {
 		/* Split the string */
 		String[] tokens = concatenatedString.split(delim);
 
 		/* The resulting list */
-		List<String> result = new LinkedList<String>();
+		Set<String> result = new HashSet<String>();
 		result.addAll(Arrays.asList(tokens));
 
 		return result;
@@ -228,32 +229,51 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 		/* Iterate the interactions */
 		for (String interaction : interactions) {
-			/* Connector as in the Algebra of Connectors */
-			ch.epfl.risd.ac.model.ConnectorNode connectorNode = ch.epfl.risd.ac.model.Connector.FromString(interaction);
-			ch.epfl.risd.ac.model.Connector connector = new ch.epfl.risd.ac.model.Connector(new HashSet(),
-					connectorNode);
-			/* Transform it to the Causal Tree */
-			ch.epfl.risd.ac.model.CausalTree causalTree = connector.toCausalTree();
-			/* Get the possible interactions */
-			List<String> generatedInteractions = causalTree.getInteractions();
+			if (!interaction.equals("")) {
+				/* Connector as in the Algebra of Connectors */
+				ch.epfl.risd.ac.model.ConnectorNode connectorNode = ch.epfl.risd.ac.model.Connector
+						.FromString(interaction);
+				ch.epfl.risd.ac.model.Connector connector = new ch.epfl.risd.ac.model.Connector(new HashSet(),
+						connectorNode);
+				/* Transform it to the Causal Tree */
+				ch.epfl.risd.ac.model.CausalTree causalTree = connector.toCausalTree();
+				/* Get the possible interactions */
+				List<String> generatedInteractions = causalTree.getInteractions();
 
-			/* Iterate over the generated interactions */
-			for (String genInt : generatedInteractions) {
+				/* Iterate over the generated interactions */
+				for (String genInt : generatedInteractions) {
+					/* The current term in the predicate */
+					StringBuilder predicateTerm = new StringBuilder();
+
+					System.out.println("Generated interaction: " + genInt);
+
+					/* Iterate over the ports */
+					for (String port : this.ports) {
+						/* If the generated interaction contains the port */
+						if (genInt.contains(port)) {
+							predicateTerm.append(port);
+						} else {
+							predicateTerm.append("!" + port);
+						}
+						/* Append AND */
+						predicateTerm.append("&");
+					}
+
+					/* Cut the last & */
+					predicateTerm.setLength(predicateTerm.length() - 1);
+					/* Add the predicate term in the final predicate */
+					predicateTerms.add(predicateTerm.toString());
+				}
+			}
+			/* If we have the empty interaction */
+			else {
 				/* The current term in the predicate */
 				StringBuilder predicateTerm = new StringBuilder();
 
-				/* Iterate over the ports */
-				for (String port : ports) {
-					/* If the generated interaction contains the port */
-					if (genInt.contains(port)) {
-						predicateTerm.append(port);
-					} else {
-						predicateTerm.append("!" + port);
-					}
-					/* Append AND */
+				for (String port : this.ports) {
+					predicateTerm.append("!" + port);
 					predicateTerm.append("&");
 				}
-
 				/* Cut the last & */
 				predicateTerm.setLength(predicateTerm.length() - 1);
 				/* Add the predicate term in the final predicate */
@@ -283,9 +303,9 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	 * 
 	 * @return
 	 */
-	protected List<String> calculateInteractions() {
+	protected Set<String> calculateInteractions() {
 		/* The resulting set */
-		List<String> result = new LinkedList<String>();
+		Set<String> result = new HashSet<String>();
 
 		/* The characteristic predicate in terms of boolean algebra */
 		Expression<String> boolPredicate = RuleSet.simplify(ExprParser.parse(characteristicPredicate));
@@ -295,6 +315,9 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 		/* Iterate over the expressions in the disjunction */
 		for (int i = 0; i < expressions.length; i++) {
+
+			System.out.println("Expression: " + expressions[i]);
+
 			/* Due to the assumption, the sub-expressions are conjunctions */
 			Expression<String>[] subExpressions = ((And<String>) expressions[i]).expressions;
 			/* The resulting interaction */
@@ -380,14 +403,14 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		this.parameters = new Hashtable<String, String>();
 		/* Initialize parameters */
 		this.initializeParameters();
-		/* Instantiate the list of coordinators */
-		this.coordinators = new LinkedList<String>();
-		/* Instantiate the list of operands */
-		this.operands = new LinkedList<String>();
-		/* Instantiate the list of ports */
-		this.ports = new LinkedList<String>();
-		/* Instantiate the list of interactions */
-		this.interactions = new LinkedList<String>();
+		/* Instantiate the set of coordinators */
+		this.coordinators = new HashSet<String>();
+		/* Instantiate the set of operands */
+		this.operands = new HashSet<String>();
+		/* Instantiate the set of ports */
+		this.ports = new HashSet<String>();
+		/* Instantiate the set of interactions */
+		this.interactions = new HashSet<String>();
 		/* Empty characteristic predicate */
 		this.characteristicPredicate = new String();
 	}
@@ -399,14 +422,14 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		this.parameters = new Hashtable<String, String>();
 		/* Initialize parameters */
 		this.initializeParameters();
-		/* Instantiate the list of coordinators */
-		this.coordinators = new LinkedList<String>();
-		/* Instantiate the list of operands */
-		this.operands = new LinkedList<String>();
-		/* Instantiate the list of ports */
-		this.ports = new LinkedList<String>();
-		/* Instantiate the list of interactions */
-		this.interactions = new LinkedList<String>();
+		/* Instantiate the set of coordinators */
+		this.coordinators = new HashSet<String>();
+		/* Instantiate the set of operands */
+		this.operands = new HashSet<String>();
+		/* Instantiate the set of ports */
+		this.ports = new HashSet<String>();
+		/* Instantiate the set of interactions */
+		this.interactions = new HashSet<String>();
 		/* Empty characteristic predicate */
 		this.characteristicPredicate = new String();
 	}
@@ -425,9 +448,11 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	 *            - the list of ports
 	 * @param interactions
 	 *            - the list of interactions
+	 * @param emptyInteraction
 	 */
 	public ArchitectureInstance(BIPFileModel bipFileModel, Hashtable<String, String> parameters,
-			List<String> coordinators, List<String> operands, List<String> ports, List<String> interactions) {
+			Set<String> coordinators, Set<String> operands, Set<String> ports, Set<String> interactions,
+			boolean emptyInteraction) {
 		/* Assign the references */
 		this.bipFileModel = bipFileModel;
 		this.parameters = parameters;
@@ -435,6 +460,10 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		this.operands = operands;
 		this.ports = ports;
 		this.interactions = interactions;
+		/* Check whether we have an empty interaction */
+		if (emptyInteraction) {
+			interactions.add("");
+		}
 		this.characteristicPredicate = this.calculateCharacteristicPredicate();
 	}
 
@@ -452,15 +481,21 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	 * 
 	 * @param pathToConfFile
 	 *            - the path to the configuration file
+	 * @param emptyInteraction
 	 * @throws FileNotFoundException
 	 * @throws ConfigurationFileException
 	 */
-	public ArchitectureInstance(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
+	public ArchitectureInstance(String pathToConfFile, boolean emptyInteraction)
+			throws FileNotFoundException, ConfigurationFileException {
 		/* Read the parameters from the configuration file */
 		this.readParameters(pathToConfFile);
 
 		/* After reading the parameters, parse parameters */
 		this.parseParameters();
+
+		if (emptyInteraction) {
+			this.interactions.add("");
+		}
 
 		/* Calculate the characteristic predicate */
 		this.characteristicPredicate = this.calculateCharacteristicPredicate();
@@ -520,8 +555,8 @@ public class ArchitectureInstance extends ArchitectureEntity {
 			System.out.println(p);
 		}
 
-		if (ports.indexOf(portInstanceName) != -1) {
-			this.ports.remove(ports.indexOf(portInstanceName));
+		if (ports.contains(portInstanceName)) {
+			this.ports.remove(portInstanceName);
 			this.removeFromParameters(ConstantFields.PORTS_PARAM, portInstanceName);
 
 		} else {
@@ -621,30 +656,30 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	}
 
 	/**
-	 * @return the list of coordinators for this Architecture Instance
+	 * @return the set of coordinators for this Architecture Instance
 	 */
-	public List<String> getCoordinators() {
+	public Set<String> getCoordinators() {
 		return coordinators;
 	}
 
 	/**
-	 * @return the list of operands of the Architecture Instance
+	 * @return the set of operands of the Architecture Instance
 	 */
-	public List<String> getOperands() {
+	public Set<String> getOperands() {
 		return operands;
 	}
 
 	/**
-	 * @return the list of ports of the Architecture Instance
+	 * @return the set of ports of the Architecture Instance
 	 */
-	public List<String> getPorts() {
+	public Set<String> getPorts() {
 		return ports;
 	}
 
 	/**
-	 * @return the list of interactions of the Architecture Instance
+	 * @return the set of interactions of the Architecture Instance
 	 */
-	public List<String> getInteractions() {
+	public Set<String> getInteractions() {
 		return interactions;
 	}
 }

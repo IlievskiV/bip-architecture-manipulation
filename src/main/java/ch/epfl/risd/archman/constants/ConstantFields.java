@@ -40,4 +40,11 @@ public final class ConstantFields {
 	 * file
 	 */
 	public static final String OUTPUT_FOLDER_PATH_PARAM = "ouput_folder_path";
+
+	/* String used in the process of generating connector type names */
+	public static final String CONNECTOR_TYPE = "connectorType";
+
+	/* String used in the process of generating connector type instance names */
+	public static final String INSTANCE = "instance";
+
 }
