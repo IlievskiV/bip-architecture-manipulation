@@ -152,8 +152,13 @@ public class BIPChecker {
 	 * @return true if the port instance exists, false otherwise
 	 * @throws ArchitectureExtractorException
 	 */
-	public static boolean portExists(Port port, Component component) throws ArchitectureExtractorException {
-		return BIPExtractor.getComponentPortNames(component).contains(port.getName());
+	public static boolean portExists(BIPFileModel bipFileModel, Port port, Component component)
+			throws ArchitectureExtractorException {
+		/* Check whether the component exist */
+		if (BIPChecker.componentExists(bipFileModel, component)) {
+			return BIPExtractor.getComponentPortNames(component).contains(port.getName());
+		}
+		return false;
 	}
 
 	/**
@@ -171,8 +176,12 @@ public class BIPChecker {
 	 */
 	public static boolean portExists(BIPFileModel bipFileModel, String portName, String componentName)
 			throws ArchitectureExtractorException {
-		return BIPExtractor.getComponentPortNames(BIPExtractor.getComponentByName(bipFileModel, componentName))
-				.contains(portName);
+		/* Check whether the component exist */
+		if (BIPChecker.componentExists(bipFileModel, componentName)) {
+			return BIPExtractor.getComponentPortNames(BIPExtractor.getComponentByName(bipFileModel, componentName))
+					.contains(portName);
+		}
+		return false;
 	}
 
 	/**

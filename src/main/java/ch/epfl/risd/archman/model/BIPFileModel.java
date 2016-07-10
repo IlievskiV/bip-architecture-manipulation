@@ -58,8 +58,6 @@ public class BIPFileModel {
 		/* Parse the BIP model */
 		this.rootType = TransformationFunction.ParseBIPFile(path);
 
-		System.out.println(path);
-
 		/* Get the system of the BIP model */
 		this.system = (SystemImpl) this.rootType.getModule();
 

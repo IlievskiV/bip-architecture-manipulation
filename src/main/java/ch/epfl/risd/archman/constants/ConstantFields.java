@@ -45,6 +45,6 @@ public final class ConstantFields {
 	public static final String CONNECTOR_TYPE = "connectorType";
 
 	/* String used in the process of generating connector type instance names */
-	public static final String INSTANCE = "instance";
+	public static final String INSTANCE = "Instance";
 
 }

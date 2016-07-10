@@ -618,7 +618,7 @@ public class ArchitectureInstanceBuilder {
 			/* Check if some of the Port Parameters have the same name */
 			if (checkDuplicatePortParameters(portParameters)) {
 				throw new InvalidPortParameterNameException("In Connector Type named " + connectorTypeName
-						+ "there are Port Parameters(arguments) with a same name");
+						+ " there are Port Parameters(arguments) with a same name");
 			}
 
 			connectorType.getPortParameter().addAll(portParameters);
