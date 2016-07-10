@@ -246,6 +246,21 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		this.validate();
 	}
 
+	public ArchitectureOperands(String prefixToBip, String pathToConfFile) throws FileNotFoundException,
+			ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
+		/* Read the parameters from the configuration file */
+		this.readParameters(pathToConfFile);
+
+		/* After reading the parameters, parse parameters */
+		this.parseParameters();
+
+		/* Parse the BIP file model */
+		this.bipFileModel = new BIPFileModel(prefixToBip + this.parameters.get(ConstantFields.PATH_PARAM));
+
+		/* Validate architecture operands */
+		this.validate();
+	}
+
 	/**
 	 * @return the BIP file model for the Architecture Operands
 	 */

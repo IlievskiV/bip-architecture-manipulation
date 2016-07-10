@@ -1,4 +1,4 @@
-path:/home/vladimir/Architecture_examples/Archive/ActionSequence/ActionSequence.bip
+path:ActionSequence.bip
 coordinators:C
 operands:B
 ports:C.actBeginC,C.actEndC,B.actBeginO,B.actEndO

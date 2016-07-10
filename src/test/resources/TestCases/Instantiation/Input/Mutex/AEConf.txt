@@ -1,4 +1,4 @@
-path:/home/vladimir/Architecture_examples/Archive/Mutex/MutualExclusion.bip
+path:/Mutex/MutualExclusion.bip
 coordinators:C
 operands:B
 ports:C.take,C.release,B.begin,B.finish

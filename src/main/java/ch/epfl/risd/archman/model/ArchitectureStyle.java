@@ -364,6 +364,30 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	}
 
 	/**
+	 * 
+	 * @param prefix
+	 * @param relativePath
+	 * @throws FileNotFoundException
+	 * @throws ConfigurationFileException
+	 * @throws ComponentNotFoundException
+	 * @throws ArchitectureExtractorException
+	 */
+	public ArchitectureStyle(String prefixToBip, String pathToConfFile) throws FileNotFoundException,
+			ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
+		/* Read the parameters from the configuration file */
+		this.readParameters(pathToConfFile);
+
+		/* After reading the parameters, parse parameters */
+		this.parseParameters();
+
+		/* Parse the BIP file model */
+		this.bipFileModel = new BIPFileModel(prefixToBip + this.parameters.get(ConstantFields.PATH_PARAM));
+
+		/* Validate the Architecture style */
+		this.validate();
+	}
+
+	/**
 	 * @return the coordinators of the Architecture Style
 	 */
 	public Set<String> getCoordinators() {

@@ -1,4 +1,4 @@
-path:/home/vladimir/Architecture_examples/Archive/Modes2/Modes2.bip
+path:Modes2.bip
 coordinators:C
 operands:B
 ports:C.inMode1,C.inMode2,C.toMode1,C.toMode2,B.m1b,B.m1e,B.m2b,B.m2e
