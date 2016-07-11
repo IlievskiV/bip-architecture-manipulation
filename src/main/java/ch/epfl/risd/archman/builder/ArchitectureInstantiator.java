@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import com.bpodgursky.jbool_expressions.Expression;
+import com.bpodgursky.jbool_expressions.Or;
+import com.bpodgursky.jbool_expressions.parsers.ExprParser;
+import com.bpodgursky.jbool_expressions.rules.RuleSet;
+
 import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
@@ -672,6 +677,9 @@ public class ArchitectureInstantiator {
 			}
 		}
 
+		/* Calculate the predicate */
+		instance.setCharacteristicPredicate(
+				ArchitectureInstance.calculateCharacteristicPredicate(instance.getInteractions(), instance.getPorts()));
 		/* End. Generate BIP file */
 		instance.generateBipFile(pathToSaveBIPFile);
 		/* End. Generate configuration file */
@@ -840,6 +848,23 @@ public class ArchitectureInstantiator {
 
 		ArchitectureInstance instance = ArchitectureInstantiator.createArchitectureInstance(architectureStyle,
 				architectureOperands, bipFileModel, pathToSaveBIPFile, pathToSaveConfFile);
+
+		System.out.println("Predicate :" + instance.getCharacteristicPredicate());
+		Expression<String> sopForm = ExprParser.parse(instance.getCharacteristicPredicate());
+		
+		System.out.println(sopForm.toString());
+		
+		Expression<String>[] expressions = ((Or<String>) sopForm).expressions;
+
+		for (int i = 0; i < expressions.length; i++) {
+			System.out.println(expressions[i].toString());
+		}
+
+		/*
+		 * ArchitectureInstance instance1 = new
+		 * ArchitectureInstance("/home/vladimir/Desktop/exampleconf.txt", true);
+		 * System.out.println(instance1.getCharacteristicPredicate());
+		 */
 
 		// ArchitectureInstance architectureInstance1 = new
 		// ArchitectureInstance("MutualExclusion", "Mutex", "mutex");

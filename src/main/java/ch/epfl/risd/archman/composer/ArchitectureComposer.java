@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import com.bpodgursky.jbool_expressions.Expression;
+import com.bpodgursky.jbool_expressions.parsers.ExprParser;
 
 import ch.epfl.risd.archman.builder.ArchitectureInstanceBuilder;
 import ch.epfl.risd.archman.checker.BIPChecker;
@@ -159,8 +163,7 @@ public class ArchitectureComposer {
 	 * @throws IOException
 	 */
 	public static ArchitectureInstance compose(ArchitectureInstance instance1, ArchitectureInstance instance2,
-			List<String> interactions, BIPFileModel architectureInstanceBIPFile, String pathToSaveBIPFile,
-			String pathToSaveConfFile)
+			BIPFileModel architectureInstanceBIPFile, String pathToSaveBIPFile, String pathToSaveConfFile)
 			throws ArchitectureExtractorException, InvalidComponentNameException, InvalidConnectorTypeNameException,
 			InvalidPortParameterNameException, IllegalPortParameterReferenceException, IOException {
 
@@ -210,6 +213,7 @@ public class ArchitectureComposer {
 		}
 
 		/* 3. Match the interactions with connector types */
+		Set<String> interactions = ArchitectureInstance.calculateInteractionsFromInstances(instance1, instance2);
 
 		/* Counter for the connector type */
 		int connectorTypeCounter = 1;
@@ -320,6 +324,7 @@ public class ArchitectureComposer {
 		BIPFileModel bipFileModel1 = new BIPFileModel(pathToBIPInstance1);
 		BIPFileModel bipFileModel2 = new BIPFileModel(pathToBIPInstance2);
 
+		/* These are empty instances! No interactions no predicate, nothing */
 		ArchitectureInstance instance1 = new ArchitectureInstance(bipFileModel1);
 		ArchitectureInstance instance2 = new ArchitectureInstance(bipFileModel2);
 
@@ -337,7 +342,7 @@ public class ArchitectureComposer {
 		String pathToSaveConfFile = "/home/vladimir/Architecture_examples/Compose/ConfFile.txt";
 
 		try {
-			ArchitectureComposer.compose(instance1, instance2, interactions, resultBipFileModel, pathToSaveBipFile,
+			ArchitectureComposer.compose(instance1, instance2, resultBipFileModel, pathToSaveBipFile,
 					pathToSaveConfFile);
 		} catch (InvalidComponentNameException | InvalidConnectorTypeNameException | InvalidPortParameterNameException
 				| IllegalPortParameterReferenceException | ArchitectureExtractorException | IOException e) {

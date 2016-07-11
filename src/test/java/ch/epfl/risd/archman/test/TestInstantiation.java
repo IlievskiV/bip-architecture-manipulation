@@ -8,6 +8,12 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
+import com.bpodgursky.jbool_expressions.Expression;
+import com.bpodgursky.jbool_expressions.Or;
+import com.bpodgursky.jbool_expressions.parsers.ExprParser;
+import com.bpodgursky.jbool_expressions.rules.Rule;
+import com.bpodgursky.jbool_expressions.rules.RuleSet;
+
 import ch.epfl.risd.archman.builder.ArchitectureInstantiator;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
@@ -135,7 +141,7 @@ public class TestInstantiation {
 
 						/* Instantiate the output folder path */
 						outputFolderPath = outputDirPath + tokens[1];
-						
+
 						System.out.println(outputFolderPath);
 					}
 				}
@@ -208,6 +214,26 @@ public class TestInstantiation {
 				| URISyntaxException | TestConfigurationFileException | IOException e) {
 			e.printStackTrace();
 		}
+
+		Expression<String> nonStandard = ExprParser
+				.parse("(!b1 & !b2 & !b12 & !f1 & !f2 & !f12 | b1 & !b2 & b12 & !f1 & !f2 & !f12 | !b1 & b2 & b12 & !f1 & !f2 & !f12 | !b1 & !b2 & !b12 & f1 & !f2 & f12 | !b1 & !b2 & !b12 & !f1 & f2 & f12)"
+						+ "&(!b1 & !b3 & !b13 & !f1 & !f3 & !f13 | b1 & !b3 & b13 & !f1 & !f3 & !f13 | !b1 & b3 & b13 & !f1 & !f3 & !f13 | !b1 & !b3 & !b13 & f1 & !f3 & f13 | !b1 & !b3 & !b13 & !f1 & f3 & f13)");
+						//+ "&(!b2 & !b3 & !b23 & !f2 & !f3 & !f23 | b2 & !b3 & b23 & !f2 & !f3 & !f23 | !b2 & b3 & b23 & !f2 & !f3 & !f23 | !b2 & !b3 & !b23 & f2 & !f3 & f23 | !b2 & !b3 & !b23 & !f2 & f3 & f23))");
+		Expression<String> sopForm = RuleSet.toDNF(nonStandard);
+		System.out.println(sopForm);
+		
+		Expression<String>[] expressions = ((Or<String>) sopForm).expressions;
+		
+		for(int i = 0; i < expressions.length; i++){
+			System.out.println(expressions[i].toString());
+		}
+		
+
+		// Expression<String> nonStandard = ExprParser.parse("!b1 & b2 & b12 &
+		// !f1 & !f2 & !f12 & b3 & b13 & !f3 & !f13 | !b1 & !b2 & !b12 & !f1 &
+		// f2 & f12 & !b3 & !b13 & f3 & f13");
+		// Expression<String> sopForm = RuleSet.simplify(nonStandard);
+		// System.out.println(sopForm);
 	}
 
 }
