@@ -163,12 +163,13 @@ public class ArchitectureComposer {
 	 * @throws IOException
 	 */
 	public static ArchitectureInstance compose(ArchitectureInstance instance1, ArchitectureInstance instance2,
-			BIPFileModel architectureInstanceBIPFile, String pathToSaveBIPFile, String pathToSaveConfFile)
+			String systemName, String rootTypeName, String rootInstanceName, String pathToSaveBIPFile,
+			String pathToSaveConfFile)
 			throws ArchitectureExtractorException, InvalidComponentNameException, InvalidConnectorTypeNameException,
 			InvalidPortParameterNameException, IllegalPortParameterReferenceException, IOException {
 
 		/* 0.Create an empty architecture instance */
-		ArchitectureInstance instance = new ArchitectureInstance(architectureInstanceBIPFile);
+		ArchitectureInstance instance = new ArchitectureInstance(systemName, rootTypeName, rootInstanceName);
 
 		/* 1.Take all Port Types and plug them */
 		List<PortType> allPortTypes = new LinkedList<PortType>();
@@ -315,38 +316,5 @@ public class ArchitectureComposer {
 		instance.generateConfigurationFile(pathToSaveConfFile);
 
 		return instance;
-	}
-
-	public static void main(String[] args) {
-		String pathToBIPInstance1 = "/home/vladimir/Architecture_examples/Compose/MutualExclusion12.bip";
-		String pathToBIPInstance2 = "/home/vladimir/Architecture_examples/Compose/MutualExclusion13.bip";
-
-		BIPFileModel bipFileModel1 = new BIPFileModel(pathToBIPInstance1);
-		BIPFileModel bipFileModel2 = new BIPFileModel(pathToBIPInstance2);
-
-		/* These are empty instances! No interactions no predicate, nothing */
-		ArchitectureInstance instance1 = new ArchitectureInstance(bipFileModel1);
-		ArchitectureInstance instance2 = new ArchitectureInstance(bipFileModel2);
-
-		BIPFileModel resultBipFileModel = new BIPFileModel("MutualExclusion123", "Mutex", "mutex");
-
-		List<String> interactions = new LinkedList<String>();
-		interactions.add("B1.begin C12.take C13.take");
-		interactions.add("B1.finish C12.release C13.release");
-		interactions.add("B2.begin C12.take");
-		interactions.add("B2.finish C12.release");
-		interactions.add("B3.begin C13.take");
-		interactions.add("B3.finish C13.release");
-
-		String pathToSaveBipFile = "/home/vladimir/Architecture_examples/Compose/MutualExclusion123.bip";
-		String pathToSaveConfFile = "/home/vladimir/Architecture_examples/Compose/ConfFile.txt";
-
-		try {
-			ArchitectureComposer.compose(instance1, instance2, resultBipFileModel, pathToSaveBipFile,
-					pathToSaveConfFile);
-		} catch (InvalidComponentNameException | InvalidConnectorTypeNameException | InvalidPortParameterNameException
-				| IllegalPortParameterReferenceException | ArchitectureExtractorException | IOException e) {
-			e.printStackTrace();
-		}
 	}
 }

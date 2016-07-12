@@ -1,13 +1,16 @@
 package ch.epfl.risd.archman.model;
 
 import java.io.FileNotFoundException;
-import java.util.Collection;
-import java.util.Hashtable;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
+import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
+import ch.epfl.risd.archman.exceptions.PortNotFoundException;
 
 /**
  * This class models the base class of the Architecture instance, style and
@@ -22,28 +25,12 @@ public abstract class ArchitectureEntity {
 	/* The model of the BIP file representing this entity */
 	protected BIPFileModel bipFileModel;
 
-	/*
-	 * (key, value) pairs of the parameters of this entity
-	 */
-	protected Hashtable<String, String> parameters;
+	/* The model of the configuration file for this entity */
+	protected ConfigurationFileModel confFileModel;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
 	/****************************************************************************/
-
-	/**
-	 * Method for reading the parameters for the Architecture Entity, given the
-	 * path to the configuration file.
-	 * 
-	 * @param pathToConfFile
-	 *            - the path to the configuration file
-	 * @throws FileNotFoundException
-	 *             if the configuration file does not exist
-	 * @throws ConfigurationFileException
-	 *             if the configuration file is not in the predefined format
-	 */
-	protected abstract void readParameters(String pathToConfFile)
-			throws FileNotFoundException, ConfigurationFileException;
 
 	/**
 	 * Method for parsing the parameters from the hash table of parameters
@@ -52,6 +39,41 @@ public abstract class ArchitectureEntity {
 	 *             if the configuration file was not in the predefined format
 	 */
 	protected abstract void parseParameters() throws ConfigurationFileException;
+
+	/**
+	 * 
+	 * @param componentInstanceNames
+	 * @throws ArchitectureExtractorException
+	 */
+	protected void validateComponents(Set<String> componentInstanceNames) throws ArchitectureExtractorException {
+		/* Iterate over the set of component instance names */
+		for (String componentInstanceName : componentInstanceNames) {
+			if (!BIPChecker.componentExists(this.bipFileModel, componentInstanceName)) {
+				throw new ComponentNotFoundException(
+						"The component with name " + componentInstanceName + "does not exist in the BIP file");
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @param fullPortNames
+	 * @throws PortNotFoundException
+	 * @throws ArchitectureExtractorException
+	 */
+	protected void validatePorts(Set<String> fullPortNames)
+			throws PortNotFoundException, ArchitectureExtractorException {
+		/* Iterate over the set of port instance names */
+		for (String fullPortName : fullPortNames) {
+			String[] tokens = fullPortName.split("\\.");
+			String portInstanceName = tokens[1];
+			String componentInstanceName = tokens[0];
+			if (!BIPChecker.portExists(this.bipFileModel, portInstanceName, componentInstanceName)) {
+				throw new PortNotFoundException("The port with name " + portInstanceName
+						+ " in the component with name " + componentInstanceName + " does not exist");
+			}
+		}
+	}
 
 	/**
 	 * This method validates the Architecture Entity, i.e. it checks whether the
@@ -68,26 +90,74 @@ public abstract class ArchitectureEntity {
 	/***************************************************************************/
 
 	/**
+	 * Constructor for this class, when the configuration file is having values
+	 * for the required parameters where the path to the BIP file is absolute
+	 * 
+	 * @param pathToConfFile
+	 *            - absolute path to the configuration file
+	 * @param requiredParams
+	 *            - list of required parameters in the configuration file
+	 * @throws ConfigurationFileException
+	 */
+	public ArchitectureEntity(String pathToConfFile, List<String> requiredParams) throws ConfigurationFileException {
+		this.confFileModel = new ConfigurationFileModel(pathToConfFile, requiredParams);
+		this.bipFileModel = new BIPFileModel(this.confFileModel.getParameters().get(ConstantFields.PATH_PARAM));
+	}
+
+	/**
+	 * Constructor for this class, when the configuration file is having values
+	 * for the required parameters, where the path to the BIP file is relative,
+	 * so the prefix must be given.
+	 * 
+	 * @param prefixToBip
+	 *            - the prefix before the relative path of the BIP file
+	 * @param pathToConfFile
+	 *            - absolute path to the configuration file
+	 * @param requiredParams
+	 *            - list of required parameters in the configuration file
+	 * @throws ConfigurationFileException
+	 */
+	public ArchitectureEntity(String prefixToBip, String pathToConfFile, List<String> requiredParams)
+			throws ConfigurationFileException {
+		this.confFileModel = new ConfigurationFileModel(pathToConfFile, requiredParams);
+		this.bipFileModel = new BIPFileModel(
+				prefixToBip + this.confFileModel.getParameters().get(ConstantFields.PATH_PARAM));
+	}
+
+	/**
+	 * Constructor for this class, when the configuration file is not containing
+	 * values for the required parameters, and the BIP file is empty
+	 * 
+	 * @param systemName
+	 *            - the name of the BIP system's module
+	 * @param rootTypeName
+	 *            - the name of the type of the root component in the BIP system
+	 * @param rootInstanceName
+	 *            - the name of the root instance component in the BIP system
+	 * @param requiredParams
+	 */
+	public ArchitectureEntity(String systemName, String rootTypeName, String rootInstanceName,
+			List<String> requiredParams) {
+		/* Create empty configuration file */
+		this.confFileModel = new ConfigurationFileModel(requiredParams);
+		/* Create empty BIP file model */
+		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
+	}
+
+	public void generateBipFile(String pathToBipFile) throws FileNotFoundException {
+		this.confFileModel.getParameters().put(ConstantFields.PATH_PARAM, pathToBipFile);
+		this.bipFileModel.createFile(pathToBipFile);
+	}
+
+	public void generateConfigurationFile(String pathToConfFile) throws IOException {
+		this.confFileModel.createFile(pathToConfFile);
+	}
+
+	/**
 	 * @return the BIP file model of the Architecture Entity
 	 */
 	public BIPFileModel getBipFileModel() {
 		return bipFileModel;
 	}
 
-	/**
-	 * @return the parameters of the Architecture Entity
-	 */
-	public Hashtable<String, String> getParameters() {
-		return parameters;
-	}
-
-	/**
-	 * Method to set the path to the BIP file in the parameters
-	 * 
-	 * @param pathToBipFile
-	 *            - absolute path to the BIP file
-	 */
-	public void setPathToBipFile(String pathToBipFile) {
-		parameters.put(ConstantFields.PATH_PARAM, pathToBipFile);
-	}
 }

@@ -33,6 +33,7 @@ import ujf.verimag.bip.Core.Behaviors.AtomType;
 import ujf.verimag.bip.Core.Behaviors.BipType;
 import ujf.verimag.bip.Core.Behaviors.ComponentType;
 import ujf.verimag.bip.Core.Behaviors.DataParameter;
+import ujf.verimag.bip.Core.Behaviors.DefinitionBinding;
 import ujf.verimag.bip.Core.Behaviors.Expression;
 import ujf.verimag.bip.Core.Behaviors.PetriNet;
 import ujf.verimag.bip.Core.Behaviors.Port;
@@ -41,6 +42,7 @@ import ujf.verimag.bip.Core.Behaviors.PortType;
 import ujf.verimag.bip.Core.Behaviors.State;
 import ujf.verimag.bip.Core.Behaviors.Transition;
 import ujf.verimag.bip.Core.Behaviors.Variable;
+import ujf.verimag.bip.Core.Behaviors.impl.PortDefinitionImpl;
 import ujf.verimag.bip.Core.Interactions.Component;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
 import ujf.verimag.bip.Core.Interactions.Connector;
@@ -167,9 +169,9 @@ public class BIPExtractor {
 		if (ports == null) {
 			throw new NullPointerException("The resulting list of all ports is not initalized");
 		}
-		
+
 		System.out.println("Component type name: " + componentType.getName());
-		
+
 		/*
 		 * If the component is composite structure, it contains other
 		 * subcomponents that maybe contain some other ports
@@ -1094,6 +1096,27 @@ public class BIPExtractor {
 		StringBuilder sb = new StringBuilder();
 
 		return sb.toString();
+	}
+
+	public static void main(String[] args) {
+
+		BIPFileModel bipFileModel = new BIPFileModel(
+				"/home/vladimir/Architecture_examples/Archive/Mutex/MutualExclusion.bip");
+
+		try {
+			List<Port> allPorts = BIPExtractor.getAllPorts(bipFileModel);
+
+			for (Port p : allPorts) {
+				DefinitionBinding binding = (DefinitionBinding) p.getBinding();
+				System.out.println(binding.getOuterPort());
+				PortDefinitionImpl definition = (PortDefinitionImpl) binding.getDefinition();
+				System.out.println(definition);
+			}
+
+		} catch (ArchitectureExtractorException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }

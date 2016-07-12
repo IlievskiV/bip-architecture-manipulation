@@ -173,9 +173,6 @@ public class TestInstantiation {
 		/* The name of the root type instance in the module */
 		String rootInstanceName = architectureStyle.getBipFileModel().getRoot().getName();
 
-		/* Create the BIP File Model for the instance */
-		BIPFileModel bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
-
 		/* Create the output folder if not exists */
 		File outputFolder = new File(outputFolderPath);
 		if (!outputFolder.exists()) {
@@ -188,8 +185,8 @@ public class TestInstantiation {
 		String pathToSaveConfFile = outputFolderPath + "/" + systemName + "Conf.txt";
 
 		/* Create the instance */
-		ArchitectureInstantiator.createArchitectureInstance(architectureStyle, architectureOperands, bipFileModel,
-				pathToSaveBIPFile, pathToSaveConfFile);
+		ArchitectureInstantiator.createArchitectureInstance(architectureStyle, architectureOperands, systemName,
+				rootTypeName, rootInstanceName, pathToSaveBIPFile, pathToSaveConfFile);
 	}
 
 	public static void testMutex() throws URISyntaxException, TestConfigurationFileException,
@@ -218,16 +215,17 @@ public class TestInstantiation {
 		Expression<String> nonStandard = ExprParser
 				.parse("(!b1 & !b2 & !b12 & !f1 & !f2 & !f12 | b1 & !b2 & b12 & !f1 & !f2 & !f12 | !b1 & b2 & b12 & !f1 & !f2 & !f12 | !b1 & !b2 & !b12 & f1 & !f2 & f12 | !b1 & !b2 & !b12 & !f1 & f2 & f12)"
 						+ "&(!b1 & !b3 & !b13 & !f1 & !f3 & !f13 | b1 & !b3 & b13 & !f1 & !f3 & !f13 | !b1 & b3 & b13 & !f1 & !f3 & !f13 | !b1 & !b3 & !b13 & f1 & !f3 & f13 | !b1 & !b3 & !b13 & !f1 & f3 & f13)");
-						//+ "&(!b2 & !b3 & !b23 & !f2 & !f3 & !f23 | b2 & !b3 & b23 & !f2 & !f3 & !f23 | !b2 & b3 & b23 & !f2 & !f3 & !f23 | !b2 & !b3 & !b23 & f2 & !f3 & f23 | !b2 & !b3 & !b23 & !f2 & f3 & f23))");
+		// + "&(!b2 & !b3 & !b23 & !f2 & !f3 & !f23 | b2 & !b3 & b23 & !f2 & !f3
+		// & !f23 | !b2 & b3 & b23 & !f2 & !f3 & !f23 | !b2 & !b3 & !b23 & f2 &
+		// !f3 & f23 | !b2 & !b3 & !b23 & !f2 & f3 & f23))");
 		Expression<String> sopForm = RuleSet.toDNF(nonStandard);
 		System.out.println(sopForm);
-		
+
 		Expression<String>[] expressions = ((Or<String>) sopForm).expressions;
-		
-		for(int i = 0; i < expressions.length; i++){
+
+		for (int i = 0; i < expressions.length; i++) {
 			System.out.println(expressions[i].toString());
 		}
-		
 
 		// Expression<String> nonStandard = ExprParser.parse("!b1 & b2 & b12 &
 		// !f1 & !f2 & !f12 & b3 & b13 & !f3 & !f13 | !b1 & !b2 & !b12 & !f1 &

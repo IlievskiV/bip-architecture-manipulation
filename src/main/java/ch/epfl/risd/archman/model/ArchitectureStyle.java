@@ -19,6 +19,7 @@ import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.ConnectorNotFoundException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
+import ch.epfl.risd.archman.helper.HelperMethods;
 import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
 
 /**
@@ -49,179 +50,31 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	/****************************************************************************/
 
 	/**
-	 * This method reads the Architecture Extractor configuration file, parse
-	 * it, and stores the parameters in the hash table.
-	 */
-	@Override
-	protected void readParameters(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
-		/* Instantiate the hash table */
-		parameters = new Hashtable<String, String>();
-
-		/* Existence of the PATH parameter in the configuration file */
-		boolean hasPath = false;
-
-		/* Existence of the COORDINATORS parameter in the configuration file */
-		boolean hasCoordinators = false;
-
-		/* Existence of the OPERANDS parameter in the configuration file */
-		boolean hasOperands = false;
-
-		/* Existence PORTS parameter in the configuration file */
-		boolean hasPorts = false;
-
-		/* Existence CONNECTORS parameter in the configuration file */
-		boolean hasConnectors = false;
-
-		/* Set scanner to null */
-		Scanner scanner = null;
-
-		try {
-			/* Get the absolute path to the configuration file */
-			String absolutePath = new File(pathToConfFile).getAbsolutePath();
-
-			/* Initialize the scanner */
-			scanner = new Scanner(new File(absolutePath));
-
-			/* Reading and parsing the configuration file */
-			while (scanner.hasNext()) {
-				/* Take the current line and split it where the semicolon is */
-				String[] tokens = scanner.nextLine().split(":");
-
-				/* No more than one colon in a line exception */
-				if (tokens.length > 2) {
-					throw new ConfigurationFileException("More than one colon (:) in the line");
-				}
-
-				/* Check for PATH parameter */
-				if (tokens[0].equals(ConstantFields.PATH_PARAM)) {
-					hasPath = true;
-
-					/* Check if value is missing */
-					if (tokens[1].trim().equals("")) {
-						throw new ConfigurationFileException("The value of the PATH parameter is missing");
-					}
-				}
-
-				/* Check for COORDINATORS parameter */
-				if (tokens[0].equals(ConstantFields.COORDINATORS_PARAM)) {
-					hasCoordinators = true;
-
-					/* Check if value is missing */
-					if (tokens[1].trim().equals("")) {
-						throw new ConfigurationFileException("The value of the COORDINATORS parameter is missing");
-					}
-				}
-
-				/* Check for OPERANDS parameter */
-				if (tokens[0].equals(ConstantFields.OPERANDS_PARAM)) {
-					hasOperands = true;
-
-					/* Check if value is missing */
-					if (tokens[1].trim().equals("")) {
-						throw new ConfigurationFileException("The value of the OPERANDS parameter is missing");
-					}
-				}
-
-				/* Check for PORTS parameter */
-				if (tokens[0].equals(ConstantFields.PORTS_PARAM)) {
-					hasPorts = true;
-
-					/* Check if value is missing */
-					if (tokens[1].trim().equals("")) {
-						throw new ConfigurationFileException("The value of the PORTS parameter is missing");
-					}
-				}
-
-				/* Check for CONNECTORS parameter */
-				if (tokens[0].equals(ConstantFields.CONNECTORS_PARAM)) {
-					hasConnectors = true;
-
-					/* Check if value is missing */
-					if (tokens[1].trim().equals("")) {
-						throw new ConfigurationFileException("The value of the CONNECTORS parameter is missing");
-					}
-				}
-
-				/* Put the parameter in the hash table */
-				parameters.put(tokens[0], tokens[1]);
-			}
-		} finally {
-			/* Close the scanner */
-			if (scanner != null)
-				scanner.close();
-		}
-
-		/* If there is not some of the mandatory parameters */
-		if (!hasPath) {
-			throw new ConfigurationFileException("PATH parameter is missing");
-		}
-
-		if (!hasCoordinators) {
-			throw new ConfigurationFileException("COORDINATORS parameter is missing");
-		}
-
-		if (!hasOperands) {
-			throw new ConfigurationFileException("OPERANDS parameter is missing");
-		}
-
-		if (!hasPorts) {
-			throw new ConfigurationFileException("PORTS parameter is missing");
-		}
-
-		if (!hasConnectors) {
-			throw new ConfigurationFileException("INTERACTIONS parameter is missing");
-		}
-	}
-
-	/**
 	 * This method extracts the parameters from the hash table, after loading
 	 * them
 	 * 
 	 * @throws ConfigurationFileException
 	 */
 	protected void parseParameters() throws ConfigurationFileException {
-
-		/* Concatenated string of all coordinator components */
-		String allCoordinators = this.parameters.get(ConstantFields.COORDINATORS_PARAM);
-		/* Concatenated string of all parameter operands in the Architecture */
-		String allOperands = this.parameters.get(ConstantFields.OPERANDS_PARAM);
-		/* Concatenated string of all ports in the architecture */
-		String allPorts = this.parameters.get(ConstantFields.PORTS_PARAM);
-		/* Concatenated string of all interactions in the architecture */
-		String allConnectors = this.parameters.get(ConstantFields.CONNECTORS_PARAM);
-
-		String delim = ",";
+		/* The delimiter to split the string */
+		String delim1 = ",";
+		String delim2 = " ";
 
 		/* Get all coordinators */
-		this.coordinators = (Set<String>) this.parseConcatenatedString(allCoordinators, delim);
+		this.coordinators = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.confFileModel.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim1)));
 
 		/* Get all operands */
-		this.operands = (Set<String>) this.parseConcatenatedString(allOperands, delim);
+		this.operands = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.confFileModel.getParameters().get(ConstantFields.OPERANDS_PARAM), delim1)));
 
 		/* Get all ports */
-		this.ports = (Set<String>) this.parseConcatenatedString(allPorts, delim);
+		this.ports = new HashSet<String>(Arrays.asList(HelperMethods
+				.splitConcatenatedString(this.confFileModel.getParameters().get(ConstantFields.PORTS_PARAM), delim1)));
 
-		/* Get all interactions */
-		this.connectorTuples = this.parseConnectors(allConnectors);
-	}
-
-	/**
-	 * This method splits the concatenated string with a specified delimiter and
-	 * return the tokens as a list
-	 * 
-	 * @param ConcatenatedString
-	 *            - The concatenated string for splitting
-	 * @return The list containing the tokens from the concatenated string
-	 */
-	protected Collection<String> parseConcatenatedString(String concatenatedString, String delim) {
-		/* Split the string */
-		String[] tokens = concatenatedString.split(delim);
-
-		/* The resulting set */
-		Set<String> result = new HashSet<String>();
-		result.addAll(Arrays.asList(tokens));
-
-		return result;
+		/* Get all connector tuples */
+		this.connectorTuples = this.parseConnectors(
+				this.confFileModel.getParameters().get(ConstantFields.CONNECTORS_PARAM), delim1, delim2);
 	}
 
 	/**
@@ -232,37 +85,39 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	 * @return the list of all connector tuples
 	 * @throws ConfigurationFileException
 	 */
-	private List<ConnectorTuple> parseConnectors(String concatenatedString) throws ConfigurationFileException {
+	private List<ConnectorTuple> parseConnectors(String concatenatedString, String delim1, String delim2)
+			throws ConfigurationFileException {
+
 		/* Instantiate the resulting list of connector tuples */
 		List<ConnectorTuple> result = new ArrayList<ConnectorTuple>();
+
 		/* Split the concatenated string */
-		String[] tuples = concatenatedString.split(",");
+		List<String[]> tuples = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
 
 		/* Iterate tokens */
-		for (String tupleString : tuples) {
-			/* Split the tuple string */
-			String[] tokens = tupleString.substring(1, tupleString.length() - 1).split(" ");
+		for (String[] tupleString : tuples) {
 			/* Get the connector instance name */
-			String connectorInstanceName = tokens[0];
+			String connectorInstanceName = tupleString[0];
 			/* Instantiate empty list of port tuples */
 			List<PortTuple> portTuples = new LinkedList<PortTuple>();
 
-			if ((tokens.length - 1) % 3 != 0) {
+			if ((tupleString.length - 1) % 3 != 0) {
 				throw new ConfigurationFileException("Missing information in one of the connector tuples");
 			}
 
 			/* Parse the port tuples */
-			for (int i = 0; i < tokens.length - 1; i += 3) {
+			for (int i = 0; i < tupleString.length - 1; i += 3) {
 				/* Get the port instance name */
-				String portInstanceName = tokens[i + 1];
+				String portInstanceName = tupleString[i + 1];
 				/* Get the multiplicity */
-				String multiplicity = tokens[i + 2];
+				String multiplicity = tupleString[i + 2];
 				/* Get the degree */
-				String degree = tokens[i + 3];
+				String degree = tupleString[i + 3];
 
 				/* Split the port instance name */
 				String componentName = (portInstanceName.split("\\."))[0];
 
+				/* Type of the tuple */
 				if (this.coordinators.contains(componentName)) {
 					portTuples.add(
 							new PortTuple(portInstanceName, multiplicity, degree, PortTupleType.COORDINATOR_TUPLE));
@@ -282,50 +137,19 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 	@Override
 	protected void validate() throws ComponentNotFoundException, ArchitectureExtractorException {
-		validateCoordinators();
-		validatePorts();
-		validateOperands();
-		validateConnectors();
+		/* Validate coordinators */
+		this.validateComponents(this.coordinators);
+		/* Validate operands */
+		this.validateComponents(this.operands);
+		/* Validate ports */
+		this.validatePorts(this.ports);
+		/* Validate connectors */
+		this.validateConnectors(this.connectorTuples);
 	}
 
-	private void validateCoordinators() throws ComponentNotFoundException, ArchitectureExtractorException {
-
-		/* Iterate the set of coordinators in the Architecture Style */
-		for (String componentName : this.coordinators) {
-			if (!BIPChecker.componentExists(this.bipFileModel, componentName)) {
-				throw new ComponentNotFoundException(
-						"The component with name " + componentName + "does not exist in the BIP file");
-			}
-		}
-
-	}
-
-	private void validatePorts() throws PortNotFoundException, ArchitectureExtractorException {
-		/* Iterate the set of ports in the Architecture Ports */
-		for (String s : this.ports) {
-			String[] tokens = s.split("\\.");
-			String portName = tokens[1];
-			String componentName = tokens[0];
-			if (!BIPChecker.portExists(this.bipFileModel, portName, componentName)) {
-				throw new PortNotFoundException("The port with name " + portName + " in the component with name "
-						+ componentName + " does not exist");
-			}
-		}
-	}
-
-	private void validateOperands() throws ComponentNotFoundException, ArchitectureExtractorException {
-		/* Iterate the set of operands */
-		for (String componentName : this.operands) {
-			if (!BIPChecker.componentExists(this.bipFileModel, componentName)) {
-				throw new ComponentNotFoundException(
-						"The component with name " + componentName + " does not exist in the BIP file");
-			}
-		}
-	}
-
-	private void validateConnectors() throws ArchitectureExtractorException {
+	private void validateConnectors(List<ConnectorTuple> connectorTuples) throws ArchitectureExtractorException {
 		/* Iterate the connector tuples */
-		for (ConnectorTuple tuple : this.connectorTuples) {
+		for (ConnectorTuple tuple : connectorTuples) {
 			if (!BIPChecker.connectorExists(this.bipFileModel, tuple.getConnectorInstanceName())) {
 				throw new ConnectorNotFoundException("The connector instance with name "
 						+ tuple.getConnectorInstanceName() + " does not exist in the BIP file");
@@ -338,8 +162,7 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	/***************************************************************************/
 
 	/**
-	 * Constructor for this class, for reading an Architecture Style from
-	 * configuration file
+	 * Constructor for this class, when the configuration file is given.
 	 * 
 	 * @param pathToConfFile
 	 *            - The path to the configuration file
@@ -349,15 +172,8 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	 */
 	public ArchitectureStyle(String pathToConfFile)
 			throws FileNotFoundException, ConfigurationFileException, ArchitectureExtractorException {
-
-		/* Read the parameters from the configuration file */
-		this.readParameters(pathToConfFile);
-
-		/* After reading the parameters, parse parameters */
-		this.parseParameters();
-
-		/* Parse the BIP file model */
-		this.bipFileModel = new BIPFileModel(this.parameters.get(ConstantFields.PATH_PARAM));
+		/* Call the super class constructor */
+		super(pathToConfFile, ConstantFields.architectureStyleRequiredParams);
 
 		/* Validate the Architecture style */
 		this.validate();
@@ -374,14 +190,8 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	 */
 	public ArchitectureStyle(String prefixToBip, String pathToConfFile) throws FileNotFoundException,
 			ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
-		/* Read the parameters from the configuration file */
-		this.readParameters(pathToConfFile);
-
-		/* After reading the parameters, parse parameters */
-		this.parseParameters();
-
-		/* Parse the BIP file model */
-		this.bipFileModel = new BIPFileModel(prefixToBip + this.parameters.get(ConstantFields.PATH_PARAM));
+		/* Call the super class constructor */
+		super(prefixToBip, pathToConfFile, ConstantFields.architectureStyleRequiredParams);
 
 		/* Validate the Architecture style */
 		this.validate();

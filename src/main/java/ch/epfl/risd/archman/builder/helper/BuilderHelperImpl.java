@@ -273,7 +273,11 @@ public class BuilderHelperImpl implements BuilderHelper {
 		port.setBinding(binding);
 		/* Set the type of the port */
 		port.setType(type);
-
+		
+		/* Set outer port */
+		binding.setOuterPort(port);
+		
+		
 		return port;
 	}
 

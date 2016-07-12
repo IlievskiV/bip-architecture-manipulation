@@ -579,12 +579,12 @@ public class ArchitectureInstantiator {
 	 * @throws IOException
 	 */
 	public static ArchitectureInstance createArchitectureInstance(ArchitectureStyle architectureStyle,
-			ArchitectureOperands architectureOperands, BIPFileModel architectureInstanceBIPFile,
+			ArchitectureOperands architectureOperands, String systemName, String rootTypeName, String rootInstanceName,
 			String pathToSaveBIPFile, String pathToSaveConfFile)
 			throws ArchitectureBuilderException, ArchitectureExtractorException, IOException {
 
 		/* 0.Create an empty architecture instance */
-		ArchitectureInstance instance = new ArchitectureInstance(architectureInstanceBIPFile);
+		ArchitectureInstance instance = new ArchitectureInstance(systemName, rootTypeName, rootInstanceName);
 
 		/* 1.Calculate the degree of the coordinator side */
 		/* 2.Calculate the multiplicity of the operand side */
@@ -807,9 +807,6 @@ public class ArchitectureInstantiator {
 		/* The name of the root type instance in the module */
 		String rootInstanceName = architectureStyle.getBipFileModel().getRoot().getName();
 
-		/* Create the BIP File Model for the instance */
-		BIPFileModel bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
-
 		/* Create the output folder if not exists */
 		File outputFolder = new File(outputFolderPath);
 		if (!outputFolder.exists()) {
@@ -822,8 +819,8 @@ public class ArchitectureInstantiator {
 		String pathToSaveConfFile = outputFolderPath + "/" + systemName + "Conf.txt";
 
 		/* Create the instance */
-		return ArchitectureInstantiator.createArchitectureInstance(architectureStyle, architectureOperands,
-				bipFileModel, pathToSaveBIPFile, pathToSaveConfFile);
+		return ArchitectureInstantiator.createArchitectureInstance(architectureStyle, architectureOperands, systemName,
+				rootTypeName, rootInstanceName, pathToSaveBIPFile, pathToSaveConfFile);
 	}
 
 	public static void main(String[] args) throws ConfigurationFileException, ArchitectureExtractorException,
@@ -847,18 +844,21 @@ public class ArchitectureInstantiator {
 		String pathToSaveConfFile = "/home/vladimir/Desktop/exampleconf.txt";
 
 		ArchitectureInstance instance = ArchitectureInstantiator.createArchitectureInstance(architectureStyle,
-				architectureOperands, bipFileModel, pathToSaveBIPFile, pathToSaveConfFile);
+				architectureOperands, "Mutex", "Mutex", "mutex", pathToSaveBIPFile, pathToSaveConfFile);
 
-		System.out.println("Predicate :" + instance.getCharacteristicPredicate());
-		Expression<String> sopForm = ExprParser.parse(instance.getCharacteristicPredicate());
-		
-		System.out.println(sopForm.toString());
-		
-		Expression<String>[] expressions = ((Or<String>) sopForm).expressions;
-
-		for (int i = 0; i < expressions.length; i++) {
-			System.out.println(expressions[i].toString());
-		}
+		// System.out.println("Predicate :" +
+		// instance.getCharacteristicPredicate());
+		// Expression<String> sopForm =
+		// ExprParser.parse(instance.getCharacteristicPredicate());
+		//
+		// System.out.println(sopForm.toString());
+		//
+		// Expression<String>[] expressions = ((Or<String>)
+		// sopForm).expressions;
+		//
+		// for (int i = 0; i < expressions.length; i++) {
+		// System.out.println(expressions[i].toString());
+		// }
 
 		/*
 		 * ArchitectureInstance instance1 = new

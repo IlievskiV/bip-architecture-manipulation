@@ -60,6 +60,7 @@ import ujf.verimag.bip.Core.Interactions.Component;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
 import ujf.verimag.bip.Core.Interactions.Connector;
 import ujf.verimag.bip.Core.Interactions.ConnectorType;
+import ujf.verimag.bip.Core.Interactions.ExportBinding;
 import ujf.verimag.bip.Core.Interactions.InnerPortReference;
 import ujf.verimag.bip.Core.Interactions.Interaction;
 import ujf.verimag.bip.Core.Interactions.InteractionSpecification;
@@ -551,6 +552,8 @@ public class ArchitectureInstanceBuilder {
 		port.setBinding(binding);
 		/* Set the type of the port */
 		port.setType(type);
+		/* Set outer port */
+		binding.setOuterPort(port);
 
 		return port;
 	}
@@ -857,6 +860,15 @@ public class ArchitectureInstanceBuilder {
 		binding.setDefinition(portDefinition);
 
 		return binding;
+	}
+
+	public static ExportBinding createExportBinding(Port port) {
+		/* Create export binding */
+		ExportBinding exportBinding = Factories.INTERACTIONS_FACTORY.createExportBinding();
+		/* Set target port */
+		exportBinding.setTargetPort(port);
+
+		return exportBinding;
 	}
 
 	public static PortDefinitionReference createPortDefinitionReference(PortDefinition portDefinition) {

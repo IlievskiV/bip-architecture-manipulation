@@ -1,5 +1,7 @@
 package ch.epfl.risd.archman.model;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 import BIPTransformation.TransformationFunction;
@@ -134,6 +136,18 @@ public class BIPFileModel {
 		/* Change the system */
 		this.system = systemImpl;
 
+	}
+
+	/**
+	 * Method to generate the resulting BIP file
+	 * 
+	 * @param pathToBIPFile
+	 *            - absolute path, where the BIP file should be written
+	 * @throws FileNotFoundException
+	 */
+	public void createFile(String pathToBIPFile) throws FileNotFoundException {
+		/* Write the generated code in the file */
+		TransformationFunction.CreateBIPFile(pathToBIPFile, this.system);
 	}
 
 	/**

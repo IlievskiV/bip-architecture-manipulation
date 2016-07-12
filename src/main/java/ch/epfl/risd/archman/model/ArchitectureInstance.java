@@ -21,8 +21,10 @@ import com.bpodgursky.jbool_expressions.rules.RuleSet;
 
 import BIPTransformation.TransformationFunction;
 import ch.epfl.risd.archman.constants.ConstantFields;
+import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
+import ch.epfl.risd.archman.helper.HelperMethods;
 
 /**
  * This class will represent one instance of the architecture when we will
@@ -54,208 +56,35 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	/****************************************************************************/
 
 	@Override
-	protected void readParameters(String pathToConfFile) throws FileNotFoundException, ConfigurationFileException {
-		/* Instantiate the hash table */
-		parameters = new Hashtable<String, String>();
-
-		/* Existence of the PATH parameter in the configuration file */
-		boolean hasPath = false;
-
-		/* Existence of the COORDINATORS parameter in the configuration file */
-		boolean hasCoordinators = false;
-
-		/* Existence of the OPERANDS parameter in the configuration file */
-		boolean hasOperands = false;
-
-		/* Existence of the PORTS parameter in the configuration file */
-		boolean hasPorts = false;
-
-		/* Existence of the INTERACTIONS parameter in the configuration file */
-		boolean hasInteractions = false;
-
-		/* Get the absolute path to the configuration file */
-		String absolutePath = new File(pathToConfFile).getAbsolutePath();
-
-		/* Reading and parsing the configuration file */
-		Scanner scanner = new Scanner(new File(absolutePath));
-
-		while (scanner.hasNext()) {
-			/* Take the current line and split it where the semicolon is */
-			String[] tokens = scanner.nextLine().split(":");
-
-			/* No more than one colon in a line exception */
-			if (tokens.length > 2) {
-				throw new ConfigurationFileException("More than one colon (:) in the line");
-			}
-
-			/* Check for PATH parameter */
-			if (tokens[0].equals(ConstantFields.PATH_PARAM)) {
-				hasPath = true;
-
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the PATH parameter is missing");
-				}
-			}
-
-			/* Check for COORDINATORS parameter */
-			if (tokens[0].equals(ConstantFields.COORDINATORS_PARAM)) {
-				hasCoordinators = true;
-
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the COORDINATORS parameter is missing");
-				}
-			}
-
-			/* Check for OPERANDS parameter */
-			if (tokens[0].equals(ConstantFields.OPERANDS_PARAM)) {
-				hasOperands = true;
-
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the OPERANDS parameter is missing");
-				}
-			}
-
-			/* Check for PORTS parameter */
-			if (tokens[0].equals(ConstantFields.PORTS_PARAM)) {
-				hasPorts = true;
-
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the PORTS parameter is missing");
-				}
-			}
-
-			/* Check for PORTS parameter */
-			if (tokens[0].equals(ConstantFields.INTERACTIONS_PARAM)) {
-				hasInteractions = true;
-
-				/* Check if value is missing */
-				if (tokens[1].trim().equals("")) {
-					throw new ConfigurationFileException("The value of the INTERACTIONS parameter is missing");
-				}
-			}
-
-			/* Put the parameter in the hash table */
-			parameters.put(tokens[0], tokens[1]);
-		}
-
-		/* If there is not some of the mandatory parameters */
-		if (!hasPath) {
-			throw new ConfigurationFileException("PATH parameter is missing");
-		}
-
-		if (!hasCoordinators) {
-			throw new ConfigurationFileException("COORDINATORS parameter is missing");
-		}
-
-		if (!hasOperands) {
-			throw new ConfigurationFileException("OPERANDS parameter is missing");
-		}
-
-		if (!hasPorts) {
-			throw new ConfigurationFileException("PORTS parameter is missing");
-		}
-
-		if (!hasInteractions) {
-			throw new ConfigurationFileException("INTERACTIONS parameter is missing");
-		}
-	}
-
-	@Override
 	protected void parseParameters() throws ConfigurationFileException {
-		/* Concatenated string of all coordinator components */
-		String allCoordinators = this.parameters.get(ConstantFields.COORDINATORS_PARAM);
-		/* Concatenated string of all parameter operands */
-		String allOperands = this.parameters.get(ConstantFields.OPERANDS_PARAM);
-		/* Concatenated string of all ports */
-		String allPorts = this.parameters.get(ConstantFields.PORTS_PARAM);
-		/* Concatenated string of all interactions */
-		String allInteractions = this.parameters.get(ConstantFields.INTERACTIONS_PARAM);
-
+		/* The delimiter to split the string */
 		String delim = ",";
 
 		/* Get all coordinators */
-		this.coordinators = (Set<String>) this.parseConcatenatedString(allCoordinators, delim);
+		this.coordinators = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.confFileModel.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim)));
 
 		/* Get all operands */
-		this.operands = (Set<String>) this.parseConcatenatedString(allOperands, delim);
+		this.operands = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.confFileModel.getParameters().get(ConstantFields.OPERANDS_PARAM), delim)));
 
 		/* Get all ports */
-		this.ports = (Set<String>) this.parseConcatenatedString(allPorts, delim);
+		this.ports = new HashSet<String>(Arrays.asList(HelperMethods
+				.splitConcatenatedString(this.confFileModel.getParameters().get(ConstantFields.PORTS_PARAM), delim)));
 
 		/* Get all interactions */
-		this.interactions = (Set<String>) this.parseConcatenatedString(allInteractions, delim);
+		this.interactions = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.confFileModel.getParameters().get(ConstantFields.INTERACTIONS_PARAM), delim)));
 	}
 
 	@Override
-	protected void validate() {
-
-	}
-
-	/**
-	 * Method to initialize the parameters
-	 */
-	protected void initializeParameters() {
-		parameters.put(ConstantFields.PATH_PARAM, "");
-		parameters.put(ConstantFields.COORDINATORS_PARAM, "");
-		parameters.put(ConstantFields.OPERANDS_PARAM, "");
-		parameters.put(ConstantFields.PORTS_PARAM, "");
-		parameters.put(ConstantFields.INTERACTIONS_PARAM, "");
-	}
-
-	protected Set<String> parseConcatenatedString(String concatenatedString, String delim) {
-		/* Split the string */
-		String[] tokens = concatenatedString.split(delim);
-
-		/* The resulting list */
-		Set<String> result = new HashSet<String>();
-		result.addAll(Arrays.asList(tokens));
-
-		return result;
-	}
-
-	/**
-	 * Method to add new value in the parameters
-	 * 
-	 * @param key
-	 *            - the key to the value
-	 * @param value
-	 *            - the value of the parameter
-	 */
-	protected void addToParameters(String key, String value) {
-		if (this.parameters.get(key).equals("")) {
-			this.parameters.put(key, value);
-		} else {
-			this.parameters.put(key, this.parameters.get(key) + "," + value);
-		}
-	}
-
-	protected void removeFromParameters(String key, String value) {
-		/* Get the string of parameters */
-		String params = this.parameters.get((String) key);
-
-		/* String Builder for the result */
-		StringBuilder sb = new StringBuilder();
-
-		/* Split to tokens */
-		String[] tokens = params.split(",");
-
-		/* Iterate over them */
-		for (String t : tokens) {
-			if (!t.equals(value)) {
-				sb.append(t).append(",");
-			}
-		}
-
-		/* Cut the last comma */
-		sb.setLength(sb.length() - 1);
-
-		/* Update parameters */
-		this.parameters.put(key, sb.toString());
-
+	protected void validate() throws ArchitectureExtractorException {
+		/* Validate coordinators */
+		this.validateComponents(this.coordinators);
+		/* Validate operands */
+		this.validateComponents(this.operands);
+		/* Validate ports */
+		this.validatePorts(this.ports);
 	}
 
 	/****************************************************************************/
@@ -275,95 +104,28 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	 *            - the name of the root component in the BIP system
 	 */
 	public ArchitectureInstance(String systemName, String rootTypeName, String rootInstanceName) {
-		/* Create empty BIP file model */
-		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
-		/* Instantiate the parameters */
-		this.parameters = new Hashtable<String, String>();
-		/* Initialize parameters */
-		this.initializeParameters();
-		/* Instantiate the set of coordinators */
-		this.coordinators = new HashSet<String>();
-		/* Instantiate the set of operands */
-		this.operands = new HashSet<String>();
-		/* Instantiate the set of ports */
-		this.ports = new HashSet<String>();
-		/* Instantiate the set of interactions */
-		this.interactions = new HashSet<String>();
-		/* Empty characteristic predicate */
-		this.characteristicPredicate = new String();
-	}
-
-	public ArchitectureInstance(BIPFileModel bipFileModel) {
-		/* Assign the BIP file */
-		this.bipFileModel = bipFileModel;
-		/* Instantiate the parameters */
-		this.parameters = new Hashtable<String, String>();
-		/* Initialize parameters */
-		this.initializeParameters();
-		/* Instantiate the set of coordinators */
-		this.coordinators = new HashSet<String>();
-		/* Instantiate the set of operands */
-		this.operands = new HashSet<String>();
-		/* Instantiate the set of ports */
-		this.ports = new HashSet<String>();
-		/* Instantiate the set of interactions */
-		this.interactions = new HashSet<String>();
-		/* Empty characteristic predicate */
-		this.characteristicPredicate = new String();
+		/* Call the super class constructor */
+		super(systemName, rootTypeName, rootInstanceName, ConstantFields.architectureInstanceRequiredParams);
 	}
 
 	/**
-	 * Constructor for this class, when all fields of the architecture instance
-	 * are already given, except the characteristic predicate
-	 * 
-	 * @param bipFileModel
-	 *            - the BIP file where the architecture is written
-	 * @param parameters
-	 *            - the map of parameters in the configuration file
-	 * @param operands
-	 *            - the list of operands
-	 * @param ports
-	 *            - the list of ports
-	 * @param interactions
-	 *            - the list of interactions
-	 * @param emptyInteraction
-	 */
-	public ArchitectureInstance(BIPFileModel bipFileModel, Hashtable<String, String> parameters,
-			Set<String> coordinators, Set<String> operands, Set<String> ports, Set<String> interactions,
-			boolean emptyInteraction) {
-		/* Assign the references */
-		this.bipFileModel = bipFileModel;
-		this.parameters = parameters;
-		this.coordinators = coordinators;
-		this.operands = operands;
-		this.ports = ports;
-		this.interactions = interactions;
-		/* Check whether we have an empty interaction */
-		if (emptyInteraction) {
-			interactions.add("");
-		}
-
-		this.characteristicPredicate = ArchitectureInstance.calculateCharacteristicPredicate(this.interactions,
-				this.ports);
-	}
-
-	/**
-	 * Constructor for this class, creates an architecture instance with the
-	 * informations given in the configuration file.
+	 * Constructor for this class, when the configuration file is given, where
+	 * the path to the BIP file is absolute.
 	 * 
 	 * @param pathToConfFile
-	 *            - the path to the configuration file
+	 *            - absolute path to the configuration file
 	 * @param emptyInteraction
+	 *            - flag indicating whether the instance contains the empty
+	 *            interaction
+	 * 
 	 * @throws FileNotFoundException
 	 * @throws ConfigurationFileException
+	 * @throws ArchitectureExtractorException
 	 */
 	public ArchitectureInstance(String pathToConfFile, boolean emptyInteraction)
-			throws FileNotFoundException, ConfigurationFileException {
-		/* Read the parameters from the configuration file */
-		this.readParameters(pathToConfFile);
-
-		/* After reading the parameters, parse parameters */
-		this.parseParameters();
+			throws FileNotFoundException, ConfigurationFileException, ArchitectureExtractorException {
+		/* Call the super class constructor */
+		super(pathToConfFile, ConstantFields.architectureInstanceRequiredParams);
 
 		if (emptyInteraction) {
 			this.interactions.add("");
@@ -373,8 +135,22 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		this.characteristicPredicate = ArchitectureInstance.calculateCharacteristicPredicate(this.interactions,
 				this.ports);
 
-		/* Parse the BIP file model */
-		this.bipFileModel = new BIPFileModel(this.parameters.get(ConstantFields.PATH_PARAM));
+		/* Validate the instance */
+		validate();
+	}
+
+	public ArchitectureInstance(String prefixToBip, String pathToConfFile, boolean emptyInteraction)
+			throws ConfigurationFileException, ArchitectureExtractorException {
+		/* Call the super class constructor */
+		super(prefixToBip, pathToConfFile, ConstantFields.architectureInstanceRequiredParams);
+
+		if (emptyInteraction) {
+			this.interactions.add("");
+		}
+
+		/* Calculate the characteristic predicate */
+		this.characteristicPredicate = ArchitectureInstance.calculateCharacteristicPredicate(this.interactions,
+				this.ports);
 
 		/* Validate the instance */
 		validate();
@@ -629,7 +405,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.coordinators.add(coordinatorInstanceName);
 		/* Add the parameter */
-		this.addToParameters(ConstantFields.COORDINATORS_PARAM, coordinatorInstanceName);
+		this.confFileModel.addToParameters(ConstantFields.COORDINATORS_PARAM, coordinatorInstanceName);
 	}
 
 	/**
@@ -643,7 +419,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.operands.add(operandInstanceName);
 		/* Add the parameter */
-		this.addToParameters(ConstantFields.OPERANDS_PARAM, operandInstanceName);
+		this.confFileModel.addToParameters(ConstantFields.OPERANDS_PARAM, operandInstanceName);
 	}
 
 	/**
@@ -657,7 +433,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.ports.add(portInstanceName);
 		/* Add the parameter */
-		this.addToParameters(ConstantFields.PORTS_PARAM, portInstanceName);
+		this.confFileModel.addToParameters(ConstantFields.PORTS_PARAM, portInstanceName);
 	}
 
 	public void removePort(String portInstanceName) throws PortNotFoundException {
@@ -668,7 +444,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 		if (ports.contains(portInstanceName)) {
 			this.ports.remove(portInstanceName);
-			this.removeFromParameters(ConstantFields.PORTS_PARAM, portInstanceName);
+			this.confFileModel.removeFromParameters(ConstantFields.PORTS_PARAM, portInstanceName);
 
 		} else {
 			throw new PortNotFoundException(
@@ -688,75 +464,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.interactions.add(interactionName);
 		/* Add the parameter */
-		this.addToParameters(ConstantFields.INTERACTIONS_PARAM, interactionName);
-	}
-
-	/**
-	 * Method to generate the resulting BIP file
-	 * 
-	 * @param pathToBIPFile
-	 *            - absolute or relative path, where the BIP file should be
-	 *            written
-	 * @throws FileNotFoundException
-	 */
-	public void generateBipFile(String pathToBIPFile) throws FileNotFoundException {
-		/* Get the absolute path */
-		String absolutePath = new File(pathToBIPFile).getAbsolutePath();
-
-		/* Add the absolute path in the parameters */
-		this.setPathToBipFile(absolutePath);
-
-		/* Write the generated code in the file */
-		TransformationFunction.CreateBIPFile(absolutePath, this.bipFileModel.getSystem());
-	}
-
-	/**
-	 * Method to generate the resulting configuration file
-	 * 
-	 * @param pathToConfFile
-	 *            - relative or absolute path to the configuration file
-	 * @throws IOException
-	 */
-	public void generateConfigurationFile(String pathToConfFile) throws IOException {
-		/* Get the absolute path */
-		String absolutePath = new File(pathToConfFile).getAbsolutePath();
-
-		/* Create the file */
-		File confFile = new File(absolutePath);
-
-		if (!confFile.exists()) {
-			confFile.createNewFile();
-		}
-
-		PrintWriter printer = null;
-
-		try {
-			printer = new PrintWriter(confFile);
-
-			/* Print the path to the BIP file */
-			printer.println(ConstantFields.PATH_PARAM + ":" + this.parameters.get((String) ConstantFields.PATH_PARAM));
-
-			/* Print the coordinators */
-			printer.println(ConstantFields.COORDINATORS_PARAM + ":"
-					+ this.parameters.get((String) ConstantFields.COORDINATORS_PARAM));
-
-			/* Print the operands */
-			printer.println(
-					ConstantFields.OPERANDS_PARAM + ":" + this.parameters.get((String) ConstantFields.OPERANDS_PARAM));
-
-			/* Print the ports */
-			printer.println(
-					ConstantFields.PORTS_PARAM + ":" + this.parameters.get((String) ConstantFields.PORTS_PARAM));
-
-			/* Print the interactions */
-			printer.println(ConstantFields.INTERACTIONS_PARAM + ":"
-					+ this.parameters.get((String) ConstantFields.INTERACTIONS_PARAM));
-		} finally {
-			if (printer != null) {
-				printer.flush();
-				printer.close();
-			}
-		}
+		this.confFileModel.addToParameters(ConstantFields.INTERACTIONS_PARAM, interactionName);
 	}
 
 	/**
@@ -812,6 +520,8 @@ public class ArchitectureInstance extends ArchitectureEntity {
 			}
 
 		} catch (FileNotFoundException | ConfigurationFileException e) {
+			e.printStackTrace();
+		} catch (ArchitectureExtractorException e) {
 			e.printStackTrace();
 		}
 
