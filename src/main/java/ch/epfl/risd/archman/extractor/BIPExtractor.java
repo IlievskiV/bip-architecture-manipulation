@@ -809,6 +809,7 @@ public class BIPExtractor {
 			/* If it us instance of the Port Type, add it */
 			if (p instanceof PortType) {
 				portTypes.add((PortType) p);
+				System.out.println(p.getName());
 			}
 		}
 

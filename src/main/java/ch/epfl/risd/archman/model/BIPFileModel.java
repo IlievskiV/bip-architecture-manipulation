@@ -11,11 +11,14 @@ import ujf.verimag.bip.Core.Behaviors.ComponentType;
 import ujf.verimag.bip.Core.Behaviors.Port;
 import ujf.verimag.bip.Core.Behaviors.PortDefinition;
 import ujf.verimag.bip.Core.Behaviors.PortType;
+import ujf.verimag.bip.Core.Behaviors.Variable;
 import ujf.verimag.bip.Core.Behaviors.impl.AtomTypeImpl;
 import ujf.verimag.bip.Core.Behaviors.impl.DefinitionBindingImpl;
 import ujf.verimag.bip.Core.Behaviors.impl.PortDefinitionImpl;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
 import ujf.verimag.bip.Core.Interactions.ConnectorType;
+import ujf.verimag.bip.Core.Interactions.InteractionSpecification;
+import ujf.verimag.bip.Core.Interactions.PortParameter;
 import ujf.verimag.bip.Core.Modules.impl.RootImpl;
 import ujf.verimag.bip.Core.Modules.impl.SystemImpl;
 
@@ -139,7 +142,6 @@ public class BIPFileModel {
 
 		/* Change the system */
 		this.system = systemImpl;
-
 	}
 
 	/**
@@ -186,7 +188,18 @@ public class BIPFileModel {
 	}
 
 	public static void main(String[] args) {
-		BIPFileModel bipFileModel = new BIPFileModel(
-				"/home/vladimir/workspace/bip-architecture-manipulation/target/test-classes/TestCases/Instantiation/Output/ActionSequenceOutput/ActionSequence.bip");
+		BIPFileModel bipFileModel = new BIPFileModel("/home/vladimir/Desktop/MutualExclusion123.bip");
+
+		try {
+			List<ConnectorType> allConnectorTypes = BIPExtractor.getAllConnectorTypes(bipFileModel);
+
+			for (ConnectorType ct : allConnectorTypes) {
+				System.out.println(ct);
+			}
+
+		} catch (ArchitectureExtractorException e) {
+			e.printStackTrace();
+		}
+
 	}
 }

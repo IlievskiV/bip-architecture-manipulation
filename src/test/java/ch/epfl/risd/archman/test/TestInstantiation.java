@@ -1,19 +1,10 @@
 package ch.epfl.risd.archman.test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.Properties;
-import java.util.Scanner;
-
-import com.bpodgursky.jbool_expressions.Expression;
-import com.bpodgursky.jbool_expressions.Or;
-import com.bpodgursky.jbool_expressions.parsers.ExprParser;
-import com.bpodgursky.jbool_expressions.rules.Rule;
-import com.bpodgursky.jbool_expressions.rules.RuleSet;
 
 import ch.epfl.risd.archman.builder.ArchitectureInstantiator;
 import ch.epfl.risd.archman.constants.ConstantFields;
@@ -23,7 +14,6 @@ import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.TestConfigurationFileException;
 import ch.epfl.risd.archman.model.ArchitectureOperands;
 import ch.epfl.risd.archman.model.ArchitectureStyle;
-import ch.epfl.risd.archman.model.BIPFileModel;
 import ch.epfl.risd.archman.model.TestConfigFile;
 
 /**
@@ -130,7 +120,7 @@ public class TestInstantiation {
 
 	public static void main(String[] args) {
 		try {
-			TestInstantiation.testActionSequence();
+			TestInstantiation.testModes2();
 		} catch (ConfigurationFileException | ArchitectureExtractorException | ArchitectureBuilderException
 				| URISyntaxException | TestConfigurationFileException | IOException e) {
 			e.printStackTrace();

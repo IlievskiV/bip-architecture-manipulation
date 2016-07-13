@@ -297,7 +297,7 @@ public class ArchitectureInstanceBuilder {
 
 	public static void addComponentInstance(ArchitectureInstance architectureInstance, String name, ComponentType type,
 			CompoundType parent, boolean isCoordinator)
-					throws ArchitectureExtractorException, InvalidComponentNameException {
+			throws ArchitectureExtractorException, InvalidComponentNameException {
 
 		if (BIPChecker.componentExists(architectureInstance.getBipFileModel(), name)) {
 			throw new InvalidComponentNameException(
@@ -338,8 +338,8 @@ public class ArchitectureInstanceBuilder {
 
 	public static AtomType createAtomicType(ArchitectureInstance architectureInstance, String name, Behavior behavior,
 			List<Port> ports, List<Variable> variables)
-					throws ArchitectureExtractorException, InvalidAtomTypeNameException, InvalidVariableNameException,
-					InvalidPortNameException, IllegalTransitionPortException {
+			throws ArchitectureExtractorException, InvalidAtomTypeNameException, InvalidVariableNameException,
+			InvalidPortNameException, IllegalTransitionPortException {
 
 		/* Check whether the Atom Type with the same name exists */
 		if (BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), name)) {
@@ -585,6 +585,9 @@ public class ArchitectureInstanceBuilder {
 			throws ArchitectureExtractorException {
 
 		if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), type)) {
+
+			System.out.println("Port Type Copied: " + type.getName());
+
 			/* Create empty port type */
 			PortType copy = Factories.BEHAVIORS_FACTORY.createPortType();
 			/* Set the name of the port type */
@@ -623,8 +626,8 @@ public class ArchitectureInstanceBuilder {
 	public static ConnectorType createConnectorType(ArchitectureInstance architectureInstance, String connectorTypeName,
 			List<PortParameter> portParameters, PortExpression interactionDefinition,
 			List<InteractionSpecification> interactionSpecifications)
-					throws ArchitectureExtractorException, InvalidConnectorTypeNameException,
-					InvalidPortParameterNameException, IllegalPortParameterReferenceException {
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
 
 		/* Check whether the Connector Type with the same name exists */
 		if (BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
@@ -647,7 +650,7 @@ public class ArchitectureInstanceBuilder {
 				throw new InvalidPortParameterNameException("In Connector Type named " + connectorTypeName
 						+ " there are Port Parameters(arguments) with a same name");
 			}
-
+			connectorType.getPortParameter().clear();
 			connectorType.getPortParameter().addAll(portParameters);
 		}
 
@@ -788,7 +791,7 @@ public class ArchitectureInstanceBuilder {
 
 	public static Behavior createBehavior(List<State> initialStates, Action initialAction, List<State> states,
 			List<Transition> transitions)
-					throws InvalidStateNameException, ListEmptyException, IllegalTransitionStatesException {
+			throws InvalidStateNameException, ListEmptyException, IllegalTransitionStatesException {
 		/* Create the behavior */
 		PetriNet net = (PetriNet) Factories.BEHAVIORS_FACTORY.createPetriNet();
 

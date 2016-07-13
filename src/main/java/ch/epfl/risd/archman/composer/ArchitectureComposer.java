@@ -2,6 +2,9 @@ package ch.epfl.risd.archman.composer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -93,7 +96,8 @@ public class ArchitectureComposer {
 		for (ConnectorType connType : allConnectorTypes) {
 			/* Get all port parameters */
 			List<PortParameter> portParameters = connType.getPortParameter();
-			List<Port> tempPorts = resultingPorts;
+			List<Port> tempPorts = new LinkedList<Port>(resultingPorts);
+
 			/*
 			 * The number of port parameters and the number of interaction ports
 			 * must be the same
@@ -172,19 +176,30 @@ public class ArchitectureComposer {
 		ArchitectureInstance instance = new ArchitectureInstance(systemName, rootTypeName, rootInstanceName);
 
 		/* 1.Take all Port Types and plug them */
-		List<PortType> allPortTypes = new LinkedList<PortType>();
+		Set<PortType> allPortTypes = new HashSet<PortType>();
 		allPortTypes.addAll(BIPExtractor.getAllPortTypes(instance1.getBipFileModel()));
 		allPortTypes.addAll(BIPExtractor.getAllPortTypes(instance2.getBipFileModel()));
-		ArchitectureInstanceBuilder.copyAllPortTypes(instance, allPortTypes);
+		List<PortType> tempList = new LinkedList<PortType>();
+		tempList.addAll(allPortTypes);
+		ArchitectureInstanceBuilder.copyAllPortTypes(instance, tempList);
+
+		for (PortType pt : tempList) {
+			System.out.println("Port Type Name: " + pt.getName());
+		}
 
 		/* 2.Take all components except the roots and plug them */
-		List<Component> allComponents = new LinkedList<Component>();
+		Set<Component> allComponents = new HashSet<Component>();
 		allComponents.addAll(BIPExtractor.getAllComponents(instance1.getBipFileModel()));
 		allComponents.addAll(BIPExtractor.getAllComponents(instance2.getBipFileModel()));
 
 		for (Component c : allComponents) {
 
+			System.out.println("Component name: " + c.getName());
+
 			if (!BIPChecker.componentExists(instance.getBipFileModel(), c)) {
+
+				System.out.println("Component not exists");
+
 				/* Check if it is coordinator */
 				boolean isCoordinator = instance1.getCoordinators().contains(c.getName())
 						|| instance2.getCoordinators().contains(c.getName());
@@ -216,6 +231,10 @@ public class ArchitectureComposer {
 		/* 3. Match the interactions with connector types */
 		Set<String> interactions = ArchitectureInstance.calculateInteractionsFromInstances(instance1, instance2);
 
+		for (String i : interactions) {
+			System.out.println("Interaction: " + i);
+		}
+
 		/* Counter for the connector type */
 		int connectorTypeCounter = 1;
 		/* Map for counting the connector type instances */
@@ -225,6 +244,11 @@ public class ArchitectureComposer {
 
 		/* Iterate the interactions */
 		for (String interaction : interactions) {
+
+			if (interaction.equals("")) {
+				instance.getInteractions().add("");
+				continue;
+			}
 
 			/* Split the interaction in interaction ports */
 			String[] interactionPorts = interaction.split(" ");
@@ -265,9 +289,11 @@ public class ArchitectureComposer {
 					String intPort = interactionPorts[i];
 					/* Get the port instance name */
 					String portInstanceName = intPort.split("\\.")[1];
+
 					/* Get the type name of the port */
 					String componentPortTypeName = BIPExtractor
 							.getPortByName(instance.getBipFileModel(), portInstanceName).getType().getName();
+
 					/* Create port parameter */
 					portParameters.add(ArchitectureInstanceBuilder.createPortParameter(
 							BIPExtractor.getPortTypeByName(instance.getBipFileModel(), componentPortTypeName),
@@ -293,10 +319,13 @@ public class ArchitectureComposer {
 				/* Create an empty list of interactions */
 				List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
 
+				// Collections.reverse(portParameters);
+
 				/* Create the connector type */
 				connectorType = ArchitectureInstanceBuilder.createConnectorType(instance, connectorTypeName,
-						portParameters, acFusion, interactionSpecifications);
-				/**/
+						portParameters, acFusion, null);
+
+				/* Update counter */
 				connectorTypeCounter++;
 			}
 
@@ -316,5 +345,30 @@ public class ArchitectureComposer {
 		instance.generateConfigurationFile(pathToSaveConfFile);
 
 		return instance;
+	}
+
+	public static void main(String[] args) {
+		String pathToConfFile1 = "/home/vladimir/Architecture_examples/Compose/Conf12.txt";
+		String pathToConfFile2 = "/home/vladimir/Architecture_examples/Compose/Conf13.txt";
+
+		try {
+			ArchitectureInstance instance1 = new ArchitectureInstance(pathToConfFile1, true);
+			ArchitectureInstance instance2 = new ArchitectureInstance(pathToConfFile2, true);
+
+			String systemName = "MutualExclusion123";
+			String rootTypeName = "Mutex";
+			String rootInstanceName = "mutex";
+
+			String pathToSaveBIPFile = "/home/vladimir/Architecture_examples/Compose/MutualExclusion123.bip";
+			String pathToSaveConfFile = "/home/vladimir/Architecture_examples/Compose/ConfFile.txt";
+
+			ArchitectureComposer.compose(instance1, instance2, systemName, rootTypeName, rootInstanceName,
+					pathToSaveBIPFile, pathToSaveConfFile);
+
+		} catch (ConfigurationFileException | ArchitectureExtractorException | InvalidComponentNameException
+				| InvalidConnectorTypeNameException | InvalidPortParameterNameException
+				| IllegalPortParameterReferenceException | IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

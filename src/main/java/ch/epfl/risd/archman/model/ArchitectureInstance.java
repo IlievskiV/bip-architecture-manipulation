@@ -117,7 +117,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 	/**
 	 * Constructor for this class, when the configuration file is given, where
-	 * the path to the BIP file is absolute.
+	 * the path to the configuration file is absolute.
 	 * 
 	 * @param pathToConfFile
 	 *            - absolute path to the configuration file

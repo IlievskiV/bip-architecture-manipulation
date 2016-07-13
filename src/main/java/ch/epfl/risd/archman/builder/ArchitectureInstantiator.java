@@ -1,19 +1,11 @@
 package ch.epfl.risd.archman.builder;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 
-import com.bpodgursky.jbool_expressions.Expression;
-import com.bpodgursky.jbool_expressions.Or;
-import com.bpodgursky.jbool_expressions.parsers.ExprParser;
-import com.bpodgursky.jbool_expressions.rules.RuleSet;
-
 import ch.epfl.risd.archman.checker.BIPChecker;
-import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
@@ -21,7 +13,6 @@ import ch.epfl.risd.archman.exceptions.IllegalPortParameterReferenceException;
 import ch.epfl.risd.archman.exceptions.InvalidConnectorTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidPortParameterNameException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
-import ch.epfl.risd.archman.exceptions.TestConfigurationFileException;
 import ch.epfl.risd.archman.extractor.ArchitectureOperandsExtractor;
 import ch.epfl.risd.archman.extractor.ArchitectureStyleExtractor;
 import ch.epfl.risd.archman.extractor.BIPExtractor;
@@ -165,8 +156,8 @@ public class ArchitectureInstantiator {
 	 */
 	protected static void degCoord1MultOpN(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
 			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
-					throws ArchitectureExtractorException, InvalidConnectorTypeNameException,
-					InvalidPortParameterNameException, IllegalPortParameterReferenceException {
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
 
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
@@ -270,8 +261,8 @@ public class ArchitectureInstantiator {
 
 	protected static void degCoordNMultOp1(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
 			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
-					throws ArchitectureExtractorException, InvalidConnectorTypeNameException,
-					InvalidPortParameterNameException, IllegalPortParameterReferenceException {
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
 		/* 2.Get operand port tuple */
@@ -334,8 +325,8 @@ public class ArchitectureInstantiator {
 
 	protected static void degCoord1MultOp1(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
 			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
-					throws PortNotFoundException, ArchitectureExtractorException, InvalidConnectorTypeNameException,
-					InvalidPortParameterNameException, IllegalPortParameterReferenceException {
+			throws PortNotFoundException, ArchitectureExtractorException, InvalidConnectorTypeNameException,
+			InvalidPortParameterNameException, IllegalPortParameterReferenceException {
 
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
@@ -350,7 +341,7 @@ public class ArchitectureInstantiator {
 		/* 4. Get the connector type */
 		ConnectorType connectorType;
 
-		/* 4.1. Create if not exists */
+		/* 4.1. Copy if not exists */
 		if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
 			connectorType = ArchitectureInstanceBuilder.copyConnectorType(architectureInstance, BIPExtractor
 					.getConnectorByName(architectureStyle.getBipFileModel(), connectorTuple.getConnectorInstanceName())
@@ -364,7 +355,6 @@ public class ArchitectureInstantiator {
 
 		/* 5.Delete the coordinator port instance */
 		String coordinatorInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[0];
-
 		String coordinatorPortInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[1];
 		Port deletedPort = ArchitectureInstanceBuilder.deletePortInstance(BIPExtractor
 				.getComponentByName(architectureInstance.getBipFileModel(), coordinatorInstanceName).getType(),
@@ -420,8 +410,8 @@ public class ArchitectureInstantiator {
 			for (Transition t : deletedTransitions) {
 				PortDefinitionReference portDefinitionReference = ArchitectureInstanceBuilder
 						.createPortDefinitionReference(ArchitectureInstanceBuilder.createPortDefinition(
-								newPort.getName(), newPort.getType(),
-								((DefinitionBindingImpl) newPort.getBinding()).getDefinition().getExposedVariable()));
+								newPort.getName(), newPort.getType(), ((DefinitionBindingImpl) newPort.getBinding())
+										.getDefinition().getExposedVariable()));
 				newTranstitions.add(ArchitectureInstanceBuilder.createTransition(portDefinitionReference,
 						t.getOrigin().get(0), t.getDestination().get(0), t.getGuard(), t.getAction()));
 			}
@@ -454,8 +444,8 @@ public class ArchitectureInstantiator {
 
 	protected static void singletonOpMultNDeg1(ConnectorTuple connectorTuple, ArchitectureInstance architectureInstance,
 			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
-					throws ArchitectureExtractorException, InvalidConnectorTypeNameException,
-					InvalidPortParameterNameException, IllegalPortParameterReferenceException {
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
 
 		/* 1.Get operand port tuple */
 		PortTuple operandPortTuple = connectorTuple.getOperandPortTuples().get(0);
@@ -537,8 +527,8 @@ public class ArchitectureInstantiator {
 	protected static void singletonCoordMult1Deg1(ConnectorTuple connectorTuple,
 			ArchitectureInstance architectureInstance, ArchitectureOperands architectureOperands,
 			ArchitectureStyle architectureStyle)
-					throws ArchitectureExtractorException, InvalidConnectorTypeNameException,
-					InvalidPortParameterNameException, IllegalPortParameterReferenceException {
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
 
@@ -599,7 +589,7 @@ public class ArchitectureInstantiator {
 	public static ArchitectureInstance createArchitectureInstance(ArchitectureStyle architectureStyle,
 			ArchitectureOperands architectureOperands, String systemName, String rootTypeName, String rootInstanceName,
 			String pathToSaveBIPFile, String pathToSaveConfFile)
-					throws ArchitectureBuilderException, ArchitectureExtractorException, IOException {
+			throws ArchitectureBuilderException, ArchitectureExtractorException, IOException {
 
 		/* 0.Create an empty architecture instance */
 		ArchitectureInstance instance = new ArchitectureInstance(systemName, rootTypeName, rootInstanceName);
