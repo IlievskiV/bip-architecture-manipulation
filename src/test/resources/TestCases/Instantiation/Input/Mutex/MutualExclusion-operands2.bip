@@ -5,8 +5,8 @@ model MutexOperands
 	
 	atomic type Operand
 		
-		export port BeginPort begin
-		export port FinishPort finish
+		export port BeginPort begin()
+		export port FinishPort finish()
 
 		place work, sleep
 		initial to sleep	

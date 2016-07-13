@@ -62,19 +62,19 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 		/* Get all coordinators */
 		this.coordinators = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
-				this.confFileModel.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim1)));
+				this.archEntityConfigFile.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim1)));
 
 		/* Get all operands */
 		this.operands = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
-				this.confFileModel.getParameters().get(ConstantFields.OPERANDS_PARAM), delim1)));
+				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_PARAM), delim1)));
 
 		/* Get all ports */
-		this.ports = new HashSet<String>(Arrays.asList(HelperMethods
-				.splitConcatenatedString(this.confFileModel.getParameters().get(ConstantFields.PORTS_PARAM), delim1)));
+		this.ports = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.PORTS_PARAM), delim1)));
 
 		/* Get all connector tuples */
 		this.connectorTuples = this.parseConnectors(
-				this.confFileModel.getParameters().get(ConstantFields.CONNECTORS_PARAM), delim1, delim2);
+				this.archEntityConfigFile.getParameters().get(ConstantFields.CONNECTORS_PARAM), delim1, delim2);
 	}
 
 	/**
@@ -174,9 +174,6 @@ public class ArchitectureStyle extends ArchitectureEntity {
 			throws FileNotFoundException, ConfigurationFileException, ArchitectureExtractorException {
 		/* Call the super class constructor */
 		super(pathToConfFile, ConstantFields.architectureStyleRequiredParams);
-
-		/* Validate the Architecture style */
-		this.validate();
 	}
 
 	/**
@@ -192,9 +189,6 @@ public class ArchitectureStyle extends ArchitectureEntity {
 			ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
 		/* Call the super class constructor */
 		super(prefixToBip, pathToConfFile, ConstantFields.architectureStyleRequiredParams);
-
-		/* Validate the Architecture style */
-		this.validate();
 	}
 
 	/**

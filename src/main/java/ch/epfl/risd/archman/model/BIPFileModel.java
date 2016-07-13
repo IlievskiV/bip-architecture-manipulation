@@ -1,6 +1,5 @@
 package ch.epfl.risd.archman.model;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -9,7 +8,12 @@ import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.extractor.BIPExtractor;
 import ch.epfl.risd.archman.factories.Factories;
 import ujf.verimag.bip.Core.Behaviors.ComponentType;
+import ujf.verimag.bip.Core.Behaviors.Port;
+import ujf.verimag.bip.Core.Behaviors.PortDefinition;
 import ujf.verimag.bip.Core.Behaviors.PortType;
+import ujf.verimag.bip.Core.Behaviors.impl.AtomTypeImpl;
+import ujf.verimag.bip.Core.Behaviors.impl.DefinitionBindingImpl;
+import ujf.verimag.bip.Core.Behaviors.impl.PortDefinitionImpl;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
 import ujf.verimag.bip.Core.Interactions.ConnectorType;
 import ujf.verimag.bip.Core.Modules.impl.RootImpl;
@@ -166,6 +170,8 @@ public class BIPFileModel {
 	}
 
 	/**
+	 * index
+	 * 
 	 * @return The root of the BIP model
 	 */
 	public RootImpl getRoot() {
@@ -177,5 +183,10 @@ public class BIPFileModel {
 	 */
 	public CompoundType getRootType() {
 		return rootType;
+	}
+
+	public static void main(String[] args) {
+		BIPFileModel bipFileModel = new BIPFileModel(
+				"/home/vladimir/workspace/bip-architecture-manipulation/target/test-classes/TestCases/Instantiation/Output/ActionSequenceOutput/ActionSequence.bip");
 	}
 }

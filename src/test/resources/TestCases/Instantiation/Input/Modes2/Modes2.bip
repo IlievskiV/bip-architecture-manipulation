@@ -8,11 +8,11 @@ model ModeControl2
 
 	atomic type Operand
 		
-		export port ModeStart m1b
-		export port ModeEnd m1e
+		export port ModeStart m1b()
+		export port ModeEnd m1e()
 
-		export port ModeStart m2b
-		export port ModeEnd m2e
+		export port ModeStart m2b()
+		export port ModeEnd m2e()
 
 		place wait, mode1, mode2
 		initial to wait	
@@ -27,11 +27,11 @@ model ModeControl2
 
 	atomic type Coordinator
 		
-		export port ModeAction inMode1
-		export port ModeAction inMode2
+		export port ModeAction inMode1()
+		export port ModeAction inMode2()
 
-		export port ModeSwitch toMode1
-		export port ModeSwitch toMode2
+		export port ModeSwitch toMode1()
+		export port ModeSwitch toMode2()
 
 		place mode1, mode2
 		initial to mode1

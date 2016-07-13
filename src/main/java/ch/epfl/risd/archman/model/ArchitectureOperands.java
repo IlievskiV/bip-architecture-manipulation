@@ -49,11 +49,11 @@ public class ArchitectureOperands extends ArchitectureEntity {
 
 		/* Parse the operands mapping */
 		this.operandsMapping = this.parseMappings(
-				this.confFileModel.getParameters().get(ConstantFields.OPERANDS_MAPPING_PARAM), delim1, delim2);
+				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_MAPPING_PARAM), delim1, delim2);
 
 		/* Parse the ports mapping */
 		this.portsMapping = this.parseMappings(
-				this.confFileModel.getParameters().get(ConstantFields.PORTS_MAPPING_PARAM), delim1, delim2);
+				this.archEntityConfigFile.getParameters().get(ConstantFields.PORTS_MAPPING_PARAM), delim1, delim2);
 	}
 
 	private Hashtable<String, Set<String>> parseMappings(String concatenatedString, String delim1, String delim2)
@@ -122,18 +122,12 @@ public class ArchitectureOperands extends ArchitectureEntity {
 			ComponentNotFoundException, ArchitectureExtractorException {
 		/* Call the super class constructor */
 		super(pathToConfFile, ConstantFields.architectureOperandsRequiredParams);
-
-		/* Validate architecture operands */
-		this.validate();
 	}
 
 	public ArchitectureOperands(String prefixToBip, String pathToConfFile) throws FileNotFoundException,
 			ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
 		/* Call the super class constructor */
 		super(prefixToBip, pathToConfFile, ConstantFields.architectureOperandsRequiredParams);
-
-		/* Validate architecture operands */
-		this.validate();
 	}
 
 	/**
@@ -147,7 +141,7 @@ public class ArchitectureOperands extends ArchitectureEntity {
 	 * @return the parameters for the Architecture Operands
 	 */
 	public Hashtable<String, String> getParameters() {
-		return this.confFileModel.getParameters();
+		return this.archEntityConfigFile.getParameters();
 	}
 
 	/**

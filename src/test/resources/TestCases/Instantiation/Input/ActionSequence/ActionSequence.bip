@@ -5,8 +5,8 @@ model ActionSequence
 
 	atomic type Operand
 		
-		export port ActionBeginPort actBeginO
-		export port ActionEndPort actEndO
+		export port ActionBeginPort actBeginO()
+		export port ActionEndPort actEndO()
 
 		place work, sleep
 		initial to sleep	
@@ -18,8 +18,8 @@ model ActionSequence
 
 	atomic type Coordinator
 		
-		export port ActionBeginPort actBeginC
-		export port ActionEndPort actEndC
+		export port ActionBeginPort actBeginC()
+		export port ActionEndPort actEndC()
 
 		place wait, next
 		initial to next

@@ -297,7 +297,7 @@ public class ArchitectureInstanceBuilder {
 
 	public static void addComponentInstance(ArchitectureInstance architectureInstance, String name, ComponentType type,
 			CompoundType parent, boolean isCoordinator)
-			throws ArchitectureExtractorException, InvalidComponentNameException {
+					throws ArchitectureExtractorException, InvalidComponentNameException {
 
 		if (BIPChecker.componentExists(architectureInstance.getBipFileModel(), name)) {
 			throw new InvalidComponentNameException(
@@ -338,8 +338,8 @@ public class ArchitectureInstanceBuilder {
 
 	public static AtomType createAtomicType(ArchitectureInstance architectureInstance, String name, Behavior behavior,
 			List<Port> ports, List<Variable> variables)
-			throws ArchitectureExtractorException, InvalidAtomTypeNameException, InvalidVariableNameException,
-			InvalidPortNameException, IllegalTransitionPortException {
+					throws ArchitectureExtractorException, InvalidAtomTypeNameException, InvalidVariableNameException,
+					InvalidPortNameException, IllegalTransitionPortException {
 
 		/* Check whether the Atom Type with the same name exists */
 		if (BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), name)) {
@@ -371,7 +371,13 @@ public class ArchitectureInstanceBuilder {
 						"There are Ports in the Atom Type named " + name + " with the same name");
 			}
 			atomType.getPort().addAll(ports);
-			/* */
+		}
+
+		/* Set type to ports and create port definitions */
+		for (Port p : ports) {
+			p.setComponentType(atomType);
+			PortDefinition pd = ((DefinitionBinding) p.getBinding()).getDefinition();
+			atomType.getPortDefinition().add(pd);
 		}
 
 		/* Cast the Behavior to Petri-Net */
@@ -419,6 +425,9 @@ public class ArchitectureInstanceBuilder {
 			/* Instantiate empty list of ports */
 			List<Port> copyPorts = new LinkedList<Port>();
 
+			/* Instantiate empty list of port definitions */
+			List<PortDefinition> copyPortDefinitions = new LinkedList<PortDefinition>();
+
 			/* Iterate original ports */
 			for (Port p : originalPorts) {
 				/* Initialize the port type */
@@ -437,9 +446,20 @@ public class ArchitectureInstanceBuilder {
 
 				/* Add the port to the copy ports */
 				Port newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(),
-						((DefinitionBindingImpl) p.getBinding()).getDefinition().getName(), portType);
+						((DefinitionBindingImpl) p.getBinding()).getDefinition().getName(), portType,
+						((DefinitionBindingImpl) p.getBinding()).getDefinition().getExposedVariable());
 
 				copyPorts.add(newPort);
+
+				/* Get the port definition of the current port */
+				PortDefinition pd = ((DefinitionBinding) p.getBinding()).getDefinition();
+
+				/* Create new port definition but with different type */
+				PortDefinition newPortDefinition = ArchitectureInstanceBuilder.createPortDefinition(pd.getName(),
+						portType, pd.getExposedVariable());
+
+				/* Add it to the list */
+				copyPortDefinitions.add(newPortDefinition);
 			}
 
 			/* Set the behavior */
@@ -447,6 +467,9 @@ public class ArchitectureInstanceBuilder {
 
 			/* Add all ports */
 			copy.getPort().addAll(copyPorts);
+
+			/* Copy port definitions */
+			copy.getPortDefinition().addAll(copyPortDefinitions);
 
 			return copy;
 		} else {
@@ -537,10 +560,12 @@ public class ArchitectureInstanceBuilder {
 		return portType;
 	}
 
-	public static Port createPortInstance(String innerName, String interfaceName, PortType type) {
-		/* First create Port Definition */
-		PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName, type);
+	public static Port createPortInstance(String innerName, String interfaceName, PortType type,
+			List<Variable> variables) {
 
+		/* First create Port Definition */
+		PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName, type,
+				variables);
 		/* Create Definition Binding */
 		DefinitionBinding binding = ArchitectureInstanceBuilder.createDefinitionBinding(portDefinition);
 
@@ -552,8 +577,6 @@ public class ArchitectureInstanceBuilder {
 		port.setBinding(binding);
 		/* Set the type of the port */
 		port.setType(type);
-		/* Set outer port */
-		binding.setOuterPort(port);
 
 		return port;
 	}
@@ -571,6 +594,7 @@ public class ArchitectureInstanceBuilder {
 			 * instance
 			 */
 			copy.setModule(architectureInstance.getBipFileModel().getSystem());
+
 			/* Set data parameters */
 			copy.getDataParameter().addAll(type.getDataParameter());
 
@@ -599,8 +623,8 @@ public class ArchitectureInstanceBuilder {
 	public static ConnectorType createConnectorType(ArchitectureInstance architectureInstance, String connectorTypeName,
 			List<PortParameter> portParameters, PortExpression interactionDefinition,
 			List<InteractionSpecification> interactionSpecifications)
-			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
-			IllegalPortParameterReferenceException {
+					throws ArchitectureExtractorException, InvalidConnectorTypeNameException,
+					InvalidPortParameterNameException, IllegalPortParameterReferenceException {
 
 		/* Check whether the Connector Type with the same name exists */
 		if (BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
@@ -764,7 +788,7 @@ public class ArchitectureInstanceBuilder {
 
 	public static Behavior createBehavior(List<State> initialStates, Action initialAction, List<State> states,
 			List<Transition> transitions)
-			throws InvalidStateNameException, ListEmptyException, IllegalTransitionStatesException {
+					throws InvalidStateNameException, ListEmptyException, IllegalTransitionStatesException {
 		/* Create the behavior */
 		PetriNet net = (PetriNet) Factories.BEHAVIORS_FACTORY.createPetriNet();
 
@@ -842,13 +866,15 @@ public class ArchitectureInstanceBuilder {
 		return dataParameter;
 	}
 
-	public static PortDefinition createPortDefinition(String interfaceName, PortType type) {
+	public static PortDefinition createPortDefinition(String interfaceName, PortType type, List<Variable> variables) {
 		/* First create Port Definition */
 		PortDefinition portDefinition = Factories.BEHAVIORS_FACTORY.createPortDefinition();
 		/* set port type to the port definition */
 		portDefinition.setType(type);
 		/* Set the interface name */
 		portDefinition.setName(interfaceName);
+		/* Set variables */
+		portDefinition.getExposedVariable().addAll(variables);
 
 		return portDefinition;
 	}
@@ -1249,6 +1275,26 @@ public class ArchitectureInstanceBuilder {
 			throw new PortNotFoundException("Port instance with a name " + portInstanceName
 					+ " was not found in the component type named " + componentType.getName());
 		}
+	}
+
+	public static void deletePortDefinition(AtomType atomType, PortDefinition portDefinition) {
+		/* Get all port definitions */
+		List<PortDefinition> allPortDefinitions = atomType.getPortDefinition();
+
+		/* Initialize new list of port definitions */
+		List<PortDefinition> newPortDefinitions = new LinkedList<PortDefinition>();
+
+		/* Iterate over port definitions */
+		for (PortDefinition pd : allPortDefinitions) {
+			/* They are equal if from same port type and same name */
+			if (!(pd.getType().getName().equals(portDefinition.getType().getName())
+					&& pd.getName().equals(portDefinition.getName()))) {
+				newPortDefinitions.add(pd);
+			}
+		}
+
+		atomType.getPortDefinition().clear();
+		atomType.getPortDefinition().addAll(newPortDefinitions);
 	}
 
 	/**

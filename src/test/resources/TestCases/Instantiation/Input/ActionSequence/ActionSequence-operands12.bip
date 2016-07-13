@@ -5,11 +5,11 @@ model ActionSequenceOperands
 
 	atomic type Operand_1
 		
-		export port ActionBeginPort a1b
-		export port ActionEndPort a1e
+		export port ActionBeginPort a1b()
+		export port ActionEndPort a1e()
 
-		export port ActionBeginPort a2b  
-		export port ActionEndPort a2e
+		export port ActionBeginPort a2b()  
+		export port ActionEndPort a2e()
 
 		place work, sleep
 		initial to sleep	
@@ -23,8 +23,8 @@ model ActionSequenceOperands
 
 	atomic type Operand_2
 		
-		export port ActionBeginPort a3b
-		export port ActionEndPort a3e
+		export port ActionBeginPort a3b()
+		export port ActionEndPort a3e()
 
 		place work, sleep
 		initial to sleep	

@@ -62,19 +62,19 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 		/* Get all coordinators */
 		this.coordinators = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
-				this.confFileModel.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim)));
+				this.archEntityConfigFile.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim)));
 
 		/* Get all operands */
 		this.operands = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
-				this.confFileModel.getParameters().get(ConstantFields.OPERANDS_PARAM), delim)));
+				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_PARAM), delim)));
 
 		/* Get all ports */
-		this.ports = new HashSet<String>(Arrays.asList(HelperMethods
-				.splitConcatenatedString(this.confFileModel.getParameters().get(ConstantFields.PORTS_PARAM), delim)));
+		this.ports = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.PORTS_PARAM), delim)));
 
 		/* Get all interactions */
 		this.interactions = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
-				this.confFileModel.getParameters().get(ConstantFields.INTERACTIONS_PARAM), delim)));
+				this.archEntityConfigFile.getParameters().get(ConstantFields.INTERACTIONS_PARAM), delim)));
 	}
 
 	@Override
@@ -106,6 +106,13 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	public ArchitectureInstance(String systemName, String rootTypeName, String rootInstanceName) {
 		/* Call the super class constructor */
 		super(systemName, rootTypeName, rootInstanceName, ConstantFields.architectureInstanceRequiredParams);
+
+		/* Initialize parameters values */
+		this.coordinators = new HashSet<String>();
+		this.operands = new HashSet<String>();
+		this.ports = new HashSet<String>();
+		this.interactions = new HashSet<String>();
+		this.characteristicPredicate = "";
 	}
 
 	/**
@@ -134,9 +141,6 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Calculate the characteristic predicate */
 		this.characteristicPredicate = ArchitectureInstance.calculateCharacteristicPredicate(this.interactions,
 				this.ports);
-
-		/* Validate the instance */
-		validate();
 	}
 
 	public ArchitectureInstance(String prefixToBip, String pathToConfFile, boolean emptyInteraction)
@@ -151,9 +155,6 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Calculate the characteristic predicate */
 		this.characteristicPredicate = ArchitectureInstance.calculateCharacteristicPredicate(this.interactions,
 				this.ports);
-
-		/* Validate the instance */
-		validate();
 	}
 
 	/**
@@ -405,7 +406,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.coordinators.add(coordinatorInstanceName);
 		/* Add the parameter */
-		this.confFileModel.addToParameters(ConstantFields.COORDINATORS_PARAM, coordinatorInstanceName);
+		this.archEntityConfigFile.addToParameters(ConstantFields.COORDINATORS_PARAM, coordinatorInstanceName);
 	}
 
 	/**
@@ -419,7 +420,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.operands.add(operandInstanceName);
 		/* Add the parameter */
-		this.confFileModel.addToParameters(ConstantFields.OPERANDS_PARAM, operandInstanceName);
+		this.archEntityConfigFile.addToParameters(ConstantFields.OPERANDS_PARAM, operandInstanceName);
 	}
 
 	/**
@@ -433,7 +434,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.ports.add(portInstanceName);
 		/* Add the parameter */
-		this.confFileModel.addToParameters(ConstantFields.PORTS_PARAM, portInstanceName);
+		this.archEntityConfigFile.addToParameters(ConstantFields.PORTS_PARAM, portInstanceName);
 	}
 
 	public void removePort(String portInstanceName) throws PortNotFoundException {
@@ -444,7 +445,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 
 		if (ports.contains(portInstanceName)) {
 			this.ports.remove(portInstanceName);
-			this.confFileModel.removeFromParameters(ConstantFields.PORTS_PARAM, portInstanceName);
+			this.archEntityConfigFile.removeFromParameters(ConstantFields.PORTS_PARAM, portInstanceName);
 
 		} else {
 			throw new PortNotFoundException(
@@ -464,7 +465,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 		/* Add to the list */
 		this.interactions.add(interactionName);
 		/* Add the parameter */
-		this.confFileModel.addToParameters(ConstantFields.INTERACTIONS_PARAM, interactionName);
+		this.archEntityConfigFile.addToParameters(ConstantFields.INTERACTIONS_PARAM, interactionName);
 	}
 
 	/**

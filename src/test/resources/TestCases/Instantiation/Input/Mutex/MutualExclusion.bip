@@ -5,8 +5,8 @@ model MutualExclusion
 	
 	atomic type Operand
 		
-		export port BeginPort begin
-		export port FinishPort finish
+		export port BeginPort begin()
+		export port FinishPort finish()
 
 		place work, sleep
 		initial to sleep	
@@ -18,8 +18,8 @@ model MutualExclusion
 
 	atomic type Coordinator
 		
-		export port BeginPort take
-		export port FinishPort release
+		export port BeginPort take()
+		export port FinishPort release()
 
 		place taken, free
 		initial to free

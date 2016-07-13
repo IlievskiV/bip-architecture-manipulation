@@ -26,7 +26,7 @@ public abstract class ArchitectureEntity {
 	protected BIPFileModel bipFileModel;
 
 	/* The model of the configuration file for this entity */
-	protected ConfigurationFileModel confFileModel;
+	protected ArchEntityConfigFile archEntityConfigFile;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -46,6 +46,7 @@ public abstract class ArchitectureEntity {
 	 * @throws ArchitectureExtractorException
 	 */
 	protected void validateComponents(Set<String> componentInstanceNames) throws ArchitectureExtractorException {
+
 		/* Iterate over the set of component instance names */
 		for (String componentInstanceName : componentInstanceNames) {
 			if (!BIPChecker.componentExists(this.bipFileModel, componentInstanceName)) {
@@ -98,10 +99,15 @@ public abstract class ArchitectureEntity {
 	 * @param requiredParams
 	 *            - list of required parameters in the configuration file
 	 * @throws ConfigurationFileException
+	 * @throws ArchitectureExtractorException
+	 * @throws ComponentNotFoundException
 	 */
-	public ArchitectureEntity(String pathToConfFile, List<String> requiredParams) throws ConfigurationFileException {
-		this.confFileModel = new ConfigurationFileModel(pathToConfFile, requiredParams);
-		this.bipFileModel = new BIPFileModel(this.confFileModel.getParameters().get(ConstantFields.PATH_PARAM));
+	public ArchitectureEntity(String pathToConfFile, List<String> requiredParams)
+			throws ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
+		this.archEntityConfigFile = new ArchEntityConfigFile(pathToConfFile, requiredParams);
+		this.bipFileModel = new BIPFileModel(this.archEntityConfigFile.getParameters().get(ConstantFields.PATH_PARAM));
+		this.parseParameters();
+		this.validate();
 	}
 
 	/**
@@ -116,12 +122,16 @@ public abstract class ArchitectureEntity {
 	 * @param requiredParams
 	 *            - list of required parameters in the configuration file
 	 * @throws ConfigurationFileException
+	 * @throws ArchitectureExtractorException
+	 * @throws ComponentNotFoundException
 	 */
 	public ArchitectureEntity(String prefixToBip, String pathToConfFile, List<String> requiredParams)
-			throws ConfigurationFileException {
-		this.confFileModel = new ConfigurationFileModel(pathToConfFile, requiredParams);
+			throws ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
+		this.archEntityConfigFile = new ArchEntityConfigFile(pathToConfFile, requiredParams);
 		this.bipFileModel = new BIPFileModel(
-				prefixToBip + this.confFileModel.getParameters().get(ConstantFields.PATH_PARAM));
+				prefixToBip + this.archEntityConfigFile.getParameters().get(ConstantFields.PATH_PARAM));
+		this.parseParameters();
+		this.validate();
 	}
 
 	/**
@@ -139,18 +149,18 @@ public abstract class ArchitectureEntity {
 	public ArchitectureEntity(String systemName, String rootTypeName, String rootInstanceName,
 			List<String> requiredParams) {
 		/* Create empty configuration file */
-		this.confFileModel = new ConfigurationFileModel(requiredParams);
+		this.archEntityConfigFile = new ArchEntityConfigFile(requiredParams);
 		/* Create empty BIP file model */
 		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
 	}
 
 	public void generateBipFile(String pathToBipFile) throws FileNotFoundException {
-		this.confFileModel.getParameters().put(ConstantFields.PATH_PARAM, pathToBipFile);
+		this.archEntityConfigFile.getParameters().put(ConstantFields.PATH_PARAM, pathToBipFile);
 		this.bipFileModel.createFile(pathToBipFile);
 	}
 
 	public void generateConfigurationFile(String pathToConfFile) throws IOException {
-		this.confFileModel.createFile(pathToConfFile);
+		this.archEntityConfigFile.createFile(pathToConfFile);
 	}
 
 	/**
