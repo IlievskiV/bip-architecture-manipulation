@@ -2,6 +2,7 @@ package ch.epfl.risd.archman.composer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -95,7 +96,7 @@ public class ArchitectureComposer {
 		/* Iterate over them */
 		for (ConnectorType connType : allConnectorTypes) {
 			/* Get all port parameters */
-			List<PortParameter> portParameters = connType.getPortParameter();
+			List<PortParameter> portParameters = new LinkedList<>(connType.getPortParameter());
 			List<Port> tempPorts = new LinkedList<Port>(resultingPorts);
 
 			/*
@@ -253,22 +254,6 @@ public class ArchitectureComposer {
 			/* Split the interaction in interaction ports */
 			String[] interactionPorts = interaction.split(" ");
 
-			/* Create an empty list of actual port parameters */
-			List<ActualPortParameter> actualPortParameters = new LinkedList<ActualPortParameter>();
-
-			/* Iterate over the interaction ports */
-			for (String intPort : interactionPorts) {
-				/* Get the component instance name */
-				String componentInstanceName = intPort.split("\\.")[0];
-				/* Get the port instance name */
-				String portInstanceName = intPort.split("\\.")[1];
-
-				actualPortParameters.add(ArchitectureInstanceBuilder.createInnerPortReference(
-						ArchitectureInstanceBuilder.createPartElementReference(
-								BIPExtractor.getComponentByName(instance.getBipFileModel(), componentInstanceName)),
-						BIPExtractor.getPortByName(instance.getBipFileModel(), portInstanceName)));
-			}
-
 			/* Check for match */
 			ConnectorType connectorType = ArchitectureComposer.matchInteraction(instance.getBipFileModel(),
 					interaction);
@@ -332,6 +317,43 @@ public class ArchitectureComposer {
 			/* If match we just have to create an instance */
 			String connectorInstanceName = connectorType.getName() + ConstantFields.INSTANCE
 					+ String.valueOf(connectorTypeInstances.get((String) connectorType.getName()));
+
+			/* Create an empty list of actual port parameters */
+			List<ActualPortParameter> actualPortParameters = new LinkedList<ActualPortParameter>();
+
+			/* Temporary list of port parameters */
+			List<PortParameter> tempPortParams = new LinkedList<PortParameter>(connectorType.getPortParameter());
+			/* Temporary list of interaction ports */
+			List<String> tempInteractionPorts = new LinkedList<String>(Arrays.asList(interactionPorts));
+
+			/* Iterate over port parameters */
+			for (int i = tempPortParams.size() - 1; i >= 0; i--) {
+				for (int j = tempInteractionPorts.size() - 1; j >= 0; j--) {
+					/* Get the component instance name */
+					String componentInstanceName = tempInteractionPorts.get(j).split("\\.")[0];
+					/* Get the port instance name */
+					String portInstanceName = tempInteractionPorts.get(j).split("\\.")[1];
+
+					String portTypeName = BIPExtractor.getPortByName(instance.getBipFileModel(), portInstanceName)
+							.getType().getName();
+
+					/* If they have same type */
+					if (tempPortParams.get(i).getType().getName().equals(portTypeName)) {
+						actualPortParameters.add(ArchitectureInstanceBuilder.createInnerPortReference(
+								ArchitectureInstanceBuilder.createPartElementReference(BIPExtractor
+										.getComponentByName(instance.getBipFileModel(), componentInstanceName)),
+								BIPExtractor.getPortByName(instance.getBipFileModel(), portInstanceName)));
+
+						tempPortParams.remove(i);
+						tempInteractionPorts.remove(j);
+						break;
+					}
+
+				}
+			}
+
+			/* Revert */
+			Collections.reverse(actualPortParameters);
 			/* Create the connector instance */
 			ArchitectureInstanceBuilder.createConnectorInstance(instance, connectorInstanceName, connectorType,
 					instance.getBipFileModel().getRootType(), actualPortParameters);
