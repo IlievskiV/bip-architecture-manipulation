@@ -166,12 +166,13 @@ public class ArchitectureComposer {
 	 * @throws InvalidPortParameterNameException
 	 * @throws InvalidConnectorTypeNameException
 	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	public static ArchitectureInstance compose(ArchitectureInstance instance1, ArchitectureInstance instance2,
 			String systemName, String rootTypeName, String rootInstanceName, String pathToSaveBIPFile,
-			String pathToSaveConfFile)
-			throws ArchitectureExtractorException, InvalidComponentNameException, InvalidConnectorTypeNameException,
-			InvalidPortParameterNameException, IllegalPortParameterReferenceException, IOException {
+			String pathToSaveConfFile) throws ArchitectureExtractorException, InvalidComponentNameException,
+			InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException, IOException, InterruptedException {
 
 		/* 0.Create an empty architecture instance */
 		ArchitectureInstance instance = new ArchitectureInstance(systemName, rootTypeName, rootInstanceName);
@@ -209,8 +210,8 @@ public class ArchitectureComposer {
 					/* Copy or retrieve the atomic type */
 					AtomType atomType = ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
 					/* Create an instance of the atomic type */
-					ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), atomType,
-							instance.getBipFileModel().getRootType(), isCoordinator);
+					ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), atomType,
+							instance.getBipFileModel().getRootType(), isCoordinator, true);
 
 				} else if (c.getType() instanceof CompoundType) {
 					/* If the component is not one the roots */
@@ -221,8 +222,8 @@ public class ArchitectureComposer {
 						CompoundType compoundType = ArchitectureInstanceBuilder.copyCompoundType(instance,
 								(CompoundType) c.getType());
 						/* Create an instance of the compound type */
-						ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), compoundType,
-								instance.getBipFileModel().getRootType(), isCoordinator);
+						ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), compoundType,
+								instance.getBipFileModel().getRootType(), isCoordinator, true);
 					}
 				}
 
@@ -306,7 +307,7 @@ public class ArchitectureComposer {
 
 				/* Create the connector type */
 				connectorType = ArchitectureInstanceBuilder.createConnectorType(instance, connectorTypeName,
-						portParameters, acFusion, null);
+						portParameters, acFusion, interactionSpecifications, null);
 
 				/* Update counter */
 				connectorTypeCounter++;
@@ -387,7 +388,7 @@ public class ArchitectureComposer {
 
 		} catch (ConfigurationFileException | ArchitectureExtractorException | InvalidComponentNameException
 				| InvalidConnectorTypeNameException | InvalidPortParameterNameException
-				| IllegalPortParameterReferenceException | IOException e) {
+				| IllegalPortParameterReferenceException | IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
 	}

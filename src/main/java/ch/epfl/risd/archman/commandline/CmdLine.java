@@ -70,7 +70,7 @@ public class CmdLine {
 						rootTypeName, rootInstanceName, outputBIPPath, outputConf);
 
 			} catch (ConfigurationFileException | ArchitectureExtractorException | ArchitectureBuilderException
-					| IOException e) {
+					| IOException | InterruptedException e) {
 				System.out.println(ERROR_PREFIX + " : " + e.getMessage());
 				System.exit(0);
 			}
@@ -107,7 +107,7 @@ public class CmdLine {
 
 			} catch (ConfigurationFileException | ArchitectureExtractorException | InvalidComponentNameException
 					| InvalidConnectorTypeNameException | InvalidPortParameterNameException
-					| IllegalPortParameterReferenceException | IOException e) {
+					| IllegalPortParameterReferenceException | IOException | InterruptedException e) {
 				System.out.println(ERROR_PREFIX + " : " + e.getMessage());
 				System.exit(0);
 			}

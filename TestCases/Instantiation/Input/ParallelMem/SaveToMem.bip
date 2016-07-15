@@ -1,0 +1,46 @@
+model SaveToMem
+   port type Write
+   port type ActionStart
+   port type ActionEnd
+
+   atomic type Coordinator
+      export port Write write()
+ 
+      place idle
+      initial to idle
+      
+      on write from idle to idle
+   end
+
+   atomic type Operand
+      export port ActionStart saveToMem()
+      export port ActionEnd success()
+      export port ActionEnd fail()
+      
+      place idle, memory
+      initial to idle
+
+      on saveToMem from idle to memory
+      on success from memory to idle
+      on fail from memory to idle
+   end
+
+   connector type ActionStartConnector (Write w, ActionStart s)
+      define w s
+   end
+   
+   connector type ActionEndConnector (ActionEnd e)
+      define e
+   end
+
+   compound type SaveToMem
+      component Coordinator C
+      component Operand B
+      
+      connector ActionStartConnector actionStart(C.write, B.saveToMem)
+      connector ActionEndConnector actionEnd1(B.success)
+      connector ActionEndConnector actionEnd2(B.fail)
+   end
+ 
+   component SaveToMem saveToMem1
+end

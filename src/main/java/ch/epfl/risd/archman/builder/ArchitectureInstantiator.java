@@ -243,7 +243,7 @@ public class ArchitectureInstantiator {
 		 */
 		if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
 			connectorType = ArchitectureInstanceBuilder.createConnectorType(architectureInstance, connectorTypeName,
-					portParameters, acFusion, interactionSpecifications);
+					portParameters, acFusion, interactionSpecifications, null);
 
 			ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
 					connectorTuple.getConnectorInstanceName(), connectorType,
@@ -263,6 +263,7 @@ public class ArchitectureInstantiator {
 			ArchitectureOperands architectureOperands, ArchitectureStyle architectureStyle)
 			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
 			IllegalPortParameterReferenceException {
+
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
 		/* 2.Get operand port tuple */
@@ -508,7 +509,7 @@ public class ArchitectureInstantiator {
 		 */
 		if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), connectorTypeName)) {
 			connectorType = ArchitectureInstanceBuilder.createConnectorType(architectureInstance, connectorTypeName,
-					portParameters, acFusion, interactionSpecifications);
+					portParameters, acFusion, interactionSpecifications, null);
 
 			ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
 					connectorTuple.getConnectorInstanceName(), connectorType,
@@ -585,11 +586,12 @@ public class ArchitectureInstantiator {
 	 * @throws ArchitectureBuilderException
 	 * @throws ArchitectureExtractorException
 	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	public static ArchitectureInstance createArchitectureInstance(ArchitectureStyle architectureStyle,
 			ArchitectureOperands architectureOperands, String systemName, String rootTypeName, String rootInstanceName,
 			String pathToSaveBIPFile, String pathToSaveConfFile)
-			throws ArchitectureBuilderException, ArchitectureExtractorException, IOException {
+			throws ArchitectureBuilderException, ArchitectureExtractorException, IOException, InterruptedException {
 
 		/* 0.Create an empty architecture instance */
 		ArchitectureInstance instance = new ArchitectureInstance(systemName, rootTypeName, rootInstanceName);
@@ -610,14 +612,14 @@ public class ArchitectureInstantiator {
 			if (c.getType() instanceof AtomType) {
 				AtomType atomType = ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
 				/* 4.1. Make an atomic type instance of the coordinator */
-				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), atomType,
-						instance.getBipFileModel().getRootType(), true);
+				ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), atomType,
+						instance.getBipFileModel().getRootType(), true, true);
 			} else {
 				CompoundType compoundType = ArchitectureInstanceBuilder.copyCompoundType(instance,
 						(CompoundType) c.getType());
 				/* 4.1. Make a compound type instance of the coordinator */
-				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), compoundType,
-						instance.getBipFileModel().getRootType(), true);
+				ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), compoundType,
+						instance.getBipFileModel().getRootType(), true, true);
 			}
 		}
 
@@ -627,15 +629,14 @@ public class ArchitectureInstantiator {
 			if (c.getType() instanceof AtomType) {
 				AtomType atomType = ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
 				/* 5.1. Make an atomic type instance of the operand */
-				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), atomType,
-						instance.getBipFileModel().getRootType(), false);
+				ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), atomType,
+						instance.getBipFileModel().getRootType(), false, true);
 			} else {
 				/* 5.1. Make a compound type instance of the operand */
-				CompoundType compoundType = ArchitectureInstanceBuilder.copyCompoundType(instance,
-						(CompoundType) c.getType());
+				CompoundType compoundType = (CompoundType) c.getType();
 				/* 4.1. Make a compound type instance of the coordinator */
-				ArchitectureInstanceBuilder.addComponentInstance(instance, c.getName(), compoundType,
-						instance.getBipFileModel().getRootType(), false);
+				ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), compoundType,
+						instance.getBipFileModel().getRootType(), false, true);
 			}
 		}
 
@@ -716,8 +717,12 @@ public class ArchitectureInstantiator {
 
 		String pathToSaveConfFile = "/home/vladimir/Desktop/exampleconf.txt";
 
-		ArchitectureInstance instance = ArchitectureInstantiator.createArchitectureInstance(architectureStyle,
-				architectureOperands, "Mutex", "Mutex", "mutex", pathToSaveBIPFile, pathToSaveConfFile);
+		try {
+			ArchitectureInstance instance = ArchitectureInstantiator.createArchitectureInstance(architectureStyle,
+					architectureOperands, "Mutex", "Mutex", "mutex", pathToSaveBIPFile, pathToSaveConfFile);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		// System.out.println("Predicate :" +
 		// instance.getCharacteristicPredicate());

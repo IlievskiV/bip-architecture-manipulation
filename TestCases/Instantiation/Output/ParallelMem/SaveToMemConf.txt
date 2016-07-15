@@ -1,0 +1,5 @@
+operands:B1
+coordinators:C
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ParallelMem/SaveToMemInstance.bip
+interactions:C.saveToMemPar B1.saveToMemPar
+ports:B1.saveToMemPar,C.saveToMemPar

@@ -33,6 +33,10 @@ public class TestInstantiation {
 	private static final String ACTION_SEQ_ARCH_STYLE_CONF = "/ActionSequence/AEConf.txt";
 	private static final String ACTION_SEQ_ARCH_OP_CONF = "/ActionSequence/AEConf-instance2.txt";
 
+	// Parallel Memory
+	private static final String PAR_MEM_ARCH_STYLE_CONF = "/ParallelMem/ConfStyle.txt";
+	private static final String PAR_MEM_ARCH_OP_CONF = "/ParallelMem/ConfOp.txt";
+
 	/* Output files */
 
 	// Mutual Exclusion
@@ -43,9 +47,13 @@ public class TestInstantiation {
 	private static final String MODES_OUTPUT_BIP = "/Modes2/Modes2Instance.bip";
 	private static final String MODES_OUTPUT_CONF = "/Modes2/Modes2Conf.txt";
 
-	// Modes 2
+	// Action Sequence
 	private static final String ACTION_SEQ_OUTPUT_BIP = "/ActionSequence/Modes2Instance.bip";
 	private static final String ACTION_SEQ_OUTPUT_CONF = "/ActionSequence/Modes2Conf.txt";
+
+	// Parallel Memory
+	private static final String PAR_MEM_OUTPUT_BIP = "/ParallelMem/SaveToMemInstance.bip";
+	private static final String PAR_MEM_SEQ_OUTPUT_CONF = "/ParallelMem/SaveToMemConf.txt";
 
 	/* Flags */
 	private static final String INSTANTIATION_FLAG = "-instantiation";
@@ -112,10 +120,28 @@ public class TestInstantiation {
 				outputConfFilePath);
 	}
 
+	public static void testParallelMem() {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + PAR_MEM_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + PAR_MEM_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + PAR_MEM_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + PAR_MEM_SEQ_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
 	public static void main(String[] args) {
 		TestInstantiation.testMutex();
 		TestInstantiation.testModes2();
 		TestInstantiation.testActionSequence();
+		TestInstantiation.testParallelMem();
 	}
 
 }

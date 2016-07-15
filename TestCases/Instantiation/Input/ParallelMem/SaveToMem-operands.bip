@@ -1,0 +1,37 @@
+model SaveToMemOperands
+   port type Write
+   port type ActionStart
+   port type ActionEnd
+   
+   atomic type Operand
+      export port ActionStart saveToMem()
+      export port ActionEnd success()
+      export port ActionEnd fail()
+      
+      place idle, memory
+      initial to idle
+
+      on saveToMem from idle to memory
+      on success from memory to idle
+      on fail from memory to idle
+   end
+   
+   connector type ParallelWriteConnector (ActionStart s1, ActionStart s2)
+      define s1 s2
+      export port ActionStart saveToMemPar()
+   end   
+
+   compound type ParallelMem
+     component Operand B11
+     component Operand B12
+     
+     connector ParallelWriteConnector parallelWrite(B11.saveToMem, B12.saveToMem)
+     export port ActionStart saveToMemPar is parallelWrite.saveToMemPar
+   end
+
+   compound type SaveToMemOperands
+      component ParallelMem B1
+   end
+
+   component SaveToMemOperands saveToMemOperands
+end

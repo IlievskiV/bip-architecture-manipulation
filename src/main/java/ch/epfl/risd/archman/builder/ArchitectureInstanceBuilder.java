@@ -1,7 +1,9 @@
 package ch.epfl.risd.archman.builder;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
@@ -37,10 +39,10 @@ import ujf.verimag.bip.Core.ActionLanguage.Expressions.StringLiteral;
 import ujf.verimag.bip.Core.ActionLanguage.Expressions.UnaryExpression;
 import ujf.verimag.bip.Core.ActionLanguage.Expressions.UnaryOperator;
 import ujf.verimag.bip.Core.ActionLanguage.Expressions.VariableReference;
-import ujf.verimag.bip.Core.Behaviors.AbstractTransition;
 import ujf.verimag.bip.Core.Behaviors.Action;
 import ujf.verimag.bip.Core.Behaviors.AtomType;
 import ujf.verimag.bip.Core.Behaviors.Behavior;
+import ujf.verimag.bip.Core.Behaviors.Binding;
 import ujf.verimag.bip.Core.Behaviors.ComponentType;
 import ujf.verimag.bip.Core.Behaviors.DataParameter;
 import ujf.verimag.bip.Core.Behaviors.DefinitionBinding;
@@ -92,6 +94,7 @@ public class ArchitectureInstanceBuilder {
 	/****************************************************************************/
 	/* VARIABLES */
 	/***************************************************************************/
+	public static final Object lock = new Object();
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -295,8 +298,8 @@ public class ArchitectureInstanceBuilder {
 	/* ARCHITECTURE DEPENDENT METHODS */
 	/***************************************************************************/
 
-	public static void addComponentInstance(ArchitectureInstance architectureInstance, String name, ComponentType type,
-			CompoundType parent, boolean isCoordinator)
+	public static Component createComponentInstance(ArchitectureInstance architectureInstance, String name,
+			ComponentType type, CompoundType parent, boolean isCoordinator, boolean toInclude)
 			throws ArchitectureExtractorException, InvalidComponentNameException {
 
 		if (BIPChecker.componentExists(architectureInstance.getBipFileModel(), name)) {
@@ -318,21 +321,25 @@ public class ArchitectureInstanceBuilder {
 				component.setCompoundType(parent);
 			}
 
-			/*
-			 * If the component is coordinator then add its name in the list of
-			 * coordinators
-			 */
-			if (isCoordinator) {
-				architectureInstance.addCoordinator(name);
-			} else {
-				architectureInstance.addOperand(name);
+			if (toInclude) {
+				/*
+				 * If the component is coordinator then add its name in the list
+				 * of coordinators
+				 */
+				if (isCoordinator) {
+					architectureInstance.addCoordinator(name);
+				} else {
+					architectureInstance.addOperand(name);
+				}
+
+				/* Add port instances in the configuration file */
+				List<Port> allPorts = type.getPort();
+				for (Port p : allPorts) {
+					architectureInstance.addPort(name + "." + p.getName());
+				}
 			}
 
-			/* Add port instances in the configuration file */
-			List<Port> allPorts = type.getPort();
-			for (Port p : allPorts) {
-				architectureInstance.addPort(name + "." + p.getName());
-			}
+			return component;
 		}
 	}
 
@@ -478,15 +485,18 @@ public class ArchitectureInstanceBuilder {
 	}
 
 	/**
-	 * The method is not fully implemented
 	 * 
 	 * @param architectureInstance
 	 * @param name
+	 * @param subComponents
+	 * @param connectors
+	 * @param ports
 	 * @return
 	 * @throws ArchitectureExtractorException
 	 * @throws InvalidCompoundTypeNameException
 	 */
-	public static CompoundType createCompoundType(ArchitectureInstance architectureInstance, String name)
+	public static CompoundType createCompoundType(ArchitectureInstance architectureInstance, String name,
+			List<Component> subComponents, List<Connector> connectors, List<Port> ports)
 			throws ArchitectureExtractorException, InvalidCompoundTypeNameException {
 
 		/* Check whether the Compound Type with the same name exists */
@@ -501,8 +511,12 @@ public class ArchitectureInstanceBuilder {
 		compoundType.setName(name);
 		/* Set the system */
 		compoundType.setModule(architectureInstance.getBipFileModel().getSystem());
-
-		/* subcomponents are missing */
+		/* Set the subcomponents */
+		compoundType.getSubcomponent().addAll(subComponents);
+		/* Set the connectors */
+		compoundType.getConnector().addAll(connectors);
+		/* Set the ports */
+		compoundType.getPort().addAll(ports);
 
 		return compoundType;
 	}
@@ -514,9 +528,11 @@ public class ArchitectureInstanceBuilder {
 	 * @param type
 	 * @return
 	 * @throws ArchitectureExtractorException
+	 * @throws InvalidComponentNameException
+	 * @throws InterruptedException
 	 */
 	public static CompoundType copyCompoundType(ArchitectureInstance architectureInstance, CompoundType type)
-			throws ArchitectureExtractorException {
+			throws ArchitectureExtractorException, InvalidComponentNameException, InterruptedException {
 
 		if (!BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), type)) {
 			/* Create new compound type */
@@ -526,9 +542,85 @@ public class ArchitectureInstanceBuilder {
 			/* Set the system */
 			copy.setModule(architectureInstance.getBipFileModel().getSystem());
 
-			/* subcomponents are missing */
-			/* ports in the subcomponents */
-			/* connectors */
+			/* List of new ports */
+			List<Port> newPorts = new LinkedList<Port>();
+
+			/* Get the ports */
+			List<Port> originalPorts = type.getPort();
+
+			/* Iterate original ports */
+			for (Port p : originalPorts) {
+				/* Initialize the port type */
+				PortType portType;
+
+				/* If the port type does not exist */
+				if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), p.getType())) {
+					portType = ArchitectureInstanceBuilder.copyPortType(architectureInstance, p.getType());
+				}
+				/* If the port type exists */
+				else {
+					/* Get the port type */
+					portType = BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(),
+							p.getType().getName());
+				}
+
+				Binding portBinding = p.getBinding();
+				Port newPort;
+
+				if (portBinding instanceof DefinitionBinding) {
+					/* Add the port to the copy ports */
+					newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(),
+							((DefinitionBinding) p.getBinding()).getDefinition().getName(), portType,
+							((DefinitionBinding) p.getBinding()).getDefinition().getExposedVariable());
+				} else {
+					List<Variable> vars = new LinkedList<Variable>();
+					/* Add the port to the copy ports */
+					newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(),
+							((ExportBinding) p.getBinding()).getOuterPort().getName(), portType, vars);
+				}
+
+				newPorts.add(newPort);
+			}
+
+			/* Add all ports */
+			copy.getPort().addAll(newPorts);
+
+			/* Get the subcomponents */
+			List<Component> subComponents = type.getSubcomponent();
+			/* Add the subcomponents */
+			copy.getSubcomponent().addAll(subComponents);
+
+			/* List of new connectors */
+			List<Connector> newConnectors = new LinkedList<Connector>();
+
+			/* Get all connectors */
+			List<Connector> connectors = type.getConnector();
+
+			/* Iterate over them */
+			for (Connector c : connectors) {
+				ConnectorType connectorType;
+
+				if (!BIPChecker.connectorTypeExists(architectureInstance.getBipFileModel(), c.getType().getName())) {
+					connectorType = ArchitectureInstanceBuilder.copyConnectorType(architectureInstance, c.getType());
+				} else {
+					connectorType = BIPExtractor.getConnectorTypeByName(architectureInstance.getBipFileModel(),
+							c.getType().getName());
+				}
+
+				List<ActualPortParameter> app = new LinkedList<ActualPortParameter>();
+				for (ActualPortParameter a : c.getActualPort()) {
+					app.add((InnerPortReference) a);
+				}
+
+				/* Not sure if port parameters should copy */
+				Connector newConnector = ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
+						c.getName(), connectorType, type, app);
+
+				newConnectors.add(newConnector);
+			}
+
+			/* Add new connectors */
+			copy.getConnector().addAll(newConnectors);
 
 			return copy;
 		} else {
@@ -625,7 +717,7 @@ public class ArchitectureInstanceBuilder {
 
 	public static ConnectorType createConnectorType(ArchitectureInstance architectureInstance, String connectorTypeName,
 			List<PortParameter> portParameters, PortExpression interactionDefinition,
-			List<InteractionSpecification> interactionSpecifications)
+			List<InteractionSpecification> interactionSpecifications, Port port)
 			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
 			IllegalPortParameterReferenceException {
 
@@ -664,6 +756,12 @@ public class ArchitectureInstanceBuilder {
 			connectorType.getInteractionSpecification().addAll(interactionSpecifications);
 		}
 
+		/* Set the port definition */
+		if (port != null) {
+			connectorType.setPort(port);
+			connectorType.setPortDefinition(((DefinitionBinding) port.getBinding()).getDefinition());
+		}
+
 		return connectorType;
 	}
 
@@ -689,6 +787,8 @@ public class ArchitectureInstanceBuilder {
 		connector.setCompoundType(parent);
 		/* Set the input ports */
 		connector.getActualPort().addAll(actualPortParameters);
+
+		System.err.println(actualPortParameters.size());
 
 		/* Create the interaction */
 		StringBuilder interaction = new StringBuilder();
@@ -746,42 +846,47 @@ public class ArchitectureInstanceBuilder {
 			/* copy the interactions */
 			copy.getInteractionSpecification().addAll(type.getInteractionSpecification());
 
+			/* Copy the exported port if any */
+			Port connectorTypeExportedPort = copy.getPort();
+			PortType exportedPortType;
+
+			/* If it exists */
+			if (connectorTypeExportedPort != null) {
+				if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(),
+						connectorTypeExportedPort.getType())) {
+					/* If not exist copy it */
+					exportedPortType = ArchitectureInstanceBuilder.copyPortType(architectureInstance,
+							connectorTypeExportedPort.getType());
+				} else {
+					/* If exist extract it */
+					exportedPortType = BIPExtractor.getPortTypeByName(architectureInstance.getBipFileModel(),
+							connectorTypeExportedPort.getType().getName());
+				}
+
+				/* Create the port instance */
+				Port newExportedPort = ArchitectureInstanceBuilder
+						.createPortInstance(connectorTypeExportedPort.getName(),
+								((DefinitionBindingImpl) connectorTypeExportedPort.getBinding()).getDefinition()
+										.getName(),
+								exportedPortType, ((DefinitionBindingImpl) connectorTypeExportedPort.getBinding())
+										.getDefinition().getExposedVariable());
+
+				/* Set the new port instance */
+				copy.setPort(newExportedPort);
+
+				/* Get the port definition of the current port */
+				PortDefinition pd = ((DefinitionBinding) newExportedPort.getBinding()).getDefinition();
+
+				/* Create new port definition */
+				PortDefinition newPortDefinition = ArchitectureInstanceBuilder.createPortDefinition(pd.getName(),
+						exportedPortType, pd.getExposedVariable());
+				/* Set the new port definition */
+				copy.setPortDefinition(newPortDefinition);
+			}
+
 			return copy;
 		} else {
 			return BIPExtractor.getConnectorTypeByName(architectureInstance.getBipFileModel(), type.getName());
-		}
-	}
-
-	public static void insertComponents(ArchitectureInstance architectureInstance, List<Component> components,
-			boolean areCoordinators) throws ArchitectureExtractorException, InvalidComponentNameException {
-
-		/* Iterate components */
-		for (Component c : components) {
-			/* If the component is atomic */
-			if (c.getType() instanceof AtomType) {
-				/* Declare atom type */
-				AtomType atomType;
-				/* if the type does not exist */
-				if (!BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), c.getType())) {
-					/* copy the type */
-					atomType = ArchitectureInstanceBuilder.copyAtomicType(architectureInstance, (AtomType) c.getType());
-				}
-				/* if the type exists */
-				else {
-					/* search for the type */
-					atomType = BIPExtractor.getAtomTypeByName(architectureInstance.getBipFileModel(),
-							c.getType().getName());
-				}
-
-				/* Add the new component */
-				ArchitectureInstanceBuilder.addComponentInstance(architectureInstance, c.getName(), atomType,
-						architectureInstance.getBipFileModel().getRootType(), areCoordinators);
-
-			}
-			/* If the component is composite */
-			else {
-
-			}
 		}
 	}
 
@@ -963,7 +1068,7 @@ public class ArchitectureInstanceBuilder {
 		variable.setName(name);
 		/* Set the type of the variable */
 		variable.setType(type);
-		/* Set whether the variable os external or not */
+		/* Set whether the variable is external or not */
 		variable.setIsExternal(isExternal);
 
 		return variable;
