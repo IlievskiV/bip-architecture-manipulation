@@ -304,8 +304,6 @@ public class ArchitectureComposer {
 				/* Create an empty list of interactions */
 				List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
 
-				// Collections.reverse(portParameters);
-
 				/* Create the connector type */
 				connectorType = ArchitectureInstanceBuilder.createConnectorType(instance, connectorTypeName,
 						portParameters, acFusion, null);

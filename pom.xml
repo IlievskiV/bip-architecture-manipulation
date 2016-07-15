@@ -3,14 +3,32 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ch.epfl.risd.archman</groupId>
 	<artifactId>bip-architecture-manipulation</artifactId>
+
+	<name>Architecture Manipulation in BIP</name>
 	<version>1.0</version>
+	<packaging>jar</packaging>
+	<url>http://risd.epfl.ch/</url>
+
+	<developers>
+		<developer>
+			<name>Vladimir Ilievski</name>
+			<email>vladimir.ilievski@epfl.ch</email>
+		</developer>
+	</developers>
+
+
+	<properties>
+		<jdk.version>1.7</jdk.version>
+		<junit.version>4.12</junit.version>
+		<log4j.version>1.2.17</log4j.version>
+	</properties>
+
 
 	<dependencies>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>${junit.version}</version>
 		</dependency>
 
 		<dependency>
@@ -18,13 +36,13 @@
 			<artifactId>jbool_expressions</artifactId>
 			<version>1.8</version>
 		</dependency>
-		
+
 		<dependency>
-   			<groupId>net.sf.tweety.logics</groupId>
-   			<artifactId>pl</artifactId>
-   			<version>1.7</version>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ujf.verimag.bip</groupId>
 			<artifactId>metamodel</artifactId>
@@ -100,6 +118,14 @@
 		</dependency>
 
 		<dependency>
+			<groupId>jcmdline</groupId>
+			<artifactId>jcmdline</artifactId>
+			<version>2.0.0</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/externals/jcmdline-2.0.0.jar</systemPath>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 			<version>4.0</version>
@@ -113,5 +139,73 @@
 		</dependency>
 
 	</dependencies>
+
+	<build>
+		<finalName>bip-am</finalName>
+		<plugins>
+
+			<!-- download source code in Eclipse, best practice -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>false</downloadJavadocs>
+				</configuration>
+			</plugin>
+
+			<!-- Set a JDK compiler level -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
+				</configuration>
+			</plugin>
+
+			<!-- Make this jar executable -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/log4j.properties</exclude>
+					</excludes>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>ch.epfl.risd.archman.commandline.CmdLine</mainClass>
+							<classpathPrefix>dependency-jars/</classpathPrefix>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Copy project dependency -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<!-- exclude junit, we need runtime dependency only -->
+							<includeScope>runtime</includeScope>
+							<outputDirectory>${project.build.directory}/dependency-jars/</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
 
 </project>
