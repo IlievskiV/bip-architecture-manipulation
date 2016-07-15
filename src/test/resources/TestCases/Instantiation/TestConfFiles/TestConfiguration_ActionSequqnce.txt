@@ -1,3 +1,0 @@
-architecture_style_conf_file_path:/ActionSequence/AEConf.txt
-architecture_operands_conf_file_path:/ActionSequence/AEConf-instance2.txt
-ouput_folder_path:/ActionSequenceOutput

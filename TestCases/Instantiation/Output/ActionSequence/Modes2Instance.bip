@@ -1,0 +1,91 @@
+model ActionSequence
+  compound type ActionSequence
+    component Coordinator C
+    component Operand_1 B1
+    component Operand_2 B2
+    connector beginConnector B_to_C_begin_1(C.a3b, B2.a3b)
+    connector beginConnector B_to_C_begin_2(C.a2b, B1.a2b)
+    connector beginConnector B_to_C_begin_3(C.a1b, B1.a1b)
+    connector finishConnector B_to_C_finish_1(C.a3e, B2.a3e)
+    connector finishConnector B_to_C_finish_2(C.a2e, B1.a2e)
+    connector finishConnector B_to_C_finish_3(C.a1e, B1.a1e)
+  end
+
+  port type ActionBeginPort
+  port type ActionEndPort
+  atomic type Coordinator
+    export port ActionBeginPort a3b()
+    export port ActionBeginPort a2b()
+    export port ActionBeginPort a1b()
+    export port ActionEndPort a3e()
+    export port ActionEndPort a2e()
+    export port ActionEndPort a1e()
+    place wait
+    place next
+    initial to next
+    on a3b
+      from next to wait
+    on a2b
+      from next to wait
+    on a1b
+      from next to wait
+    on a3e
+      from wait to next
+    on a2e
+      from wait to next
+    on a1e
+      from wait to next
+
+
+
+
+
+
+  end
+
+  atomic type Operand_1
+    export port ActionBeginPort a1b()
+    export port ActionEndPort a1e()
+    export port ActionBeginPort a2b()
+    export port ActionEndPort a2e()
+    place work
+    place sleep
+    initial to sleep
+    on a1b
+      from sleep to work
+    on a1e
+      from work to sleep
+    on a2b
+      from sleep to work
+    on a2e
+      from work to sleep
+
+
+
+
+  end
+
+  atomic type Operand_2
+    export port ActionBeginPort a3b()
+    export port ActionEndPort a3e()
+    place work
+    place sleep
+    initial to sleep
+    on a3b
+      from sleep to work
+    on a3e
+      from work to sleep
+
+
+  end
+
+  connector type beginConnector(ActionBeginPort bOp, ActionBeginPort bCoord)
+    define  bOp bCoord
+  end
+
+  connector type finishConnector(ActionEndPort eOp, ActionEndPort eCoord)
+    define  eOp eCoord
+  end
+
+  component ActionSequence actionSequence
+end

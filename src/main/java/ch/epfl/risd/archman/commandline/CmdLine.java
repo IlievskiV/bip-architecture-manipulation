@@ -1,6 +1,6 @@
 package ch.epfl.risd.archman.commandline;
 
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
@@ -48,8 +48,18 @@ public class CmdLine {
 			ArchitectureOperands architectureOperands;
 
 			try {
-				architectureStyle = new ArchitectureStyle(conf1Path);
-				architectureOperands = new ArchitectureOperands(conf2Path);
+
+				/* If not in testing mode */
+				if (!cmdLineFactory.getTesting()) {
+					architectureStyle = new ArchitectureStyle(conf1Path);
+					architectureOperands = new ArchitectureOperands(conf2Path);
+				}
+				/* If in testing mode */
+				else {
+					String prefix = new File("").getAbsolutePath();
+					architectureStyle = new ArchitectureStyle(prefix, conf1Path);
+					architectureOperands = new ArchitectureOperands(prefix, conf2Path);
+				}
 
 				String systemName = architectureStyle.getBipFileModel().getSystem().getName();
 				String rootTypeName = architectureStyle.getBipFileModel().getRootType().getName();
@@ -72,8 +82,18 @@ public class CmdLine {
 			ArchitectureInstance instance2;
 
 			try {
-				instance1 = new ArchitectureInstance(conf1Path, true);
-				instance2 = new ArchitectureInstance(conf2Path, true);
+
+				/* If not in testing mode */
+				if (!cmdLineFactory.getTesting()) {
+					instance1 = new ArchitectureInstance(conf1Path, true);
+					instance2 = new ArchitectureInstance(conf2Path, true);
+				}
+				/* If in testing mode */
+				else {
+					String prefix = new File("").getAbsolutePath();
+					instance1 = new ArchitectureInstance(prefix, conf1Path, true);
+					instance2 = new ArchitectureInstance(prefix, conf2Path, true);
+				}
 
 				String systemName = instance1.getBipFileModel().getSystem().getName() + "_"
 						+ instance2.getBipFileModel().getSystem().getName() + "_Composed";

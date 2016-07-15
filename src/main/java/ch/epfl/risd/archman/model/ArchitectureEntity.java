@@ -26,7 +26,7 @@ public abstract class ArchitectureEntity {
 	protected BIPFileModel bipFileModel;
 
 	/* The model of the configuration file for this entity */
-	protected ArchEntityConfigFile archEntityConfigFile;
+	protected ConfigurationFileModel archEntityConfigFile;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -104,7 +104,7 @@ public abstract class ArchitectureEntity {
 	 */
 	public ArchitectureEntity(String pathToConfFile, List<String> requiredParams)
 			throws ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
-		this.archEntityConfigFile = new ArchEntityConfigFile(pathToConfFile, requiredParams);
+		this.archEntityConfigFile = new ConfigurationFileModel(pathToConfFile, requiredParams);
 		this.bipFileModel = new BIPFileModel(this.archEntityConfigFile.getParameters().get(ConstantFields.PATH_PARAM));
 		this.parseParameters();
 		this.validate();
@@ -127,7 +127,7 @@ public abstract class ArchitectureEntity {
 	 */
 	public ArchitectureEntity(String prefixToBip, String pathToConfFile, List<String> requiredParams)
 			throws ConfigurationFileException, ComponentNotFoundException, ArchitectureExtractorException {
-		this.archEntityConfigFile = new ArchEntityConfigFile(pathToConfFile, requiredParams);
+		this.archEntityConfigFile = new ConfigurationFileModel(pathToConfFile, requiredParams);
 		this.bipFileModel = new BIPFileModel(
 				prefixToBip + this.archEntityConfigFile.getParameters().get(ConstantFields.PATH_PARAM));
 		this.parseParameters();
@@ -149,7 +149,7 @@ public abstract class ArchitectureEntity {
 	public ArchitectureEntity(String systemName, String rootTypeName, String rootInstanceName,
 			List<String> requiredParams) {
 		/* Create empty configuration file */
-		this.archEntityConfigFile = new ArchEntityConfigFile(requiredParams);
+		this.archEntityConfigFile = new ConfigurationFileModel(requiredParams);
 		/* Create empty BIP file model */
 		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
 	}

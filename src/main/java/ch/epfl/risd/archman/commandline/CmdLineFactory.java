@@ -21,6 +21,8 @@ public class CmdLineFactory {
 
 	private static final String helpComposition = "Composition of Architectures";
 
+	private static final String helpTesting = "Test mode within the project";
+
 	private static final String helpConfFile1 = "Path to the first Configuration File. In case of instantiation it is the path to the Architecture Style configuration file";
 
 	private static final String helpConfFile2 = "Path to the second Configuration File. In case of instantiation it is the path to the Architecture Operands configuration file";
@@ -28,7 +30,6 @@ public class CmdLineFactory {
 	private static final String helpBipOutput = "Path to BIP Output file";
 
 	private static final String helpConfOutput = "Path to Configuration Output file";
-
 	/* Tool specific description */
 	private static final String helpText = "Architecture Manipulation Tool";
 	private static final String cmdLineTool = "java -jar /target/bip-am.jar";
@@ -39,6 +40,9 @@ public class CmdLineFactory {
 
 	/* Composition Flag Parameter */
 	private BooleanParam composition;
+
+	/* Invisible flag for testing */
+	private BooleanParam testing;
 
 	/* First Configuration File */
 	private FileParam confFile1;
@@ -78,11 +82,14 @@ public class CmdLineFactory {
 		/* Initialize Boolean Parameters */
 		this.instantiation = new BooleanParam("instantiation", helpInstantiation);
 		this.composition = new BooleanParam("composition", helpComposition);
+		this.testing = new BooleanParam("test", helpTesting);
+		this.testing.setHidden(true);
 
 		/* Set initial values */
 		try {
 			instantiation.setValue(false);
 			composition.setValue(false);
+			testing.setValue(false);
 		} catch (CmdLineException e) {
 			e.printStackTrace();
 			System.err.println("ERROR while initializing! System will now exit...");
@@ -91,7 +98,7 @@ public class CmdLineFactory {
 
 		this.cmdLineHandler = new VersionCmdLineHandler("V 1.0",
 				(CmdLineHandler) new HelpCmdLineHandler(helpText, cmdLineTool, cmdLineDescription,
-						new Parameter[] { this.instantiation, this.composition },
+						new Parameter[] { this.instantiation, this.composition, this.testing },
 						new Parameter[] { this.confFile1, this.confFile2, this.outputBIP, this.outputConf }));
 
 		this.cmdLineHandler.parse(args);
@@ -105,6 +112,10 @@ public class CmdLineFactory {
 
 	public boolean getComposition() {
 		return composition.getValue();
+	}
+
+	public boolean getTesting() {
+		return testing.getValue();
 	}
 
 	public String getConfFile1() {
@@ -122,5 +133,4 @@ public class CmdLineFactory {
 	public String getOutputConf() {
 		return outputConf.getValue().getAbsolutePath();
 	}
-
 }

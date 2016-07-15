@@ -1,4 +1,4 @@
-path:/Mutex/MutualExclusion.bip
+path:/TestCases/Instantiation/Input/Mutex/MutualExclusion.bip
 coordinators:C
 operands:B
 ports:C.take,C.release,B.begin,B.finish

@@ -1,3 +1,0 @@
-architecture_style_conf_file_path:/Modes2/AEConf.txt
-architecture_operands_conf_file_path:/Modes2/AEConf-instance2.txt
-ouput_folder_path:/Modes2Output

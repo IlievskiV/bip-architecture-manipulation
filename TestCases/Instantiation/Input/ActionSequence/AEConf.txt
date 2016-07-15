@@ -1,4 +1,4 @@
-path:/ActionSequence/ActionSequence.bip
+path:/TestCases/Instantiation/Input/ActionSequence/ActionSequence.bip
 coordinators:C
 operands:B
 ports:C.actBeginC,C.actEndC,B.actBeginO,B.actEndO

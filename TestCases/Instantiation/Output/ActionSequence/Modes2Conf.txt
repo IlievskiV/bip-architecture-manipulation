@@ -1,0 +1,5 @@
+operands:B1,B2
+coordinators:C
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ActionSequence/Modes2Instance.bip
+interactions:C.a3b B2.a3b,C.a2b B1.a2b,C.a1b B1.a1b,C.a3e B2.a3e,C.a2e B1.a2e,C.a1e B1.a1e
+ports:B1.a1b,B1.a1e,B1.a2b,B1.a2e,B2.a3b,B2.a3e,C.a3b,C.a2b,C.a1b,C.a3e,C.a2e,C.a1e

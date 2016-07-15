@@ -1,0 +1,5 @@
+path:/TestCases/Composition/Input/Mutex/MutualExclusion12.bip
+coordinators:C12
+operands:B1,B2
+ports:C12.take,C12.release,B1.begin,B1.finish,B2.begin,B2.finish
+interactions:B1.begin C12.take,B1.finish C12.release,B2.begin C12.take,B2.finish C12.release

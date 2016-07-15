@@ -1,20 +1,8 @@
 package ch.epfl.risd.archman.test;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Paths;
 
-import ch.epfl.risd.archman.builder.ArchitectureInstantiator;
-import ch.epfl.risd.archman.constants.ConstantFields;
-import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
-import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
-import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
-import ch.epfl.risd.archman.exceptions.TestConfigurationFileException;
-import ch.epfl.risd.archman.model.ArchitectureOperands;
-import ch.epfl.risd.archman.model.ArchitectureStyle;
-import ch.epfl.risd.archman.model.TestConfigFile;
+import ch.epfl.risd.archman.commandline.CmdLine;
 
 /**
  * Class for testing the Architecture Instantiation
@@ -22,137 +10,112 @@ import ch.epfl.risd.archman.model.TestConfigFile;
 public class TestInstantiation {
 
 	/* Base Directory for the test cases */
-	public static final String BASE_TEST_DIRECTORY = "/TestCases";
-	/* Instantiation configuration files directory */
-	public static final String INSTANTIATION_CONF_FILES = "/Instantiation/TestConfFiles/";
+	private static final String BASE_TEST_DIRECTORY = "/TestCases";
 	/* Instantiation input files */
-	public static final String INSTANTIATION_INPUT_FILES = "/Instantiation/Input";
+	private static final String INSTANTIATION_INPUT_FILES = "/Instantiation/Input";
 	/* Instantiation output files */
-	public static final String INSTANTIATION_OUTPUT_FILES = "/Instantiation/Output";
+	private static final String INSTANTIATION_OUTPUT_FILES = "/Instantiation/Output";
+
+	/* Parent path */
+	private static final String PARENT = new File("").getAbsolutePath();
 
 	/* Configuration file names */
-	public static final String MUTEX_TEST_CONF_FILE = "TestConfiguration_Mutex.txt";
-	public static final String MODES_TEST_CONF_FILE = "TestConfiguration_Modes2.txt";
-	public static final String ACTION_SEQUENCE_TEST_CONF_FILE = "TestConfiguration_ActionSequqnce.txt";
 
-	/* General method for testing */
-	public static void testInstantiation(String testConFileName)
-			throws URISyntaxException, TestConfigurationFileException, ConfigurationFileException,
-			ArchitectureExtractorException, ArchitectureBuilderException, IOException {
+	// Mutual Exclusion
+	private static final String MUTEX_ARCH_STYLE_CONF = "/Mutex/AEConf.txt";
+	private static final String MUTEX_ARCH_OP_CONF = "/Mutex/AEConf-instance2.txt";
 
-		/* Get the absolute path to the test configuration file */
-		URL testConFileRes = TestInstantiation.class.getClass()
-				.getResource(BASE_TEST_DIRECTORY + INSTANTIATION_CONF_FILES + testConFileName);
-		String testConfFilePath = Paths.get(testConFileRes.toURI()).toString();
+	// Modes 2
+	private static final String MODES_ARCH_STYLE_CONF = "/Modes2/AEConf.txt";
+	private static final String MODES_ARCH_OP_CONF = "/Modes2/AEConf-instance2.txt";
 
-		/* Get the prefix */
-		URL prefixRes = TestInstantiation.class.getClass().getResource(BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES);
-		String prefix = Paths.get(prefixRes.toURI()).toString();
+	// Action Sequence
+	private static final String ACTION_SEQ_ARCH_STYLE_CONF = "/ActionSequence/AEConf.txt";
+	private static final String ACTION_SEQ_ARCH_OP_CONF = "/ActionSequence/AEConf-instance2.txt";
 
-		TestConfigFile testConfigFile = new TestConfigFile(testConfFilePath,
-				ConstantFields.architectureInstantiationTestRequiredParams);
+	/* Output files */
 
-		/* Get the absolute path to the architecture style configuration file */
-		URL archStyleConfFileRes = TestInstantiation.class.getClass()
-				.getResource(BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES
-						+ testConfigFile.getParameters().get(ConstantFields.ARCH_STYLE_CONF_FILE_PATH_PARAM));
-		String archStyleConfFilePath = Paths.get(archStyleConfFileRes.toURI()).toString();
+	// Mutual Exclusion
+	private static final String MUTEX_OUTPUT_BIP = "/Mutex/MutexInstance.bip";
+	private static final String MUTEX_OUTPUT_CONF = "/Mutex/MutexConf.txt";
 
-		/* Instantiate the architecture style */
-		ArchitectureStyle architectureStyle = new ArchitectureStyle(prefix, archStyleConfFilePath);
+	// Modes 2
+	private static final String MODES_OUTPUT_BIP = "/Modes2/Modes2Instance.bip";
+	private static final String MODES_OUTPUT_CONF = "/Modes2/Modes2Conf.txt";
 
-		/* Get the absolute path to the architecture op configuration file */
-		URL archOpConfFileRes = TestInstantiation.class.getClass()
-				.getResource(BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES
-						+ testConfigFile.getParameters().get(ConstantFields.ARCH_OP_CONF_FILE_PATH_PARAM));
+	// Modes 2
+	private static final String ACTION_SEQ_OUTPUT_BIP = "/ActionSequence/Modes2Instance.bip";
+	private static final String ACTION_SEQ_OUTPUT_CONF = "/ActionSequence/Modes2Conf.txt";
 
-		String archOpConfFilePath = Paths.get(archOpConfFileRes.toURI()).toString();
+	/* Flags */
+	private static final String INSTANTIATION_FLAG = "-instantiation";
+	private static final String TEST_FLAG = "-test";
 
-		/* Instantiate the architecture operands */
-		ArchitectureOperands architectureOperands = new ArchitectureOperands(prefix, archOpConfFilePath);
+	private static void testInstantiation(String archStyleConfFilePath, String archOpConfFilePath,
+			String outputBipFilePath, String outputConfFilePath) {
+		/* List of arguments */
+		String[] args = new String[] { INSTANTIATION_FLAG, TEST_FLAG, archStyleConfFilePath, archOpConfFilePath,
+				outputBipFilePath, outputConfFilePath };
 
-		/* Get the absolute path to the output folder */
-		URL outputDirRes = TestInstantiation.class.getClass()
-				.getResource(BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES);
-		String outputDirPath = Paths.get(outputDirRes.toURI()).toString();
-
-		/* Instantiate the output folder path */
-		String outputFolderPath = outputDirPath
-				+ testConfigFile.getParameters().get(ConstantFields.OUTPUT_FOLDER_PATH_PARAM);
-
-		/* The name of the module */
-		String systemName = architectureStyle.getBipFileModel().getSystem().getName();
-		/* The name of the root type in the module */
-		String rootTypeName = architectureStyle.getBipFileModel().getRootType().getName();
-		/* The name of the root type instance in the module */
-		String rootInstanceName = architectureStyle.getBipFileModel().getRoot().getName();
-
-		/* Create the output folder if not exists */
-		File outputFolder = new File(outputFolderPath);
-		if (!outputFolder.exists()) {
-			outputFolder.mkdirs();
-		}
-
-		/* Create the path to the resulting BIP file */
-		String pathToSaveBIPFile = outputFolderPath + "/" + systemName + ".bip";
-		/* Create the path to the resulting configuration file */
-		String pathToSaveConfFile = outputFolderPath + "/" + systemName + "Conf.txt";
-
-		/* Create the instance */
-		ArchitectureInstantiator.createArchitectureInstance(architectureStyle, architectureOperands, systemName,
-				rootTypeName, rootInstanceName, pathToSaveBIPFile, pathToSaveConfFile);
+		/* Call the command */
+		CmdLine.main(args);
 	}
 
-	public static void testMutex() throws URISyntaxException, TestConfigurationFileException,
-			ConfigurationFileException, ArchitectureExtractorException, ArchitectureBuilderException, IOException {
-		TestInstantiation.testInstantiation(MUTEX_TEST_CONF_FILE);
+	public static void testMutex() {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MUTEX_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MUTEX_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT, BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + MUTEX_OUTPUT_BIP)
+				.getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + MUTEX_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
 	}
 
-	public static void testModes2() throws URISyntaxException, TestConfigurationFileException,
-			ConfigurationFileException, ArchitectureExtractorException, ArchitectureBuilderException, IOException {
-		TestInstantiation.testInstantiation(MODES_TEST_CONF_FILE);
+	public static void testModes2() {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MODES_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MODES_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT, BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + MODES_OUTPUT_BIP)
+				.getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + MODES_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
 	}
 
-	public static void testActionSequence() throws URISyntaxException, TestConfigurationFileException,
-			ConfigurationFileException, ArchitectureExtractorException, ArchitectureBuilderException, IOException {
-		TestInstantiation.testInstantiation(ACTION_SEQUENCE_TEST_CONF_FILE);
+	public static void testActionSequence() {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + ACTION_SEQ_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + ACTION_SEQ_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + ACTION_SEQ_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + ACTION_SEQ_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
 	}
 
 	public static void main(String[] args) {
-		try {
-			TestInstantiation.testModes2();
-		} catch (ConfigurationFileException | ArchitectureExtractorException | ArchitectureBuilderException
-				| URISyntaxException | TestConfigurationFileException | IOException e) {
-			e.printStackTrace();
-		}
-
-		// Expression<String> nonStandard = ExprParser
-		// .parse("(!b1 & !b2 & !b12 & !f1 & !f2 & !f12 | b1 & !b2 & b12 & !f1 &
-		// !f2 & !f12 | !b1 & b2 & b12 & !f1 & !f2 & !f12 | !b1 & !b2 & !b12 &
-		// f1 & !f2 & f12 | !b1 & !b2 & !b12 & !f1 & f2 & f12)"
-		// + "&(!b1 & !b3 & !b13 & !f1 & !f3 & !f13 | b1 & !b3 & b13 & !f1 & !f3
-		// & !f13 | !b1 & b3 & b13 & !f1 & !f3 & !f13 | !b1 & !b3 & !b13 & f1 &
-		// !f3 & f13 | !b1 & !b3 & !b13 & !f1 & f3 & f13)");
-		// // + "&(!b2 & !b3 & !b23 & !f2 & !f3 & !f23 | b2 & !b3 & b23 & !f2 &
-		// !f3
-		// // & !f23 | !b2 & b3 & b23 & !f2 & !f3 & !f23 | !b2 & !b3 & !b23 & f2
-		// &
-		// // !f3 & f23 | !b2 & !b3 & !b23 & !f2 & f3 & f23))");
-		// Expression<String> sopForm = RuleSet.toDNF(nonStandard);
-		// System.out.println(sopForm);
-		//
-		// Expression<String>[] expressions = ((Or<String>)
-		// sopForm).expressions;
-		//
-		// for (int i = 0; i < expressions.length; i++) {
-		// System.out.println(expressions[i].toString());
-		// }
-
-		// Expression<String> nonStandard = ExprParser.parse("!b1 & b2 & b12 &
-		// !f1 & !f2 & !f12 & b3 & b13 & !f3 & !f13 | !b1 & !b2 & !b12 & !f1 &
-		// f2 & f12 & !b3 & !b13 & f3 & f13");
-		// Expression<String> sopForm = RuleSet.simplify(nonStandard);
-		// System.out.println(sopForm);
+		TestInstantiation.testMutex();
+		TestInstantiation.testModes2();
+		TestInstantiation.testActionSequence();
 	}
 
 }
