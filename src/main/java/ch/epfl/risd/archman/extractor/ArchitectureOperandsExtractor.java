@@ -40,8 +40,15 @@ public class ArchitectureOperandsExtractor {
 			/* Get the set of operands for the given key */
 			Set<String> valueSet = architectureOperands.getOperandsMapping().get(key);
 
+			System.out.println("Key: " + key);
+			System.out.println("Mapping components:");
+			for (String s : valueSet) {
+				System.out.println("\t" + s);
+			}
+
 			/* Iterate components */
 			for (Component c : allComponents) {
+				System.out.println("Component name: " + c.getName());
 				if (valueSet.contains(c.getName())) {
 					result.add(c);
 				}

@@ -84,12 +84,22 @@ import ujf.verimag.bip.Core.PortExpressions.AISynchroNeutral;
 import ujf.verimag.bip.Core.PortExpressions.AIUnion;
 import ujf.verimag.bip.Core.PortExpressions.AIUnionNeutral;
 import ujf.verimag.bip.Core.PortExpressions.PortExpression;
+import ujf.verimag.bip.Extra.Contracts.ContractBinding;
 
 /**
  * This class serves for building one Architecture Instance, given the
- * Architecture Style and Architecture Operands
+ * Architecture Style and Architecture Operands.
+ * 
+ * @author Vladimir Ilievski, RiSD@EPFL
  */
 public class ArchitectureInstanceBuilder {
+
+	/**
+	 * The type of binding for one port instance
+	 */
+	public static enum PortBindingType {
+		DEFINITION_BINDING, EXPORT_BINDING, CONTRACT_BINDING;
+	}
 
 	/****************************************************************************/
 	/* VARIABLES */
@@ -451,10 +461,19 @@ public class ArchitectureInstanceBuilder {
 							p.getType().getName());
 				}
 
+				/* Create Definition Binding */
+
+				String interfaceName = ((DefinitionBindingImpl) p.getBinding()).getDefinition().getName();
+
+				PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName,
+						portType, ((DefinitionBindingImpl) p.getBinding()).getDefinition().getExposedVariable());
+
+				DefinitionBinding binding = (DefinitionBinding) ArchitectureInstanceBuilder
+						.createDefinitionBinding(portDefinition);
+
 				/* Add the port to the copy ports */
-				Port newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(),
-						((DefinitionBindingImpl) p.getBinding()).getDefinition().getName(), portType,
-						((DefinitionBindingImpl) p.getBinding()).getDefinition().getExposedVariable());
+				Port newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(), portType, binding,
+						PortBindingType.DEFINITION_BINDING);
 
 				copyPorts.add(newPort);
 
@@ -553,6 +572,8 @@ public class ArchitectureInstanceBuilder {
 				/* Initialize the port type */
 				PortType portType;
 
+				System.err.println("Port name: " + p.getName() + " component type name: " + type.getName());
+
 				/* If the port type does not exist */
 				if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), p.getType())) {
 					portType = ArchitectureInstanceBuilder.copyPortType(architectureInstance, p.getType());
@@ -568,15 +589,33 @@ public class ArchitectureInstanceBuilder {
 				Port newPort;
 
 				if (portBinding instanceof DefinitionBinding) {
+					/* Create Definition Binding */
+					String interfaceName = ((DefinitionBindingImpl) portBinding).getDefinition().getName();
+					List<Variable> exposedVariables = ((DefinitionBindingImpl) portBinding).getDefinition()
+							.getExposedVariable();
+
+					PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName,
+							portType, exposedVariables);
+
+					DefinitionBinding binding = (DefinitionBinding) ArchitectureInstanceBuilder
+							.createDefinitionBinding(portDefinition);
+
 					/* Add the port to the copy ports */
-					newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(),
-							((DefinitionBinding) p.getBinding()).getDefinition().getName(), portType,
-							((DefinitionBinding) p.getBinding()).getDefinition().getExposedVariable());
+					newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(), portType, binding,
+							PortBindingType.DEFINITION_BINDING);
 				} else {
-					List<Variable> vars = new LinkedList<Variable>();
+					ExportBinding exportBinding = (ExportBinding) portBinding;
+					// Port targetPortName = ((ExportBinding)
+					// portBinding).getTargetPort();
+
+					System.err.println("Target Port " + exportBinding.getTargetPort());
+					System.err.println(
+							"Target Instance Name: " + exportBinding.getTargetInstance().getTargetPart().getName());
+					System.err.println("Outer Port " + exportBinding.getOuterPort());
+
 					/* Add the port to the copy ports */
-					newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(),
-							((ExportBinding) p.getBinding()).getOuterPort().getName(), portType, vars);
+					newPort = ArchitectureInstanceBuilder.createPortInstance(p.getName(), portType, portBinding,
+							PortBindingType.EXPORT_BINDING);
 				}
 
 				newPorts.add(newPort);
@@ -585,10 +624,59 @@ public class ArchitectureInstanceBuilder {
 			/* Add all ports */
 			copy.getPort().addAll(newPorts);
 
+			/* Initialize the list of new subcomponents */
+			List<Component> newSubComponents = new LinkedList<Component>();
+
 			/* Get the subcomponents */
 			List<Component> subComponents = type.getSubcomponent();
+
+			Iterator<Component> iterator = subComponents.iterator();
+
+			/* Iterate over them to copy or extract */
+			while (iterator.hasNext()) {
+
+				synchronized (lock) {
+					Component c = iterator.next();
+
+					ComponentType subComponentType;
+
+					/* Type does not exist */
+					if (!BIPChecker.componentTypeExists(architectureInstance.getBipFileModel(), c.getType())) {
+						/* If atomic */
+						if (c.getType() instanceof AtomType) {
+							subComponentType = ArchitectureInstanceBuilder.copyAtomicType(architectureInstance,
+									(AtomType) c.getType());
+						}
+						/* If compound */
+						else {
+							synchronized (lock) {
+								subComponentType = ArchitectureInstanceBuilder.copyCompoundType(architectureInstance,
+										(CompoundType) c.getType());
+							}
+						}
+					}
+					/* Type exists */
+					else {
+						/* If atomic */
+						if (c.getType() instanceof AtomType) {
+							subComponentType = BIPExtractor.getAtomTypeByName(architectureInstance.getBipFileModel(),
+									c.getType().getName());
+						}
+						/* If compound */
+						else {
+							subComponentType = BIPExtractor.getCompoundTypeByName(
+									architectureInstance.getBipFileModel(), c.getType().getName());
+						}
+					}
+
+					Component newSubComponent = ArchitectureInstanceBuilder.createComponentInstance(
+							architectureInstance, c.getName(), subComponentType, copy, false, false);
+					newSubComponents.add(newSubComponent);
+				}
+			}
+
 			/* Add the subcomponents */
-			copy.getSubcomponent().addAll(subComponents);
+			copy.getSubcomponent().addAll(newSubComponents);
 
 			/* List of new connectors */
 			List<Connector> newConnectors = new LinkedList<Connector>();
@@ -607,6 +695,7 @@ public class ArchitectureInstanceBuilder {
 							c.getType().getName());
 				}
 
+				/* Should I copy them? */
 				List<ActualPortParameter> app = new LinkedList<ActualPortParameter>();
 				for (ActualPortParameter a : c.getActualPort()) {
 					app.add((InnerPortReference) a);
@@ -614,7 +703,7 @@ public class ArchitectureInstanceBuilder {
 
 				/* Not sure if port parameters should copy */
 				Connector newConnector = ArchitectureInstanceBuilder.createConnectorInstance(architectureInstance,
-						c.getName(), connectorType, type, app);
+						c.getName(), connectorType, copy, app);
 
 				newConnectors.add(newConnector);
 			}
@@ -652,23 +741,40 @@ public class ArchitectureInstanceBuilder {
 		return portType;
 	}
 
-	public static Port createPortInstance(String innerName, String interfaceName, PortType type,
-			List<Variable> variables) {
-
-		/* First create Port Definition */
-		PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName, type,
-				variables);
-		/* Create Definition Binding */
-		DefinitionBinding binding = ArchitectureInstanceBuilder.createDefinitionBinding(portDefinition);
-
+	public static Port createPortInstance(String innerName, PortType type, Binding binding,
+			PortBindingType portBindingType) {
 		/* Create the new port */
 		Port port = Factories.BEHAVIORS_FACTORY.createPort();
 		/* Set the name of the port */
 		port.setName(innerName);
-		/* set the type of the port */
-		port.setBinding(binding);
 		/* Set the type of the port */
 		port.setType(type);
+
+		Binding portBinding;
+
+		if (portBindingType == PortBindingType.DEFINITION_BINDING) {
+
+			/* Cast the given binding */
+			DefinitionBinding tempDefinitionBinding = (DefinitionBinding) binding;
+			PortDefinition tempDefinition = tempDefinitionBinding.getDefinition();
+
+			PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(innerName,
+					type, tempDefinition.getExposedVariable());
+			portBinding = ArchitectureInstanceBuilder.createDefinitionBinding(portDefinition);
+
+		} else if (portBindingType == PortBindingType.EXPORT_BINDING) {
+			ExportBinding tempExportBinding = (ExportBinding) binding;
+
+			portBinding = ArchitectureInstanceBuilder.createExportBinding(tempExportBinding.getTargetInstance(),
+					tempExportBinding.getTargetPort());
+		} else {
+			ContractBinding tempContractBinding = (ContractBinding) binding;
+
+			portBinding = ArchitectureInstanceBuilder.createContractBinding(tempContractBinding.getContractedPort());
+		}
+
+		/* set the type of the port */
+		port.setBinding(portBinding);
 
 		return port;
 	}
@@ -847,7 +953,7 @@ public class ArchitectureInstanceBuilder {
 			copy.getInteractionSpecification().addAll(type.getInteractionSpecification());
 
 			/* Copy the exported port if any */
-			Port connectorTypeExportedPort = copy.getPort();
+			Port connectorTypeExportedPort = type.getPort();
 			PortType exportedPortType;
 
 			/* If it exists */
@@ -864,12 +970,9 @@ public class ArchitectureInstanceBuilder {
 				}
 
 				/* Create the port instance */
-				Port newExportedPort = ArchitectureInstanceBuilder
-						.createPortInstance(connectorTypeExportedPort.getName(),
-								((DefinitionBindingImpl) connectorTypeExportedPort.getBinding()).getDefinition()
-										.getName(),
-								exportedPortType, ((DefinitionBindingImpl) connectorTypeExportedPort.getBinding())
-										.getDefinition().getExposedVariable());
+				Port newExportedPort = ArchitectureInstanceBuilder.createPortInstance(
+						connectorTypeExportedPort.getName(), exportedPortType, connectorTypeExportedPort.getBinding(),
+						PortBindingType.DEFINITION_BINDING);
 
 				/* Set the new port instance */
 				copy.setPort(newExportedPort);
@@ -996,13 +1099,24 @@ public class ArchitectureInstanceBuilder {
 		return binding;
 	}
 
-	public static ExportBinding createExportBinding(Port port) {
+	public static ExportBinding createExportBinding(PartElementReference partElementReference, Port port) {
 		/* Create export binding */
 		ExportBinding exportBinding = Factories.INTERACTIONS_FACTORY.createExportBinding();
 		/* Set target port */
 		exportBinding.setTargetPort(port);
+		/* Set target instance */
+		exportBinding.setTargetInstance(partElementReference);
 
 		return exportBinding;
+	}
+
+	public static ContractBinding createContractBinding(Port port) {
+		/* Create contracts binding */
+		ContractBinding contractBinding = Factories.CONTRACTS_FACTORY.createContractBinding();
+		/* Set contracted port */
+		contractBinding.setContractedPort(port);
+
+		return contractBinding;
 	}
 
 	public static PortDefinitionReference createPortDefinitionReference(PortDefinition portDefinition) {

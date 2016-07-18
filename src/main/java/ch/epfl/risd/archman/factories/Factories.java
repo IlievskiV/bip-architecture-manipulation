@@ -14,6 +14,8 @@ import ujf.verimag.bip.Core.PortExpressions.PortExpressionsFactory;
 import ujf.verimag.bip.Core.PortExpressions.impl.PortExpressionsFactoryImpl;
 import ujf.verimag.bip.Core.Priorities.PrioritiesFactory;
 import ujf.verimag.bip.Core.Priorities.impl.PrioritiesFactoryImpl;
+import ujf.verimag.bip.Extra.Contracts.ContractsFactory;
+import ujf.verimag.bip.Extra.Contracts.impl.ContractsFactoryImpl;
 
 /**
  * This class will contain all factories for creating entities for a particular
@@ -38,7 +40,10 @@ public final class Factories {
 
 	/* Factory for creating an expressions */
 	public static final ExpressionsFactory EXPRESSIONS_FACTORY = new ExpressionsFactoryImpl();
-	
+
 	/* Factory for creating port expressions */
 	public static final PortExpressionsFactory PORT_EXP_FACTORY = new PortExpressionsFactoryImpl();
+
+	/* Factory for creating contracts */
+	public static final ContractsFactory CONTRACTS_FACTORY = new ContractsFactoryImpl();
 }

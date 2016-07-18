@@ -188,7 +188,8 @@ public class BIPFileModel {
 	}
 
 	public static void main(String[] args) {
-		BIPFileModel bipFileModel = new BIPFileModel("/home/vladimir/Architecture_examples/Compose/MutualExclusion123.bip");
+		BIPFileModel bipFileModel = new BIPFileModel(
+				"/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ActionSequence/ActionSequenceInstance.bip");
 
 		try {
 			List<ConnectorType> allConnectorTypes = BIPExtractor.getAllConnectorTypes(bipFileModel);

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import ch.epfl.risd.archman.builder.ArchitectureInstanceBuilder.PortBindingType;
 import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
@@ -24,6 +25,7 @@ import ch.epfl.risd.archman.model.ConnectorTuple;
 import ch.epfl.risd.archman.model.PortTuple;
 import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
 import ujf.verimag.bip.Core.Behaviors.AtomType;
+import ujf.verimag.bip.Core.Behaviors.Binding;
 import ujf.verimag.bip.Core.Behaviors.DefinitionBinding;
 import ujf.verimag.bip.Core.Behaviors.PetriNet;
 import ujf.verimag.bip.Core.Behaviors.Port;
@@ -31,6 +33,7 @@ import ujf.verimag.bip.Core.Behaviors.PortDefinition;
 import ujf.verimag.bip.Core.Behaviors.PortDefinitionReference;
 import ujf.verimag.bip.Core.Behaviors.PortType;
 import ujf.verimag.bip.Core.Behaviors.Transition;
+import ujf.verimag.bip.Core.Behaviors.Variable;
 import ujf.verimag.bip.Core.Behaviors.impl.DefinitionBindingImpl;
 import ujf.verimag.bip.Core.Interactions.ActualPortParameter;
 import ujf.verimag.bip.Core.Interactions.Component;
@@ -357,6 +360,7 @@ public class ArchitectureInstantiator {
 		/* 5.Delete the coordinator port instance */
 		String coordinatorInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[0];
 		String coordinatorPortInstanceName = coordinatorPortTuple.getPortInstanceName().split("\\.")[1];
+
 		Port deletedPort = ArchitectureInstanceBuilder.deletePortInstance(BIPExtractor
 				.getComponentByName(architectureInstance.getBipFileModel(), coordinatorInstanceName).getType(),
 				coordinatorPortInstanceName);
@@ -388,11 +392,10 @@ public class ArchitectureInstantiator {
 
 			/* 12.1.2. Create port instance in the coordinator */
 			Port newPort = ArchitectureInstanceBuilder.createPortInstance(operandPort.split("\\.")[1],
-					operandPort.split("\\.")[1], deletedPort.getType(),
-					((DefinitionBindingImpl) deletedPort.getBinding()).getDefinition().getExposedVariable());
+					deletedPort.getType(), deletedPort.getBinding(), PortBindingType.DEFINITION_BINDING);
 
 			/* Get the port definition of the new port */
-			PortDefinition newPortDefinition = ((DefinitionBindingImpl) newPort.getBinding()).getDefinition();
+			PortDefinition newPortDefinition = ((DefinitionBinding) newPort.getBinding()).getDefinition();
 
 			/* Get the coordinator type */
 			AtomType coordinatorType = (AtomType) BIPExtractor
@@ -530,6 +533,7 @@ public class ArchitectureInstantiator {
 			ArchitectureStyle architectureStyle)
 			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
 			IllegalPortParameterReferenceException {
+
 		/* 1.Get coordinator port tuple */
 		PortTuple coordinatorPortTuple = connectorTuple.getCoordinatorPortTuples().get(0);
 
@@ -627,13 +631,16 @@ public class ArchitectureInstantiator {
 		List<Component> operands = ArchitectureOperandsExtractor.getArchitectureOperands(architectureOperands);
 		for (Component c : operands) {
 			if (c.getType() instanceof AtomType) {
+
 				AtomType atomType = ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
 				/* 5.1. Make an atomic type instance of the operand */
 				ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), atomType,
 						instance.getBipFileModel().getRootType(), false, true);
 			} else {
+				System.err.println("Type: " + c.getType() + ", name: " + c.getName());
 				/* 5.1. Make a compound type instance of the operand */
-				CompoundType compoundType = (CompoundType) c.getType();
+				CompoundType compoundType = ArchitectureInstanceBuilder.copyCompoundType(instance,
+						(CompoundType) c.getType());
 				/* 4.1. Make a compound type instance of the coordinator */
 				ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), compoundType,
 						instance.getBipFileModel().getRootType(), false, true);
@@ -674,7 +681,8 @@ public class ArchitectureInstantiator {
 			else {
 				/* 7.3. If singleton operand end */
 				if (connectorTuple.getCoordinatorPortTuples().size() == 0
-						&& connectorTuple.getOperandPortTuples().size() > 0) {
+						&& connectorTuple.getOperandPortTuples().size() == 1) {
+
 					ArchitectureInstantiator.singletonOpMultNDeg1(connectorTuple, instance, architectureOperands,
 							architectureStyle);
 				}

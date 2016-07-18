@@ -48,8 +48,8 @@ public class TestInstantiation {
 	private static final String MODES_OUTPUT_CONF = "/Modes2/Modes2Conf.txt";
 
 	// Action Sequence
-	private static final String ACTION_SEQ_OUTPUT_BIP = "/ActionSequence/Modes2Instance.bip";
-	private static final String ACTION_SEQ_OUTPUT_CONF = "/ActionSequence/Modes2Conf.txt";
+	private static final String ACTION_SEQ_OUTPUT_BIP = "/ActionSequence/ActionSequenceInstance.bip";
+	private static final String ACTION_SEQ_OUTPUT_CONF = "/ActionSequence/ActionSequenceConf.txt";
 
 	// Parallel Memory
 	private static final String PAR_MEM_OUTPUT_BIP = "/ParallelMem/SaveToMemInstance.bip";

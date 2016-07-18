@@ -136,7 +136,6 @@ public class BIPExtractor {
 		 */
 		else if (componentType instanceof CompoundType) {
 			components.add(component);
-
 			/* Get all subcomponents and recursively call the function */
 			EList<Component> subcomponents = ((CompoundType) componentType).getSubcomponent();
 			for (Component c : subcomponents) {
@@ -434,7 +433,9 @@ public class BIPExtractor {
 
 		/* Get all subcomponents of the architecture */
 		EList<Component> architectureComponents = (bipFileModel.getRootType()).getSubcomponent();
+
 		for (Component c : architectureComponents) {
+			System.out.println("Get all components, name: " + c.getName());
 			components.addAll(getAllComponentsTemp(c, new LinkedList<Component>()));
 		}
 
