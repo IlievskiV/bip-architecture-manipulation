@@ -5,10 +5,12 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -35,6 +37,12 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 	/* The set of all coordinators in the Architecture Style */
 	private Set<String> coordinators;
+
+	/* The cardinality of each coordinator */
+	private Map<String, Integer> coordCardinalities;
+
+	/* The cardinalities of the ports in the coordinator */
+	private Map<String, List<String>> coordPortCardinalities;
 
 	/* The set of all parameter operands in the Architecture Style */
 	private Set<String> operands;
@@ -64,6 +72,15 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		this.coordinators = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim1)));
 
+		/* Get coordinator cardinalities */
+		this.coordCardinalities = this.parseCoordCardinalities(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_CARDINALITY_PARAM), delim1, delim2);
+
+		/* Get coordinator port cardinalities */
+		this.coordPortCardinalities = this.parseCoordPortsCardinalities(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_PORTS_CARDINALITY_PARAM), delim1,
+				delim2);
+
 		/* Get all operands */
 		this.operands = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_PARAM), delim1)));
@@ -78,10 +95,74 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	}
 
 	/**
-	 * This method parses the concatenated string representing the connectors
+	 * This method parses the concatenated string representing coordinator
+	 * cardinalities in the style.
+	 * 
+	 * @param concatenatedString
+	 *            - the string representing coordinator cardinalities
+	 * @param delim1
+	 *            - external delimiter
+	 * @param delim2
+	 *            - internal delimiter
+	 * @return the map of coordinator cardinalities
+	 */
+	private Map<String, Integer> parseCoordCardinalities(String concatenatedString, String delim1, String delim2) {
+		Map<String, Integer> result = new HashMap<String, Integer>();
+
+		/* Split the concatenated string */
+		List<String[]> cardinalities = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
+
+		/* Iterate over them */
+		for (String[] carinality : cardinalities) {
+			/* Add in the map */
+			result.put(carinality[0], Integer.parseInt(carinality[1]));
+		}
+
+		return result;
+	}
+
+	/**
+	 * This method parses the concatenated string representing coordinator ports
+	 * cardinalities in the style
+	 * 
+	 * @param concatenatedString
+	 *            - the string representing coordinator port cardinalities
+	 * @param delim1
+	 *            - external delimiter
+	 * @param delim2
+	 *            - internal delimiter
+	 * @return the map of coordinator port cardinalities as interval
+	 */
+	private Map<String, List<String>> parseCoordPortsCardinalities(String concatenatedString, String delim1,
+			String delim2) {
+		Map<String, List<String>> result = new HashMap<String, List<String>>();
+
+		/* Split the concatenated string */
+		List<String[]> cardinalities = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
+
+		for (String[] cardinality : cardinalities) {
+			/* Parse the interval */
+			List<String> interval = new LinkedList<String>();
+			for (int i = 1; i < cardinality.length; i++) {
+				interval.add(cardinality[i]);
+			}
+
+			result.put(cardinality[0], interval);
+		}
+
+		return result;
+	}
+
+	/**
+	 * This method parses the concatenated string representing the connector
+	 * tuples in the style
 	 * 
 	 * @param concatenatedString
 	 *            - the string representing the coordinators
+	 * @param delim1
+	 *            - external delimiter
+	 * @param delim2
+	 *            - internal delimiter
 	 * @return the list of all connector tuples
 	 * @throws ConfigurationFileException
 	 */
@@ -177,6 +258,8 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	}
 
 	/**
+	 * Constructor for this class, when the path to the BIP file is relative
+	 * with respect the root folder of this project
 	 * 
 	 * @param prefix
 	 * @param relativePath
@@ -196,6 +279,20 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	 */
 	public Set<String> getCoordinators() {
 		return coordinators;
+	}
+
+	/**
+	 * @return the coordinator cardinalities
+	 */
+	public Map<String, Integer> getCoordCardinalities() {
+		return coordCardinalities;
+	}
+
+	/**
+	 * @return the coordinator ports cardinalities
+	 */
+	public Map<String, List<String>> getCoordPortCardinalities() {
+		return coordPortCardinalities;
 	}
 
 	/**
@@ -230,6 +327,8 @@ public class ArchitectureStyle extends ArchitectureEntity {
 			ArchitectureStyle architectureStyle = new ArchitectureStyle(path1);
 
 			Set<String> coordinators = architectureStyle.getCoordinators();
+			Map<String, Integer> coordCardinalities = architectureStyle.getCoordCardinalities();
+			Map<String, List<String>> coordPortCardinalities = architectureStyle.getCoordPortCardinalities();
 			Set<String> operands = architectureStyle.getOperands();
 			Set<String> ports = architectureStyle.getPorts();
 			List<ConnectorTuple> connectorTuples = architectureStyle.getConnectorsTuples();
@@ -238,6 +337,23 @@ public class ArchitectureStyle extends ArchitectureEntity {
 			System.out.println("Coordinators are: ");
 			for (String s : coordinators) {
 				System.out.println("\t" + s);
+			}
+
+			/* Iterate coordinator cardinalities */
+			System.out.println("Coordinator cardinalities are: ");
+			for (Map.Entry<String, Integer> card : coordCardinalities.entrySet()) {
+				System.out.println("\t" + card.getKey() + " : " + card.getValue());
+			}
+
+			/* Iterate coordinator port cardinalities */
+			System.out.println("Coordinator port cardinalities are: ");
+			for (Map.Entry<String, List<String>> card : coordPortCardinalities.entrySet()) {
+				System.out.print("\t" + card.getKey() + " ");
+				for(String s : card.getValue()){
+					System.out.print(s + " ");
+				}
+				
+				System.out.println();
 			}
 
 			/* Iterate operands */

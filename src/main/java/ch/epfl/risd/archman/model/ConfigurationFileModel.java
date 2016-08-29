@@ -149,8 +149,8 @@ public class ConfigurationFileModel {
 					hasParam[indexOfParam] = true;
 
 				} else {
-					throw new ConfigurationFileException("The parsed parameter" + tokens[0]
-							+ "in the configuration file is not a defined parameter");
+					throw new ConfigurationFileException("The parsed parameter " + tokens[0]
+							+ " in the configuration file is not a defined parameter");
 				}
 			}
 

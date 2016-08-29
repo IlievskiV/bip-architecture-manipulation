@@ -3,7 +3,9 @@ package ch.epfl.risd.archman.model;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import ch.epfl.risd.archman.constants.ConstantFields;
@@ -15,6 +17,8 @@ import ch.epfl.risd.archman.helper.HelperMethods;
 /**
  * This class contains the operands of the architecture, i.e. the operands that
  * have to be substituted, in order to have one instance of the architecture
+ * 
+ * @author Vladimir Ilievski, RiSD@EPFL
  */
 public class ArchitectureOperands extends ArchitectureEntity {
 
@@ -26,18 +30,17 @@ public class ArchitectureOperands extends ArchitectureEntity {
 	 * Which parameter operand from the Architecture Style maps to which set of
 	 * operands
 	 */
-	private Hashtable<String, Set<String>> operandsMapping;
+	private Map<String, Set<String>> operandsMapping;
 
 	/* Which port in one parameter operand maps to which set of ports */
-	private Hashtable<String, Set<String>> portsMapping;
+	private List<PortMapping> portsMapping;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
 	/****************************************************************************/
 
 	/**
-	 * This method extracts the parameters from the hash table, after loading
-	 * them
+	 * This method parses operand mappings and port mappings
 	 * 
 	 * @throws ConfigurationFileException
 	 */
@@ -48,19 +51,31 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		String delim2 = " ";
 
 		/* Parse the operands mapping */
-		this.operandsMapping = this.parseMappings(
+		this.operandsMapping = this.parseOperandMappings(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_MAPPING_PARAM), delim1, delim2);
 
 		/* Parse the ports mapping */
-		this.portsMapping = this.parseMappings(
+		this.portsMapping = this.parsePortMappings(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.PORTS_MAPPING_PARAM), delim1, delim2);
 	}
 
-	private Hashtable<String, Set<String>> parseMappings(String concatenatedString, String delim1, String delim2)
+	/**
+	 * This method parses operand mappings.
+	 * 
+	 * @param concatenatedString
+	 *            - the string representing mapping of the operands
+	 * @param delim1
+	 *            - external delimiter
+	 * @param delim2
+	 *            - internal delimiter
+	 * @return the mapping of operands
+	 * @throws ConfigurationFileException
+	 */
+	private Map<String, Set<String>> parseOperandMappings(String concatenatedString, String delim1, String delim2)
 			throws ConfigurationFileException {
 
 		/* The resulting mapping */
-		Hashtable<String, Set<String>> result = new Hashtable<String, Set<String>>();
+		Map<String, Set<String>> result = new Hashtable<String, Set<String>>();
 
 		/* Split the string */
 		List<String[]> tokens = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
@@ -89,6 +104,48 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		return result;
 	}
 
+	/**
+	 * This method parses operand ports mappings.
+	 * 
+	 * @param concatenatedString
+	 *            - the string representing mapping of the operand ports
+	 * @param delim1
+	 *            - external delimiter
+	 * @param delim2
+	 *            - internal delimiter
+	 * @return the list of mapped ports
+	 * @throws ConfigurationFileException
+	 */
+	private List<PortMapping> parsePortMappings(String concatenatedString, String delim1, String delim2)
+			throws ConfigurationFileException {
+		/* The resulting list of mappings */
+		List<PortMapping> result = new LinkedList<PortMapping>();
+
+		/* Split the string */
+		List<String[]> tokens = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
+
+		/* Iterate the tokens */
+		for (String[] subTokens : tokens) {
+			if (subTokens.length < 2) {
+				throw new ConfigurationFileException(
+						"There should be at least two parameters to make the mapping in the Architecture Operands configuration file");
+			}
+
+			/* Create the key-value pair */
+			String portToMap = subTokens[0];
+			Set<String> mappedPorts = new HashSet<String>();
+
+			/* Iterate sub-tokens */
+			for (int i = 1; i < subTokens.length; i++) {
+				mappedPorts.add(subTokens[i]);
+			}
+
+			result.add(new PortMapping(portToMap, mappedPorts));
+		}
+
+		return result;
+	}
+
 	@Override
 	protected void validate() throws ComponentNotFoundException, ArchitectureExtractorException {
 		/* Validate operands */
@@ -97,8 +154,8 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		}
 
 		/* Validate ports */
-		for (String key : this.portsMapping.keySet()) {
-			this.validatePorts(this.portsMapping.get(key));
+		for (PortMapping portMapping : this.portsMapping) {
+			this.validatePorts(portMapping.getMappedPorts());
 		}
 
 	}
@@ -147,14 +204,14 @@ public class ArchitectureOperands extends ArchitectureEntity {
 	/**
 	 * @return the operands mapping
 	 */
-	public Hashtable<String, Set<String>> getOperandsMapping() {
+	public Map<String, Set<String>> getOperandsMapping() {
 		return operandsMapping;
 	}
 
 	/**
 	 * @return the ports mapping
 	 */
-	public Hashtable<String, Set<String>> getPortsMapping() {
+	public List<PortMapping> getPortsMapping() {
 		return portsMapping;
 	}
 
@@ -168,8 +225,8 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		try {
 			ArchitectureOperands architectureOperands = new ArchitectureOperands(path1);
 
-			Hashtable<String, Set<String>> operandsMapping = architectureOperands.getOperandsMapping();
-			Hashtable<String, Set<String>> portsMapping = architectureOperands.getPortsMapping();
+			Map<String, Set<String>> operandsMapping = architectureOperands.getOperandsMapping();
+			List<PortMapping> portsMapping = architectureOperands.getPortsMapping();
 
 			/* Get the operands key set */
 			Set<String> operandsKeySet = operandsMapping.keySet();
@@ -185,15 +242,13 @@ public class ArchitectureOperands extends ArchitectureEntity {
 
 			}
 
-			/* Get the ports key set */
-			Set<String> portsKeySet = portsMapping.keySet();
 			/* Iterate ports mapping */
-			for (String key : portsKeySet) {
-				Set<String> value = portsMapping.get(key);
+			for (PortMapping portMapping : portsMapping) {
+				Set<String> mappedPorts = portMapping.getMappedPorts();
 
-				System.out.println("The port with name " + key + " maps to:");
+				System.out.println("The port with name " + portMapping.getPortToMap() + " maps to:");
 				/* Iterate value ports */
-				for (String s : value) {
+				for (String s : mappedPorts) {
 					System.out.println("\t" + s);
 				}
 			}

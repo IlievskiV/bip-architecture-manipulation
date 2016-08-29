@@ -33,6 +33,18 @@ public final class ConstantFields {
 	public static final String PORTS_MAPPING_PARAM = "ports_mapping";
 
 	/*
+	 * The name of the COORDINATOR CARDINALITY parameter in the configuration
+	 * file
+	 */
+	public static final String COORD_CARDINALITY_PARAM = "coordinator_cardinality";
+
+	/*
+	 * The name of the COORDINATOR PORTS CARDINALITY parameter in the
+	 * configuration file
+	 */
+	public static final String COORD_PORTS_CARDINALITY_PARAM = "coordinator_ports_cardinality";
+
+	/*
 	 * The name of the ARCH_STYLE_CONF_FILE_PATH parameter in the test
 	 * configuration file
 	 */
@@ -57,8 +69,10 @@ public final class ConstantFields {
 		{
 			add(PATH_PARAM);
 			add(COORDINATORS_PARAM);
+			add(COORD_CARDINALITY_PARAM);
 			add(OPERANDS_PARAM);
 			add(PORTS_PARAM);
+			add(COORD_PORTS_CARDINALITY_PARAM);
 			add(CONNECTORS_PARAM);
 		}
 	};
@@ -103,7 +117,7 @@ public final class ConstantFields {
 
 	/* String used in the process of generating connector type names */
 	public static final String CONNECTOR_TYPE = "connectorType";
-	
+
 	/* String used in the process of generating connector type instance names */
 	public static final String INSTANCE = "Instance";
 
