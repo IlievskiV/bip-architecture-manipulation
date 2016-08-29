@@ -1,5 +1,7 @@
 path:/TestCases/Instantiation/Input/Mutex/MutualExclusion.bip
 coordinators:C
+coordinator_cardinality:C 1
 operands:B
 ports:C.take,C.release,B.begin,B.finish
 connectors:B_to_C_begin B.begin 1 1 C.take 1 n,B_to_C_finish B.finish 1 1 C.release 1 n
+coordinator_port_cardinality:C.take 1, C.release 1

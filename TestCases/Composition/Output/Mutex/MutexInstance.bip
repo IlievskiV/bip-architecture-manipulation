@@ -5,6 +5,7 @@ model MutualExclusion_MutualExclusion_Composed
     component Coordinator C12
     component Coordinator C13
     component Operand B2
+    
     connector connectorType1 connectorType1Instance1(C12.take, B2.begin)
     connector connectorType2 connectorType2Instance1(C12.take, C13.release, B2.begin, B3.finish)
     connector connectorType3 connectorType3Instance1(C12.take, C13.take, B1.begin)
@@ -15,6 +16,7 @@ model MutualExclusion_MutualExclusion_Composed
     connector connectorType7 connectorType7Instance1(C13.release, C12.release, B1.finish)
     connector connectorType2 connectorType2Instance2(B3.begin, C12.release, C13.take, B2.finish)
     connector connectorType6 connectorType6Instance2(C13.release, B3.finish)
+    
   end
 
   port type FinishPort

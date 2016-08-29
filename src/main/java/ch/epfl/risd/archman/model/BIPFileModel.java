@@ -189,7 +189,7 @@ public class BIPFileModel {
 
 	public static void main(String[] args) {
 		BIPFileModel bipFileModel = new BIPFileModel(
-				"/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ActionSequence/ActionSequenceInstance.bip");
+				"/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ParallelMem/SaveToMemInstance.bip");
 
 		try {
 			List<ConnectorType> allConnectorTypes = BIPExtractor.getAllConnectorTypes(bipFileModel);

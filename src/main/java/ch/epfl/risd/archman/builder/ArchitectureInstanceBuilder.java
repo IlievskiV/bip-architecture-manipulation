@@ -758,8 +758,8 @@ public class ArchitectureInstanceBuilder {
 			DefinitionBinding tempDefinitionBinding = (DefinitionBinding) binding;
 			PortDefinition tempDefinition = tempDefinitionBinding.getDefinition();
 
-			PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(innerName,
-					type, tempDefinition.getExposedVariable());
+			PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(innerName, type,
+					tempDefinition.getExposedVariable());
 			portBinding = ArchitectureInstanceBuilder.createDefinitionBinding(portDefinition);
 
 		} else if (portBindingType == PortBindingType.EXPORT_BINDING) {
