@@ -1,5 +1,6 @@
 package ch.epfl.risd.archman.extractor;
 
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Set;
 
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.model.ArchitectureOperands;
+import ch.epfl.risd.archman.model.PortMapping;
 import ujf.verimag.bip.Core.Behaviors.Port;
 import ujf.verimag.bip.Core.Interactions.Component;
 
@@ -136,29 +138,9 @@ public class ArchitectureOperandsExtractor {
 	 */
 	public static List<Port> getArchitectureOperandsPorts(ArchitectureOperands architectureOperands)
 			throws ArchitectureExtractorException {
-		/* The resulting list */
-		List<Port> result = new LinkedList<Port>();
-
 		/* Get all ports */
 		List<Port> allPorts = BIPExtractor.getAllPorts(architectureOperands.getBipFileModel());
-
-		/* Get the key set for ports */
-		Set<String> keySet = architectureOperands.getPortsMapping().keySet();
-
-		/* Iterate keys */
-		for (String key : keySet) {
-			/* Get the value set for the give key */
-			Set<String> valueSet = architectureOperands.getPortsMapping().get(key);
-
-			/* Iterate ports */
-			for (Port p : allPorts) {
-				if (valueSet.contains(p.getName())) {
-					result.add(p);
-				}
-			}
-		}
-
-		return result;
+		return allPorts;
 	}
 
 	/**
@@ -172,14 +154,21 @@ public class ArchitectureOperandsExtractor {
 	 * @return the list of ports that can substitute the parameter port
 	 * @throws ArchitectureExtractorException
 	 */
-	public static List<Port> getSubstitutionPorts(ArchitectureOperands architectureOperands, String parameterPort)
+	public static List<Port> getAllSubstitutionPorts(ArchitectureOperands architectureOperands, String parameterPort)
 			throws ArchitectureExtractorException {
 		/* The resulting list */
 		List<Port> result = new LinkedList<Port>();
-		/* Get the set of ports that should substitute the given operand port */
-		Set<String> ports = architectureOperands.getPortsMapping().get(parameterPort);
+
+		/* Initialize the set of mapping ports */
+		Set<String> ports = new HashSet<String>();
 		/* Get all ports in the Architecture Operands */
 		List<Port> allPorts = BIPExtractor.getAllPorts(architectureOperands.getBipFileModel());
+
+		for (PortMapping portMapping : architectureOperands.getPortsMapping()) {
+			if (portMapping.getPortToMap().equals(parameterPort)) {
+				ports.addAll(portMapping.getMappedPorts());
+			}
+		}
 
 		/* Iterate all ports */
 		for (Port p : allPorts) {
@@ -199,17 +188,17 @@ public class ArchitectureOperandsExtractor {
 	 */
 	public void printPorts(ArchitectureOperands architectureOperands) {
 		/* Get the key set */
-		Set<String> keySet = architectureOperands.getPortsMapping().keySet();
+		List<PortMapping> portMappings = architectureOperands.getPortsMapping();
 
 		StringBuilder sb = new StringBuilder();
 
 		/* Iterate the key set */
-		for (String key : keySet) {
-			sb.append("The port with name: " + key + " is mapped to ports: ");
+		for (PortMapping portMapping : portMappings) {
+			sb.append("The port with name: " + portMapping.getPortToMap() + " is mapped to ports: ");
 			sb.append("\n");
 
 			/* Get the value set */
-			Set<String> valueSet = architectureOperands.getPortsMapping().get(key);
+			Set<String> valueSet = portMapping.getMappedPorts();
 			/* Iterate the value set */
 			for (String value : valueSet) {
 				sb.append("\t" + value);
