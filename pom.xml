@@ -21,6 +21,7 @@
 		<jdk.version>1.7</jdk.version>
 		<junit.version>4.12</junit.version>
 		<log4j.version>1.2.17</log4j.version>
+		<java.library.path>${basedir}/externals/build</java.library.path>
 	</properties>
 
 
@@ -126,7 +127,7 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>com.microsoft</groupId>
+			<groupId>z3</groupId>
 			<artifactId>z3</artifactId>
 			<version>0.1</version>
 			<scope>system</scope>
@@ -212,7 +213,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
 	</build>
 
