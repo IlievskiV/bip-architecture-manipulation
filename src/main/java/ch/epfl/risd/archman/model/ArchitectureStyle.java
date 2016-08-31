@@ -25,9 +25,8 @@ import ch.epfl.risd.archman.helper.HelperMethods;
 import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
 
 /**
- * This class is representing one architecture style, that is a parameterized
- * Architecture. From this architecture, given the operands, we can instantiate
- * one Architecture.
+ * 
+ * @author Vladimir Ilievski, RiSD@EPFL
  */
 public class ArchitectureStyle extends ArchitectureEntity {
 
@@ -35,22 +34,19 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	/* VARIABLES */
 	/***************************************************************************/
 
-	/* The set of all coordinators in the Architecture Style */
+	/* The set of all coordinators in the style */
 	private Set<String> coordinators;
 
-	/* The cardinality of each coordinator */
-	private Map<String, Integer> coordCardinalities;
-
-	/* The cardinalities of the ports in the coordinator */
-	private Map<String, List<String>> coordPortCardinalities;
-
-	/* The set of all parameter operands in the Architecture Style */
+	/* The set of all parameter operands in the style */
 	private Set<String> operands;
 
-	/* The set of all ports in the Architecture Style */
+	/* The set of all ports in the style */
 	private Set<String> ports;
 
-	/* The set of all connectors in the Architecture Style */
+	/* Mapping of the coordinators in the style */
+	protected List<ComponentMapping> coordinatorsMapping;
+
+	/* The set of all connectors in the style */
 	private List<ConnectorTuple> connectorTuples;
 
 	/****************************************************************************/
@@ -72,15 +68,6 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		this.coordinators = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.COORDINATORS_PARAM), delim1)));
 
-		/* Get coordinator cardinalities */
-		this.coordCardinalities = this.parseCoordCardinalities(
-				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_CARDINALITY_PARAM), delim1, delim2);
-
-		/* Get coordinator port cardinalities */
-		this.coordPortCardinalities = this.parseCoordPortsCardinalities(
-				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_PORTS_CARDINALITY_PARAM), delim1,
-				delim2);
-
 		/* Get all operands */
 		this.operands = new HashSet<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_PARAM), delim1)));
@@ -92,6 +79,68 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		/* Get all connector tuples */
 		this.connectorTuples = this.parseConnectors(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.CONNECTORS_PARAM), delim1, delim2);
+
+		/* Split the concatenated string of cardinalities */
+		List<String[]> coordCardinalities = HelperMethods.splitConcatenatedString(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_CARDINALITY_PARAM), delim1, delim2);
+
+		/* Split the concatenated string of port cardinalities */
+		List<String[]> cardinalities = HelperMethods.splitConcatenatedString(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_PORTS_CARDINALITY_PARAM), delim1,
+				delim2);
+
+		this.coordinatorsMapping = new LinkedList<ComponentMapping>();
+
+		/* Map of the cardinalities for each component */
+		Map<String, Integer> cardinalityMap = new HashMap<String, Integer>();
+		for (String[] tokens : coordCardinalities) {
+			cardinalityMap.put(tokens[0], Integer.parseInt(tokens[1]));
+		}
+
+		/* List of ports in each coordinator that have to be mapped */
+		Map<String, List<String>> portsToMap = new HashMap<String, List<String>>();
+		/* The list of cardinality of each port */
+		Map<String, List<String>> portsCardinalities = new HashMap<String, List<String>>();
+
+		for (String[] tokens : cardinalities) {
+			/* The port to map */
+			String portToMap = tokens[0];
+			/* The name of the coordinator where it belongs */
+			String coordName = portToMap.split("\\.")[0];
+
+			/* Build first map */
+			List<String> tempList1;
+			if (!portsToMap.containsKey(coordName)) {
+				tempList1 = new LinkedList<String>();
+			} else {
+				tempList1 = portsToMap.get(coordName);
+			}
+
+			tempList1.add(portToMap);
+			portsToMap.put(coordName, tempList1);
+
+			/* Build second map */
+			List<String> tempList2 = new LinkedList<String>();
+			for (int i = 1; i < tokens.length; i++) {
+				tempList2.add(tokens[i]);
+			}
+			portsCardinalities.put(portToMap, tempList2);
+		}
+
+		Set<String> coordinators = cardinalityMap.keySet();
+		for (String coord : coordinators) {
+			String componentToMap = coord;
+			int cardinalityValue = cardinalityMap.get(coord);
+			List<String> ports = portsToMap.get(coord);
+
+			List<List<String>> c = new LinkedList<List<String>>();
+
+			for (String p : ports) {
+				c.add(portsCardinalities.get(p));
+			}
+
+			this.coordinatorsMapping.add(new ComponentMapping(componentToMap, cardinalityValue, ports, c));
+		}
 	}
 
 	/**
@@ -282,20 +331,6 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	}
 
 	/**
-	 * @return the coordinator cardinalities
-	 */
-	public Map<String, Integer> getCoordCardinalities() {
-		return coordCardinalities;
-	}
-
-	/**
-	 * @return the coordinator ports cardinalities
-	 */
-	public Map<String, List<String>> getCoordPortCardinalities() {
-		return coordPortCardinalities;
-	}
-
-	/**
 	 * @return the operands of the Architecture Style
 	 */
 	public Set<String> getOperands() {
@@ -326,52 +361,34 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		try {
 			ArchitectureStyle architectureStyle = new ArchitectureStyle(path1);
 
-			Set<String> coordinators = architectureStyle.getCoordinators();
-			Map<String, Integer> coordCardinalities = architectureStyle.getCoordCardinalities();
-			Map<String, List<String>> coordPortCardinalities = architectureStyle.getCoordPortCardinalities();
-			Set<String> operands = architectureStyle.getOperands();
-			Set<String> ports = architectureStyle.getPorts();
-			List<ConnectorTuple> connectorTuples = architectureStyle.getConnectorsTuples();
-
-			/* Iterate coordinators */
-			System.out.println("Coordinators are: ");
-			for (String s : coordinators) {
-				System.out.println("\t" + s);
-			}
-
-			/* Iterate coordinator cardinalities */
-			System.out.println("Coordinator cardinalities are: ");
-			for (Map.Entry<String, Integer> card : coordCardinalities.entrySet()) {
-				System.out.println("\t" + card.getKey() + " : " + card.getValue());
-			}
-
-			/* Iterate coordinator port cardinalities */
-			System.out.println("Coordinator port cardinalities are: ");
-			for (Map.Entry<String, List<String>> card : coordPortCardinalities.entrySet()) {
-				System.out.print("\t" + card.getKey() + " ");
-				for(String s : card.getValue()){
-					System.out.print(s + " ");
+			for (ComponentMapping cm : architectureStyle.coordinatorsMapping) {
+				System.out.println("The component to map is: " + cm.componentToMap);
+				System.out.println("\t With cardinality name: " + cm.cardinalityTerm.name + " and cardinality value: "
+						+ cm.cardinalityTerm.value);
+				System.out.println("\t The mapping components are: ");
+				for (String s : cm.mappedComponents) {
+					System.out.println("\t\t " + s);
 				}
-				
-				System.out.println();
-			}
 
-			/* Iterate operands */
-			System.out.println("Operands are: ");
-			for (String s : operands) {
-				System.out.println("\t" + s);
-			}
+				System.out.println("\t The mapping of ports: ");
+				for (PortMapping pm : cm.portMappings) {
+					System.out.println("\t\t The name of the port to be mapped: " + pm.portToMap);
+					System.out.println("\t\t The mapping ports are: ");
+					for (int i = 0; i < pm.mappedPorts.size(); i++) {
+						if (pm.cardinalityTerms.get(i).isCalculated) {
+							StringBuilder sb = new StringBuilder();
+							for (String s : pm.mappedPorts.get(i)) {
+								sb.append(s).append(" ");
+							}
+							System.out.println("\t\t\t " + sb.toString() + " with cardinality name: "
+									+ pm.cardinalityTerms.get(i).name + " and cardinality value: "
+									+ pm.cardinalityTerms.get(i).value);
 
-			/* Iterate ports */
-			System.out.println("Ports are: ");
-			for (String s : ports) {
-				System.out.println("\t" + s);
-			}
-
-			/* Iterate connector tuples */
-			System.out.println("Connector tuples: ");
-			for (ConnectorTuple c : connectorTuples) {
-				System.out.println("\t" + c.toString());
+						} else {
+							System.out.println("\t\t\t The port is not known, the cardinality is variable");
+						}
+					}
+				}
 			}
 
 		} catch (FileNotFoundException e) {

@@ -27,8 +27,10 @@ import ch.epfl.risd.archman.exceptions.PortNotFoundException;
 import ch.epfl.risd.archman.helper.HelperMethods;
 
 /**
- * This class will represent one instance of the architecture when we will
- * substitute the parameter operands, with the exact operands.
+ * This class represents one instance of the architecture when the parameter
+ * components are substituted with the exact components.
+ * 
+ * @author Vladimir Ilievski, RiSD@EPFL
  */
 public class ArchitectureInstance extends ArchitectureEntity {
 
@@ -48,7 +50,7 @@ public class ArchitectureInstance extends ArchitectureEntity {
 	/* List of interactions for this Architecture Instance */
 	private Set<String> interactions;
 
-	/* List of terms in the predicate */
+	/* The characteristic predicate for this Architecture instance */
 	private String characteristicPredicate;
 
 	/****************************************************************************/

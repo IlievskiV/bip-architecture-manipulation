@@ -13,8 +13,10 @@ import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
 
 /**
- * This class models the base class of the Architecture instance, style and
- * operands.
+ * This class represents the base class of the Architecture Instance, Style and
+ * Operands.
+ * 
+ * @author Vladimir Ilievski, RiSD@EPFL
  */
 public abstract class ArchitectureEntity {
 
@@ -41,9 +43,15 @@ public abstract class ArchitectureEntity {
 	protected abstract void parseParameters() throws ConfigurationFileException;
 
 	/**
+	 * Method for validating the existing of components in the Architecture
+	 * Entity. It checks whether all of the components specified in the
+	 * configuration file exist in the BIP system of the Architecture Entity.
 	 * 
 	 * @param componentInstanceNames
+	 *            - set of names of the components
 	 * @throws ArchitectureExtractorException
+	 *             if some component specified in the configuration file does
+	 *             not exist in the BIP system
 	 */
 	protected void validateComponents(Set<String> componentInstanceNames) throws ArchitectureExtractorException {
 
@@ -57,9 +65,15 @@ public abstract class ArchitectureEntity {
 	}
 
 	/**
+	 * Method for validating the existence of the ports in the Architecture
+	 * Entity. It checks whether all of the ports specified in the configuration
+	 * file exist in the BIP system if the Architecture Entity.
 	 * 
 	 * @param fullPortNames
+	 *            - full name of the port (example C1.begin)
 	 * @throws PortNotFoundException
+	 *             if some of the ports specified in the configuration file does
+	 *             not exist in the BIP system
 	 * @throws ArchitectureExtractorException
 	 */
 	protected void validatePorts(Set<String> fullPortNames)
@@ -77,7 +91,7 @@ public abstract class ArchitectureEntity {
 	}
 
 	/**
-	 * This method validates the Architecture Entity, i.e. it checks whether the
+	 * Method for validating the Architecture Entity, i.e. it checks whether the
 	 * Architecture Entity is consistent with the information in the
 	 * configuration file.
 	 * 
@@ -107,7 +121,7 @@ public abstract class ArchitectureEntity {
 		this.archEntityConfigFile = new ConfigurationFileModel(pathToConfFile, requiredParams);
 		this.bipFileModel = new BIPFileModel(this.archEntityConfigFile.getParameters().get(ConstantFields.PATH_PARAM));
 		this.parseParameters();
-		this.validate();
+		// this.validate();
 	}
 
 	/**
@@ -131,7 +145,7 @@ public abstract class ArchitectureEntity {
 		this.bipFileModel = new BIPFileModel(
 				prefixToBip + this.archEntityConfigFile.getParameters().get(ConstantFields.PATH_PARAM));
 		this.parseParameters();
-		this.validate();
+		// this.validate();
 	}
 
 	/**
@@ -154,6 +168,14 @@ public abstract class ArchitectureEntity {
 		this.bipFileModel = new BIPFileModel(systemName, rootTypeName, rootInstanceName);
 	}
 
+	/**
+	 * Method for generating and saving the BIP file in the file system,
+	 * corresponding to the Architecture Entity.
+	 * 
+	 * @param pathToBipFile
+	 *            - path in the file system, to save the BIP file
+	 * @throws FileNotFoundException
+	 */
 	public void generateBipFile(String pathToBipFile) throws FileNotFoundException {
 		this.archEntityConfigFile.getParameters().put(ConstantFields.PATH_PARAM, pathToBipFile);
 		this.bipFileModel.createFile(pathToBipFile);

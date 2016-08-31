@@ -72,5 +72,17 @@ public final class HelperMethods {
 
 		return result;
 	}
+	
+	/**
+	 * This method checks whether the provided string is number or not
+	 * 
+	 * @param str
+	 *            - The string for checking
+	 * @return true if the string is number, false otherwise
+	 */
+	public static boolean isNumeric(String str) {
+		return str.matches("-?\\d+(\\.\\d+)?"); // match a number with optional
+												// '-' and decimal.
+	}
 
 }

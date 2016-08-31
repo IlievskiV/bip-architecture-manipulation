@@ -1,5 +1,7 @@
 package ch.epfl.risd.archman.model;
 
+import ch.epfl.risd.archman.helper.HelperMethods;
+
 /**
  * This class is representing one port tuple in one connector tuple. It contains
  * the name of the port instance (in format C.b, where the C is the name of the
@@ -12,50 +14,28 @@ public class PortTuple {
 	/* VARIABLES */
 	/***************************************************************************/
 
+	/* The prefix for the multiplicity term default name */
+	public static final String MULT_DEFAULT_NAME_PREFIX = "mult_";
+
+	/* The prefix for the degree term default name */
+	public static final String DEG_DEFAULT_NAME_PREFIX = "deg_";
+
 	/* enumeration for declaring the port tuple type */
 	public enum PortTupleType {
 		COORDINATOR_TUPLE, OPERAND_TUPLE
 	}
 
 	/* The name of the port instance */
-	private String portInstanceName;
+	protected String portInstanceName;
 
-	/* The multiplicity of the port */
-	private String multiplicity;
+	/* The term for the multiplicity */
+	protected NameValue multiplicityTerm;
 
-	/* The degree of the port */
-	private String degree;
+	/* The term for the degree */
+	protected NameValue degreeTerm;
 
 	/* The type of the tuple */
-	private PortTupleType type;
-
-	/* Flag indicating whether the multiplicity is calculated or not */
-	private boolean isMultiplicityCalculated;
-
-	/* Flag indicating whether the degree is calculated or not */
-	private boolean isDegreeCalculated;
-
-	/* The calculated multiplicity */
-	private int calculatedMultiplicity;
-
-	/* The calculated degree */
-	private int calculatedDegree;
-
-	/****************************************************************************/
-	/* PRIVATE(UTILITY) METHODS */
-	/****************************************************************************/
-
-	/**
-	 * This method checks whether the provided string is number or not
-	 * 
-	 * @param str
-	 *            - The string for checking
-	 * @return true if the string is number, false otherwise
-	 */
-	private static boolean isNumeric(String str) {
-		return str.matches("-?\\d+(\\.\\d+)?"); // match a number with optional
-												// '-' and decimal.
-	}
+	protected PortTupleType type;
 
 	/****************************************************************************/
 	/* PUBLIC METHODS */
@@ -73,24 +53,21 @@ public class PortTuple {
 	 */
 	public PortTuple(String portInstanceName, String multiplicity, String degree, PortTupleType type) {
 		this.portInstanceName = portInstanceName;
-		this.multiplicity = multiplicity;
-		this.degree = degree;
 		this.type = type;
 
-		/* Check whether the multiplicity is parametric or not */
-		if (isNumeric(this.multiplicity)) {
-			this.calculatedMultiplicity = Integer.parseInt(this.multiplicity);
-			this.isMultiplicityCalculated = true;
+		/* Check whether the multiplicity is constant or variable */
+		if (HelperMethods.isNumeric(multiplicity)) {
+			this.multiplicityTerm = new NameValue(MULT_DEFAULT_NAME_PREFIX + portInstanceName,
+					Integer.parseInt(multiplicity));
 		} else {
-			this.isMultiplicityCalculated = false;
+			this.multiplicityTerm = new NameValue(MULT_DEFAULT_NAME_PREFIX + portInstanceName);
 		}
 
 		/* Check whether the degree is parametric or not */
-		if (isNumeric(this.degree)) {
-			this.calculatedDegree = Integer.parseInt(this.degree);
-			this.isDegreeCalculated = true;
+		if (HelperMethods.isNumeric(degree)) {
+			this.degreeTerm = new NameValue(DEG_DEFAULT_NAME_PREFIX + portInstanceName, Integer.parseInt(degree));
 		} else {
-			this.isDegreeCalculated = false;
+			this.degreeTerm = new NameValue(DEG_DEFAULT_NAME_PREFIX + portInstanceName);
 		}
 
 	}
@@ -103,8 +80,8 @@ public class PortTuple {
 			PortTuple temp = ((PortTuple) obj);
 
 			/* If the three conditions hold */
-			if (this.portInstanceName.equals(temp.portInstanceName) && this.multiplicity.equals(temp.multiplicity)
-					&& this.degree.equals(temp.degree)) {
+			if (this.portInstanceName.equals(temp.portInstanceName)
+					&& this.multiplicityTerm.equals(temp.multiplicityTerm) && this.degreeTerm.equals(temp.degreeTerm)) {
 				return true;
 			} else {
 				return false;
@@ -117,8 +94,8 @@ public class PortTuple {
 
 	@Override
 	public String toString() {
-		return "Port instance name: " + this.portInstanceName + " Multiplicity:" + this.multiplicity + " Degree:"
-				+ this.degree + " Type: "
+		return "Port instance name: " + this.portInstanceName + " Multiplicity:" + this.multiplicityTerm.value
+				+ " Degree:" + this.degreeTerm.value + " Type: "
 				+ ((this.type == PortTupleType.COORDINATOR_TUPLE) ? "Coordinator tuple" : "Operand tuple");
 	}
 
@@ -133,48 +110,28 @@ public class PortTuple {
 	 * @return the multiplicity of the port
 	 */
 	public String getMultiplicity() {
-		return multiplicity;
+		return this.multiplicityTerm.getName();
 	}
 
 	/**
 	 * @return the degree of the port
 	 */
 	public String getDegree() {
-		return degree;
+		return this.degreeTerm.getName();
 	}
 
 	/**
 	 * @return true if the multiplicity is calculated, false otherwise
 	 */
 	public boolean isMultiplicityCalculated() {
-		return isMultiplicityCalculated;
-	}
-
-	/**
-	 * Set the value of the flag for calculated multiplicity
-	 * 
-	 * @param isMultiplicityCalculated
-	 *            - The value of flag
-	 */
-	public void setMultiplicityCalculated(boolean isMultiplicityCalculated) {
-		this.isMultiplicityCalculated = isMultiplicityCalculated;
+		return multiplicityTerm.isCalculated();
 	}
 
 	/**
 	 * @return true if the degree is calculated, false otherwise
 	 */
 	public boolean isDegreeCalculated() {
-		return isDegreeCalculated;
-	}
-
-	/**
-	 * Set the value of the flag for calculated degree
-	 * 
-	 * @param isDegreeCalculated
-	 *            - The value of the flag
-	 */
-	public void setDegreeCalculated(boolean isDegreeCalculated) {
-		this.isDegreeCalculated = isDegreeCalculated;
+		return degreeTerm.isCalculated();
 	}
 
 	/**
@@ -191,8 +148,7 @@ public class PortTuple {
 	 *            - The value of the multiplicity
 	 */
 	public void setCalculatedMultiplicity(int calculatedMultiplicity) {
-		this.calculatedMultiplicity = calculatedMultiplicity;
-		this.isMultiplicityCalculated = true;
+		this.multiplicityTerm.setValue(calculatedMultiplicity);
 	}
 
 	/**
@@ -202,22 +158,21 @@ public class PortTuple {
 	 *            - The value of the degree
 	 */
 	public void setCalculatedDegree(int calculatedDegree) {
-		this.calculatedDegree = calculatedDegree;
-		this.isDegreeCalculated = true;
+		this.degreeTerm.setValue(calculatedDegree);
 	}
 
 	/**
 	 * @return the calculated multiplicity
 	 */
 	public int getCalculatedMultiplicity() {
-		return calculatedMultiplicity;
+		return this.multiplicityTerm.getValue();
 	}
 
 	/**
 	 * @return the calculated degree
 	 */
 	public int getCalculatedDegree() {
-		return calculatedDegree;
+		return this.degreeTerm.getValue();
 	}
 
 }
