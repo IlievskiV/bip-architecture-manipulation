@@ -3,6 +3,7 @@ package ch.epfl.risd.archman.model;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import ch.epfl.risd.archman.checker.BIPChecker;
@@ -41,6 +42,16 @@ public abstract class ArchitectureEntity {
 	 *             if the configuration file was not in the predefined format
 	 */
 	protected abstract void parseParameters() throws ConfigurationFileException;
+
+	/**
+	 * Method for validating the Architecture Entity, i.e. it checks whether the
+	 * Architecture Entity is consistent with the information in the
+	 * configuration file.
+	 * 
+	 * @throws ArchitectureExtractorException
+	 * @throws ComponentNotFoundException
+	 */
+	protected abstract void validate() throws ComponentNotFoundException, ArchitectureExtractorException;
 
 	/**
 	 * Method for validating the existing of components in the Architecture
@@ -89,16 +100,6 @@ public abstract class ArchitectureEntity {
 			}
 		}
 	}
-
-	/**
-	 * Method for validating the Architecture Entity, i.e. it checks whether the
-	 * Architecture Entity is consistent with the information in the
-	 * configuration file.
-	 * 
-	 * @throws ArchitectureExtractorException
-	 * @throws ComponentNotFoundException
-	 */
-	protected abstract void validate() throws ComponentNotFoundException, ArchitectureExtractorException;
 
 	/****************************************************************************/
 	/* PUBLIC METHODS */
@@ -181,6 +182,11 @@ public abstract class ArchitectureEntity {
 		this.bipFileModel.createFile(pathToBipFile);
 	}
 
+	/**
+	 * 
+	 * @param pathToConfFile
+	 * @throws IOException
+	 */
 	public void generateConfigurationFile(String pathToConfFile) throws IOException {
 		this.archEntityConfigFile.createFile(pathToConfFile);
 	}

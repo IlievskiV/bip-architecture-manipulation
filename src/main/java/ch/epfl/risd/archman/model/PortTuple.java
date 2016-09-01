@@ -99,6 +99,14 @@ public class PortTuple {
 				+ ((this.type == PortTupleType.COORDINATOR_TUPLE) ? "Coordinator tuple" : "Operand tuple");
 	}
 
+	public NameValue getMultiplicityTerm() {
+		return this.multiplicityTerm;
+	}
+
+	public NameValue getDegreeTerm() {
+		return this.degreeTerm;
+	}
+
 	/**
 	 * @return the name of the port instance
 	 */

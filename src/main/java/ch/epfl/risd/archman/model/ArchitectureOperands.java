@@ -28,7 +28,7 @@ public class ArchitectureOperands extends ArchitectureEntity {
 	/***************************************************************************/
 
 	/* Mapping of the operands */
-	protected List<ComponentMapping> operandsMapping;
+	protected Map<String, ComponentMapping> operandsMapping;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -46,16 +46,40 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		String delim2 = " ";
 		String delim3 = ";";
 
-		/* Initialize the mappings of the operands */
-		this.operandsMapping = new LinkedList<ComponentMapping>();
+		/* Get all operands mappings */
+		this.operandsMapping = this.parseOperandMappings(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_MAPPING_PARAM),
+				this.archEntityConfigFile.getParameters().get(ConstantFields.PORTS_MAPPING_PARAM), delim1, delim2,
+				delim3);
+
+	}
+
+	/**
+	 * Method to parse operand mappings (not very understandable code)
+	 * 
+	 * @param operandsMappingStr
+	 * @param portsMappingStr
+	 * @param delim1
+	 * @param delim2
+	 * @param delim3
+	 * @return
+	 * @throws ConfigurationFileException
+	 */
+	private Map<String, ComponentMapping> parseOperandMappings(String operandsMappingStr, String portsMappingStr,
+			String delim1, String delim2, String delim3) throws ConfigurationFileException {
+		/* Initialize the result */
+		Map<String, ComponentMapping> result = new HashMap<String, ComponentMapping>();
 
 		/* Split the string of operand mappings */
-		List<String[]> operandTokens = HelperMethods.splitConcatenatedString(
-				this.archEntityConfigFile.getParameters().get(ConstantFields.OPERANDS_MAPPING_PARAM), delim1, delim2);
+		List<String[]> operandTokens = HelperMethods.splitConcatenatedString(operandsMappingStr, delim1, delim2);
 
-		/* Mappings of the operand components */
-		/* The key is the name of the operand to be mapped */
-		/* The value is the set of mapped components */
+		/* Split the string of port mappings */
+		List<String[]> portTokens = HelperMethods.splitConcatenatedString(portsMappingStr, delim1, delim2);
+
+		/*
+		 * Mappings of the operand components. The key is the name of the
+		 * operand to be mapped. The value is the set of mapped components
+		 */
 		Map<String, Set<String>> componentMappings = new HashMap<String, Set<String>>();
 		for (String[] tokens : operandTokens) {
 			String operandToMap = tokens[0];
@@ -67,16 +91,15 @@ public class ArchitectureOperands extends ArchitectureEntity {
 			componentMappings.put(operandToMap, mappedOperands);
 		}
 
-		/* Split the string of port mappings */
-		List<String[]> portTokens = HelperMethods.splitConcatenatedString(
-				this.archEntityConfigFile.getParameters().get(ConstantFields.PORTS_MAPPING_PARAM), delim1, delim2);
-
-		/* This map shows which ports in one operand have to be mapped */
-		/* The key is the name of the operand */
+		/*
+		 * This map shows which ports in one operand have to be mapped. The key
+		 * is the name of the operand
+		 */
 		Map<String, List<String>> portsToMap = new HashMap<String, List<String>>();
+
 		/*
 		 * This map shows, each of the ports to be mapped in each component, to
-		 * which set of ports will be mapped
+		 * which set of ports will be mapped.
 		 */
 		Map<String, List<List<Set<String>>>> mappedPorts = new HashMap<String, List<List<Set<String>>>>();
 		for (String[] tokens : portTokens) {
@@ -122,55 +145,12 @@ public class ArchitectureOperands extends ArchitectureEntity {
 
 		Set<String> keys = componentMappings.keySet();
 		for (String key : keys) {
-			operandsMapping.add(
+			result.put(key,
 					new ComponentMapping(key, componentMappings.get(key), portsToMap.get(key), mappedPorts.get(key)));
 		}
 
-	}
-
-	/**
-	 * This method parses operand mappings.
-	 * 
-	 * @param concatenatedString
-	 *            - the string representing mapping of the operands
-	 * @param delim1
-	 *            - external delimiter
-	 * @param delim2
-	 *            - internal delimiter
-	 * @return the mapping of operands
-	 * @throws ConfigurationFileException
-	 */
-	private Map<String, Set<String>> parseOperandMappings(String concatenatedString, String delim1, String delim2)
-			throws ConfigurationFileException {
-
-		/* The resulting mapping */
-		Map<String, Set<String>> result = new Hashtable<String, Set<String>>();
-
-		/* Split the string */
-		List<String[]> tokens = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
-
-		/* Iterate the tokens */
-		for (String[] subTokens : tokens) {
-
-			if (subTokens.length < 2) {
-				throw new ConfigurationFileException(
-						"There should be at least two parameters to make the mapping in the Architecture Operands configuration file");
-			}
-
-			/* Create the key-value pair */
-			String key = subTokens[0];
-			Set<String> valueSet = new HashSet<String>();
-
-			/* Iterate sub-tokens */
-			for (int i = 1; i < subTokens.length; i++) {
-				valueSet.add(subTokens[i]);
-			}
-
-			/* Make the mapping */
-			result.put(key, valueSet);
-		}
-
 		return result;
+
 	}
 
 	@Override
@@ -219,7 +199,7 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		return this.archEntityConfigFile.getParameters();
 	}
 
-	public List<ComponentMapping> getOperandsMapping() {
+	public Map<String, ComponentMapping> getOperandsMapping() {
 		return operandsMapping;
 	}
 
@@ -233,7 +213,8 @@ public class ArchitectureOperands extends ArchitectureEntity {
 		try {
 			ArchitectureOperands architectureOperands = new ArchitectureOperands(path1);
 
-			for (ComponentMapping cm : architectureOperands.operandsMapping) {
+			for (String key1 : architectureOperands.operandsMapping.keySet()) {
+				ComponentMapping cm = architectureOperands.operandsMapping.get(key1);
 				System.out.println("The component to map is: " + cm.componentToMap);
 				System.out.println("\t With cardinality name: " + cm.cardinalityTerm.name + " and cardinality value: "
 						+ cm.cardinalityTerm.value);
@@ -243,7 +224,8 @@ public class ArchitectureOperands extends ArchitectureEntity {
 				}
 
 				System.out.println("\t The mapping of ports: ");
-				for (PortMapping pm : cm.portMappings) {
+				for (String key2 : cm.portMappings.keySet()) {
+					PortMapping pm = cm.portMappings.get(key2);
 					System.out.println("\t\t The name of the port to be mapped: " + pm.portToMap);
 					System.out.println("\t\t The mapping ports are: ");
 					for (int i = 0; i < pm.mappedPorts.size(); i++) {

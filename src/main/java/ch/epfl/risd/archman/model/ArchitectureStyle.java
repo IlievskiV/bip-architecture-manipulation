@@ -35,30 +35,25 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	/***************************************************************************/
 
 	/* The set of all coordinators in the style */
-	private Set<String> coordinators;
+	protected Set<String> coordinators;
 
 	/* The set of all parameter operands in the style */
-	private Set<String> operands;
+	protected Set<String> operands;
 
 	/* The set of all ports in the style */
-	private Set<String> ports;
+	protected Set<String> ports;
 
 	/* Mapping of the coordinators in the style */
-	protected List<ComponentMapping> coordinatorsMapping;
+	protected Map<String, ComponentMapping> coordinatorsMapping;
 
 	/* The set of all connectors in the style */
-	private List<ConnectorTuple> connectorTuples;
+	protected List<ConnectorTuple> connectorTuples;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
 	/****************************************************************************/
 
-	/**
-	 * This method extracts the parameters from the hash table, after loading
-	 * them
-	 * 
-	 * @throws ConfigurationFileException
-	 */
+	@Override
 	protected void parseParameters() throws ConfigurationFileException {
 		/* The delimiter to split the string */
 		String delim1 = ",";
@@ -80,16 +75,37 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		this.connectorTuples = this.parseConnectors(
 				this.archEntityConfigFile.getParameters().get(ConstantFields.CONNECTORS_PARAM), delim1, delim2);
 
-		/* Split the concatenated string of cardinalities */
-		List<String[]> coordCardinalities = HelperMethods.splitConcatenatedString(
-				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_CARDINALITY_PARAM), delim1, delim2);
-
-		/* Split the concatenated string of port cardinalities */
-		List<String[]> cardinalities = HelperMethods.splitConcatenatedString(
+		/* Get all mappings */
+		this.coordinatorsMapping = this.parseCoordinatorMappings(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_CARDINALITY_PARAM),
 				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_PORTS_CARDINALITY_PARAM), delim1,
 				delim2);
+	}
 
-		this.coordinatorsMapping = new LinkedList<ComponentMapping>();
+	/**
+	 * Method for parsing the mapping of the coordinators
+	 * 
+	 * @param coordCardStr
+	 *            - concatenated string of coordinators cardinalities
+	 * @param coordPortCardStr
+	 *            - concatenated string of coordinators ports cardinalities
+	 * @param delim1
+	 *            - external delimiter
+	 * @param delim2
+	 *            - internal delimiter
+	 * @return
+	 */
+	private Map<String, ComponentMapping> parseCoordinatorMappings(String coordCardStr, String coordPortCardStr,
+			String delim1, String delim2) {
+
+		/* The resulting map */
+		Map<String, ComponentMapping> result = new HashMap<String, ComponentMapping>();
+
+		/* Split the concatenated string of coordinators cardinalities */
+		List<String[]> coordCardinalities = HelperMethods.splitConcatenatedString(coordCardStr, delim1, delim2);
+
+		/* Split the concatenated string of port cardinalities */
+		List<String[]> portCardinalities = HelperMethods.splitConcatenatedString(coordPortCardStr, delim1, delim2);
 
 		/* Map of the cardinalities for each component */
 		Map<String, Integer> cardinalityMap = new HashMap<String, Integer>();
@@ -99,10 +115,10 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 		/* List of ports in each coordinator that have to be mapped */
 		Map<String, List<String>> portsToMap = new HashMap<String, List<String>>();
-		/* The list of cardinality of each port */
+		/* The list of cardinalities of each port that have to be mapped */
 		Map<String, List<String>> portsCardinalities = new HashMap<String, List<String>>();
 
-		for (String[] tokens : cardinalities) {
+		for (String[] tokens : portCardinalities) {
 			/* The port to map */
 			String portToMap = tokens[0];
 			/* The name of the coordinator where it belongs */
@@ -127,79 +143,25 @@ public class ArchitectureStyle extends ArchitectureEntity {
 			portsCardinalities.put(portToMap, tempList2);
 		}
 
+		/* The key sets of all three maps are same (coordinators names) */
 		Set<String> coordinators = cardinalityMap.keySet();
-		for (String coord : coordinators) {
-			String componentToMap = coord;
-			int cardinalityValue = cardinalityMap.get(coord);
-			List<String> ports = portsToMap.get(coord);
+		for (String coordinator : coordinators) {
 
+			/* The name of the component to map */
+			String componentToMap = coordinator;
+			int cardinalityValue = cardinalityMap.get(coordinator);
+			List<String> ports = portsToMap.get(coordinator);
 			List<List<String>> c = new LinkedList<List<String>>();
 
 			for (String p : ports) {
 				c.add(portsCardinalities.get(p));
 			}
 
-			this.coordinatorsMapping.add(new ComponentMapping(componentToMap, cardinalityValue, ports, c));
-		}
-	}
-
-	/**
-	 * This method parses the concatenated string representing coordinator
-	 * cardinalities in the style.
-	 * 
-	 * @param concatenatedString
-	 *            - the string representing coordinator cardinalities
-	 * @param delim1
-	 *            - external delimiter
-	 * @param delim2
-	 *            - internal delimiter
-	 * @return the map of coordinator cardinalities
-	 */
-	private Map<String, Integer> parseCoordCardinalities(String concatenatedString, String delim1, String delim2) {
-		Map<String, Integer> result = new HashMap<String, Integer>();
-
-		/* Split the concatenated string */
-		List<String[]> cardinalities = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
-
-		/* Iterate over them */
-		for (String[] carinality : cardinalities) {
-			/* Add in the map */
-			result.put(carinality[0], Integer.parseInt(carinality[1]));
+			result.put(componentToMap, new ComponentMapping(componentToMap, cardinalityValue, ports, c));
 		}
 
 		return result;
-	}
 
-	/**
-	 * This method parses the concatenated string representing coordinator ports
-	 * cardinalities in the style
-	 * 
-	 * @param concatenatedString
-	 *            - the string representing coordinator port cardinalities
-	 * @param delim1
-	 *            - external delimiter
-	 * @param delim2
-	 *            - internal delimiter
-	 * @return the map of coordinator port cardinalities as interval
-	 */
-	private Map<String, List<String>> parseCoordPortsCardinalities(String concatenatedString, String delim1,
-			String delim2) {
-		Map<String, List<String>> result = new HashMap<String, List<String>>();
-
-		/* Split the concatenated string */
-		List<String[]> cardinalities = HelperMethods.splitConcatenatedString(concatenatedString, delim1, delim2);
-
-		for (String[] cardinality : cardinalities) {
-			/* Parse the interval */
-			List<String> interval = new LinkedList<String>();
-			for (int i = 1; i < cardinality.length; i++) {
-				interval.add(cardinality[i]);
-			}
-
-			result.put(cardinality[0], interval);
-		}
-
-		return result;
 	}
 
 	/**
@@ -344,6 +306,10 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		return ports;
 	}
 
+	public Map<String, ComponentMapping> getCoordinatorsMapping() {
+		return coordinatorsMapping;
+	}
+
 	/**
 	 * @return the connector tuples of the Architecture Style
 	 */
@@ -361,7 +327,10 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		try {
 			ArchitectureStyle architectureStyle = new ArchitectureStyle(path1);
 
-			for (ComponentMapping cm : architectureStyle.coordinatorsMapping) {
+			for (String key1 : architectureStyle.coordinatorsMapping.keySet()) {
+
+				ComponentMapping cm = architectureStyle.coordinatorsMapping.get(key1);
+
 				System.out.println("The component to map is: " + cm.componentToMap);
 				System.out.println("\t With cardinality name: " + cm.cardinalityTerm.name + " and cardinality value: "
 						+ cm.cardinalityTerm.value);
@@ -371,7 +340,10 @@ public class ArchitectureStyle extends ArchitectureEntity {
 				}
 
 				System.out.println("\t The mapping of ports: ");
-				for (PortMapping pm : cm.portMappings) {
+				for (String key2 : cm.portMappings.keySet()) {
+
+					PortMapping pm = cm.portMappings.get(key2);
+
 					System.out.println("\t\t The name of the port to be mapped: " + pm.portToMap);
 					System.out.println("\t\t The mapping ports are: ");
 					for (int i = 0; i < pm.mappedPorts.size(); i++) {
@@ -385,9 +357,23 @@ public class ArchitectureStyle extends ArchitectureEntity {
 									+ pm.cardinalityTerms.get(i).value);
 
 						} else {
-							System.out.println("\t\t\t The port is not known, the cardinality is variable");
+							System.out.println("\t\t\t The port is not known, the cardinality is variable with name: "
+									+ pm.cardinalityTerms.get(i).name);
 						}
 					}
+				}
+			}
+
+			System.out.println("We have the following connectors: ");
+			for (ConnectorTuple ct : architectureStyle.connectorTuples) {
+				System.out.println("\t Connector instance name: " + ct.getConnectorInstanceName());
+				System.out.println("\t The ports in this connector instance are: ");
+				for (PortTuple pt : ct.getPortTuples()) {
+					System.out.println(
+							"\t\t Port instance name: " + pt.getPortInstanceName() + " with multiplicity term name: "
+									+ pt.multiplicityTerm.getName() + " and multiplicity term value: "
+									+ pt.multiplicityTerm.value + " and with degree term name: " + pt.degreeTerm.name
+									+ " and degree term value: " + pt.degreeTerm.value);
 				}
 			}
 

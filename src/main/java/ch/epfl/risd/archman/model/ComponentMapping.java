@@ -1,8 +1,10 @@
 package ch.epfl.risd.archman.model;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import ch.epfl.risd.archman.helper.HelperMethods;
@@ -15,7 +17,7 @@ import ch.epfl.risd.archman.helper.HelperMethods;
  */
 public class ComponentMapping {
 
-	public static final String COMP_CARD_DEFAULT_NAME_PREFIX = "card_comp";
+	public static final String COMP_CARD_DEFAULT_NAME_PREFIX = "card_comp_";
 
 	/* Enumeration for the type of mapping */
 	public enum ComponentMappingType {
@@ -39,7 +41,7 @@ public class ComponentMapping {
 	protected NameValue cardinalityTerm;
 
 	/* The mapping of ports in the component */
-	protected List<PortMapping> portMappings;
+	protected Map<String, PortMapping> portMappings;
 
 	/****************************************************************************/
 	/* PUBLIC METHODS */
@@ -69,7 +71,7 @@ public class ComponentMapping {
 				this.mappedComponents.size());
 
 		/* Generate port mappings */
-		this.portMappings = new LinkedList<PortMapping>();
+		this.portMappings = new HashMap<String, PortMapping>();
 
 		for (int i = 0; i < portsToMap.size(); i++) {
 			/* Take the current port to map */
@@ -87,7 +89,8 @@ public class ComponentMapping {
 			}
 
 			/* Add new port mapping */
-			this.portMappings.add(new PortMapping(currPortToMap, currentMappedPorts, currCardinalityTerms));
+			this.portMappings.put(currPortToMap,
+					new PortMapping(currPortToMap, currentMappedPorts, currCardinalityTerms));
 		}
 	}
 
@@ -129,7 +132,7 @@ public class ComponentMapping {
 		/* for every mapping component */
 
 		/* Generate port mappings */
-		this.portMappings = new LinkedList<PortMapping>();
+		this.portMappings = new HashMap<String, PortMapping>();
 		for (int i = 0; i < portsToMap.size(); i++) {
 			/* Take the current port to map */
 			String currPortToMap = portsToMap.get(i);
@@ -168,7 +171,7 @@ public class ComponentMapping {
 				currMappedPorts.add(setOfMappedPorts);
 			}
 
-			portMappings.add(new PortMapping(currPortToMap, currMappedPorts, currCardinalityTerms));
+			portMappings.put(currPortToMap, new PortMapping(currPortToMap, currMappedPorts, currCardinalityTerms));
 		}
 
 	}
@@ -191,7 +194,7 @@ public class ComponentMapping {
 		return cardinalityTerm;
 	}
 
-	public List<PortMapping> getPortMappings() {
+	public Map<String, PortMapping> getPortMappings() {
 		return portMappings;
 	}
 
