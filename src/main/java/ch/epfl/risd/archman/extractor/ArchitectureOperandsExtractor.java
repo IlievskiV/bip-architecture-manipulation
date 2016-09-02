@@ -9,7 +9,7 @@ import java.util.Set;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.model.ArchitectureOperands;
 import ch.epfl.risd.archman.model.ComponentMapping;
-import ch.epfl.risd.archman.model.PortMapping;
+import ch.epfl.risd.archman.model.GlobalPortMapping;
 import ujf.verimag.bip.Core.Behaviors.Port;
 import ujf.verimag.bip.Core.Interactions.Component;
 

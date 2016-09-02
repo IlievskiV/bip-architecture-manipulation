@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
+import com.microsoft.z3.Z3Exception;
+
 import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.constants.ConstantFields;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
@@ -21,8 +23,10 @@ import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.ConnectorNotFoundException;
 import ch.epfl.risd.archman.exceptions.PortNotFoundException;
+import ch.epfl.risd.archman.exceptions.TestFailException;
 import ch.epfl.risd.archman.helper.HelperMethods;
 import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
+import ch.epfl.risd.archman.solver.ArchitectureStyleSolver;
 
 /**
  * 
@@ -324,8 +328,13 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		String path2 = "/home/vladimir/Architecture_examples/Archive/Modes2/AEConf.txt";
 		String path3 = "/home/vladimir/Architecture_examples/Archive/ActionSequence/AEConf.txt";
 
+		String pathOp = "/home/vladimir/Architecture_examples/Archive/Mutex/AEConf-instance2.txt";
+
 		try {
 			ArchitectureStyle architectureStyle = new ArchitectureStyle(path1);
+			ArchitectureOperands architectureOperands = new ArchitectureOperands(pathOp);
+
+			ArchitectureStyleSolver.calculateVariables(architectureStyle, architectureOperands);
 
 			for (String key1 : architectureStyle.coordinatorsMapping.keySet()) {
 
@@ -340,26 +349,30 @@ public class ArchitectureStyle extends ArchitectureEntity {
 				}
 
 				System.out.println("\t The mapping of ports: ");
-				for (String key2 : cm.portMappings.keySet()) {
+				for (String key2 : cm.globalPortMappings.keySet()) {
 
-					PortMapping pm = cm.portMappings.get(key2);
+					GlobalPortMapping pm = cm.globalPortMappings.get(key2);
 
 					System.out.println("\t\t The name of the port to be mapped: " + pm.portToMap);
 					System.out.println("\t\t The mapping ports are: ");
-					for (int i = 0; i < pm.mappedPorts.size(); i++) {
-						if (pm.cardinalityTerms.get(i).isCalculated) {
+					int i = 0;
+					for (String key3 : pm.componentPortMappings.keySet()) {
+						System.out.println("\t\t\t From component named: " + key3);
+						if (pm.componentPortMappings.get(key3).cardinalityTerm.isCalculated) {
 							StringBuilder sb = new StringBuilder();
-							for (String s : pm.mappedPorts.get(i)) {
+							for (String s : pm.componentPortMappings.get(key3).getMappedPorts()) {
 								sb.append(s).append(" ");
 							}
 							System.out.println("\t\t\t " + sb.toString() + " with cardinality name: "
-									+ pm.cardinalityTerms.get(i).name + " and cardinality value: "
-									+ pm.cardinalityTerms.get(i).value);
+									+ pm.componentPortMappings.get(key3).cardinalityTerm.name
+									+ " and cardinality value: "
+									+ pm.componentPortMappings.get(key3).cardinalityTerm.value);
 
 						} else {
 							System.out.println("\t\t\t The port is not known, the cardinality is variable with name: "
-									+ pm.cardinalityTerms.get(i).name);
+									+ pm.componentPortMappings.get(key3).cardinalityTerm.name);
 						}
+						i++;
 					}
 				}
 			}
@@ -382,6 +395,12 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		} catch (ConfigurationFileException e) {
 			e.printStackTrace();
 		} catch (ArchitectureExtractorException e) {
+			e.printStackTrace();
+		} catch (Z3Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TestFailException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import com.microsoft.z3.Z3Exception;
+
 import ch.epfl.risd.archman.builder.ArchitectureInstantiator;
 import ch.epfl.risd.archman.composer.ArchitectureComposer;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
@@ -14,6 +16,7 @@ import ch.epfl.risd.archman.exceptions.IllegalPortParameterReferenceException;
 import ch.epfl.risd.archman.exceptions.InvalidComponentNameException;
 import ch.epfl.risd.archman.exceptions.InvalidConnectorTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidPortParameterNameException;
+import ch.epfl.risd.archman.exceptions.TestFailException;
 import ch.epfl.risd.archman.model.ArchitectureInstance;
 import ch.epfl.risd.archman.model.ArchitectureOperands;
 import ch.epfl.risd.archman.model.ArchitectureStyle;
@@ -31,7 +34,7 @@ public class CmdLine {
 	/* An error prefix for printing purposes */
 	private static final String ERROR_PREFIX = "BIP-AM::ERROR";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Z3Exception, TestFailException {
 		/* Pass the arguments */
 		CmdLineFactory cmdLineFactory = new CmdLineFactory(args);
 

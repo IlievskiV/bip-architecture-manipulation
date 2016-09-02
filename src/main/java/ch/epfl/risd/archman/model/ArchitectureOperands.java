@@ -224,19 +224,23 @@ public class ArchitectureOperands extends ArchitectureEntity {
 				}
 
 				System.out.println("\t The mapping of ports: ");
-				for (String key2 : cm.portMappings.keySet()) {
-					PortMapping pm = cm.portMappings.get(key2);
+				for (String key2 : cm.globalPortMappings.keySet()) {
+					GlobalPortMapping pm = cm.globalPortMappings.get(key2);
 					System.out.println("\t\t The name of the port to be mapped: " + pm.portToMap);
 					System.out.println("\t\t The mapping ports are: ");
-					for (int i = 0; i < pm.mappedPorts.size(); i++) {
+
+					int i = 0;
+					for (String key3 : pm.componentPortMappings.keySet()) {
+						System.out.println("\t\t\t From component named: " + key3);
 						StringBuilder sb = new StringBuilder();
-						for (String s : pm.mappedPorts.get(i)) {
+						for (String s : pm.componentPortMappings.get(key3).getMappedPorts()) {
 							sb.append(s).append(" ");
 						}
-						System.out.println(
-								"\t\t\t " + sb.toString() + " with cardinality name: " + pm.cardinalityTerms.get(i).name
-										+ " and cardinality value: " + pm.cardinalityTerms.get(i).value);
-
+						System.out.println("\t\t\t " + sb.toString() + " with cardinality name: "
+								+ pm.componentPortMappings.get(key3).getCardinalityTerm().name
+								+ " and cardinality value: "
+								+ pm.componentPortMappings.get(key3).getCardinalityTerm().value);
+						i++;
 					}
 				}
 			}

@@ -40,8 +40,8 @@ public class ComponentMapping {
 	/* Name-Value pair for the cardinality */
 	protected NameValue cardinalityTerm;
 
-	/* The mapping of ports in the component */
-	protected Map<String, PortMapping> portMappings;
+	/* The global mapping of every port */
+	protected Map<String, GlobalPortMapping> globalPortMappings;
 
 	/****************************************************************************/
 	/* PUBLIC METHODS */
@@ -71,26 +71,33 @@ public class ComponentMapping {
 				this.mappedComponents.size());
 
 		/* Generate port mappings */
-		this.portMappings = new HashMap<String, PortMapping>();
+		this.globalPortMappings = new HashMap<String, GlobalPortMapping>();
 
 		for (int i = 0; i < portsToMap.size(); i++) {
 			/* Take the current port to map */
 			String currPortToMap = portsToMap.get(i);
 			/* Take the mappings of the current port */
 			List<Set<String>> currentMappedPorts = mappedPorts.get(i);
-			/* Initialize the cardinality terms */
-			List<NameValue> currCardinalityTerms = new LinkedList<NameValue>();
+
+			/* Initialize the map of component port mappings */
+			Map<String, ComponentPortMapping> componentPortMappings = new HashMap<String, ComponentPortMapping>();
 
 			/* Iterate over the mappings */
 			for (int j = 1; j <= currentMappedPorts.size(); j++) {
-				currCardinalityTerms
-						.add(new NameValue(PortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + j,
-								currentMappedPorts.get(j - 1).size()));
+
+				/* Create the cardinality term */
+				NameValue currCardinalityTerm = new NameValue(
+						GlobalPortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + j,
+						currentMappedPorts.get(j - 1).size());
+				/* Get the name of the component where the ports map */
+				String componentName = currentMappedPorts.get(j-1).iterator().next().split("\\.")[0];
+
+				componentPortMappings.put(componentName,
+						new ComponentPortMapping(componentName, currentMappedPorts.get(j-1), currCardinalityTerm));
 			}
 
 			/* Add new port mapping */
-			this.portMappings.put(currPortToMap,
-					new PortMapping(currPortToMap, currentMappedPorts, currCardinalityTerms));
+			this.globalPortMappings.put(currPortToMap, new GlobalPortMapping(currPortToMap, componentPortMappings));
 		}
 	}
 
@@ -132,22 +139,25 @@ public class ComponentMapping {
 		/* for every mapping component */
 
 		/* Generate port mappings */
-		this.portMappings = new HashMap<String, PortMapping>();
+		this.globalPortMappings = new HashMap<String, GlobalPortMapping>();
 		for (int i = 0; i < portsToMap.size(); i++) {
 			/* Take the current port to map */
 			String currPortToMap = portsToMap.get(i);
+
 			/* Initialize the list of mapped ports */
-			List<Set<String>> currMappedPorts = new LinkedList<Set<String>>();
-			/* Initialize the cardinality terms */
-			List<NameValue> currCardinalityTerms = new LinkedList<NameValue>();
+			Map<String, ComponentPortMapping> componentPortMapping = new HashMap<String, ComponentPortMapping>();
 
 			/* Take and iterate over the cardinalities of the current port */
 			List<String> cardinality = cardinalities.get(i);
+
 			for (int j = 0; j < cardinality.size(); j++) {
 				/* The set of ports to which the current port */
 				/* Will map in the (j+1) component */
 				Set<String> setOfMappedPorts = new HashSet<String>();
 				String c = cardinality.get(j);
+
+				/* The cardinality term */
+				NameValue currCardinalityTerm;
 
 				/* If the cardinality is given */
 				/* We can generate the set of port names */
@@ -158,20 +168,22 @@ public class ComponentMapping {
 						setOfMappedPorts.add(componentToMap + (j + 1) + "." + currPortToMap.split("\\.")[1] + k);
 					}
 					/* Create cardinality term with value */
-					currCardinalityTerms.add(new NameValue(
-							PortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + (j + 1), value));
+					currCardinalityTerm = new NameValue(
+							GlobalPortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + (j + 1), value);
+
 				}
 				/* Otherwise, the set will be empty */
 				else {
 					/* Create cardinality term without value */
-					currCardinalityTerms.add(
-							new NameValue(PortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + (j + 1)));
+					currCardinalityTerm = new NameValue(
+							GlobalPortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + (j + 1));
 				}
 
-				currMappedPorts.add(setOfMappedPorts);
+				componentPortMapping.put(componentToMap + (j + 1),
+						new ComponentPortMapping(componentToMap + (j + 1), setOfMappedPorts, currCardinalityTerm));
 			}
 
-			portMappings.put(currPortToMap, new PortMapping(currPortToMap, currMappedPorts, currCardinalityTerms));
+			globalPortMappings.put(currPortToMap, new GlobalPortMapping(currPortToMap, componentPortMapping));
 		}
 
 	}
@@ -194,8 +206,8 @@ public class ComponentMapping {
 		return cardinalityTerm;
 	}
 
-	public Map<String, PortMapping> getPortMappings() {
-		return portMappings;
+	public Map<String, GlobalPortMapping> getGlobalPortMappings() {
+		return globalPortMappings;
 	}
 
 }
