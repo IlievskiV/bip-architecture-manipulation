@@ -5,6 +5,7 @@ import java.io.File;
 import com.microsoft.z3.Z3Exception;
 
 import ch.epfl.risd.archman.commandline.CmdLine;
+import ch.epfl.risd.archman.exceptions.ListEmptyException;
 import ch.epfl.risd.archman.exceptions.TestFailException;
 
 /**
@@ -63,7 +64,8 @@ public class TestInstantiation {
 	private static final String TEST_FLAG = "-test";
 
 	private static void testInstantiation(String archStyleConfFilePath, String archOpConfFilePath,
-			String outputBipFilePath, String outputConfFilePath) throws Z3Exception, TestFailException {
+			String outputBipFilePath, String outputConfFilePath)
+			throws Z3Exception, TestFailException, ListEmptyException {
 		/* List of arguments */
 		String[] args = new String[] { INSTANTIATION_FLAG, TEST_FLAG, archStyleConfFilePath, archOpConfFilePath,
 				outputBipFilePath, outputConfFilePath };
@@ -72,7 +74,7 @@ public class TestInstantiation {
 		CmdLine.main(args);
 	}
 
-	public static void testMutex() throws Z3Exception, TestFailException {
+	public static void testMutex() throws Z3Exception, TestFailException, ListEmptyException {
 		String archStyleConfFilePath = new File(PARENT,
 				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MUTEX_ARCH_STYLE_CONF).getAbsolutePath();
 
@@ -89,7 +91,7 @@ public class TestInstantiation {
 				outputConfFilePath);
 	}
 
-	public static void testModes2() throws Z3Exception, TestFailException {
+	public static void testModes2() throws Z3Exception, TestFailException, ListEmptyException {
 		String archStyleConfFilePath = new File(PARENT,
 				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MODES_ARCH_STYLE_CONF).getAbsolutePath();
 
@@ -106,7 +108,7 @@ public class TestInstantiation {
 				outputConfFilePath);
 	}
 
-	public static void testActionSequence() throws Z3Exception, TestFailException {
+	public static void testActionSequence() throws Z3Exception, TestFailException, ListEmptyException {
 		String archStyleConfFilePath = new File(PARENT,
 				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + ACTION_SEQ_ARCH_STYLE_CONF).getAbsolutePath();
 
@@ -123,7 +125,7 @@ public class TestInstantiation {
 				outputConfFilePath);
 	}
 
-	public static void testParallelMem() throws Z3Exception, TestFailException {
+	public static void testParallelMem() throws Z3Exception, TestFailException, ListEmptyException {
 		String archStyleConfFilePath = new File(PARENT,
 				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + PAR_MEM_ARCH_STYLE_CONF).getAbsolutePath();
 
@@ -144,10 +146,13 @@ public class TestInstantiation {
 
 		try {
 			TestInstantiation.testMutex();
-			TestInstantiation.testModes2();
-			TestInstantiation.testActionSequence();
-			TestInstantiation.testParallelMem();
+			//TestInstantiation.testModes2();
+			//TestInstantiation.testActionSequence();
+			//TestInstantiation.testParallelMem();
 		} catch (Z3Exception | TestFailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ListEmptyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

@@ -5,6 +5,7 @@ import java.io.File;
 import com.microsoft.z3.Z3Exception;
 
 import ch.epfl.risd.archman.commandline.CmdLine;
+import ch.epfl.risd.archman.exceptions.ListEmptyException;
 import ch.epfl.risd.archman.exceptions.TestFailException;
 
 /**
@@ -39,7 +40,7 @@ public class TestComposition {
 	private static final String TEST_FLAG = "-test";
 
 	private static void testComposition(String archInst1ConfFilePath, String archInst2ConfFilePath,
-			String outputBipFilePath, String outputConfFilePath) throws Z3Exception, TestFailException {
+			String outputBipFilePath, String outputConfFilePath) throws Z3Exception, TestFailException, ListEmptyException {
 		/* List of arguments */
 		String[] args = new String[] { COMPOSITION_FLAG, TEST_FLAG, archInst1ConfFilePath, archInst2ConfFilePath,
 				outputBipFilePath, outputConfFilePath };
@@ -48,7 +49,7 @@ public class TestComposition {
 		CmdLine.main(args);
 	}
 
-	public static void testMutex() throws Z3Exception, TestFailException {
+	public static void testMutex() throws Z3Exception, TestFailException, ListEmptyException {
 		String archInst1ConfFilePath = new File(PARENT, BASE_TEST_DIRECTORY + COMPOSITION_INPUT_FILES + MUTEX12_CONF)
 				.getAbsolutePath();
 
@@ -69,6 +70,9 @@ public class TestComposition {
 		try {
 			TestComposition.testMutex();
 		} catch (Z3Exception | TestFailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ListEmptyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

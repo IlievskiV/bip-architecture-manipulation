@@ -40,12 +40,81 @@ public class ArchitectureStyleSolver {
 	/****************************************************************************/
 	private static Map<String, String> cfg = new HashMap<String, String>();
 
+	private static void checkNameValues(ArchitectureStyle architectureStyle,
+			ArchitectureOperands architectureOperands) {
+
+		/* Get the list of all Connector Tuples */
+		List<ConnectorTuple> connectorTuples = architectureStyle.getConnectorsTuples();
+
+		/* Check if everything is calculated */
+		for (ConnectorTuple connectorTuple : connectorTuples) {
+			for (PortTuple portTuple : connectorTuple.getPortTuples()) {
+				System.out.println("Multiplicity variable named " + portTuple.getMultiplicityTerm().getName()
+						+ " is having a value " + portTuple.getMultiplicityTerm().getValue());
+				System.out.println("Degree variable named " + portTuple.getDegreeTerm().getName()
+						+ " is having a value " + portTuple.getDegreeTerm().getValue());
+
+				/* name and the component instance where it belongs */
+				String portInstanceName = portTuple.getPortInstanceName();
+				String compInstanceName = portInstanceName.split("\\.")[0];
+
+				/* The mappings where the port belongs */
+				ComponentMapping componentMapping;
+				GlobalPortMapping globalPortMapping;
+
+				/* If the port tuple is coordinator tuple */
+				if (portTuple.getType() == PortTupleType.COORDINATOR_TUPLE) {
+					componentMapping = architectureStyle.getCoordinatorsMapping().get(compInstanceName);
+					globalPortMapping = componentMapping.getGlobalPortMappings().get(portInstanceName);
+				} else {
+					componentMapping = architectureOperands.getOperandsMapping().get(compInstanceName);
+					globalPortMapping = componentMapping.getGlobalPortMappings().get(portInstanceName);
+				}
+
+				System.out.println("Component named " + compInstanceName + " is having cardinality value "
+						+ componentMapping.getCardinalityTerm().getValue());
+				/* Take the collection of all port mappings */
+				Collection<ComponentPortMapping> componentPortMappings = globalPortMapping.getComponentPortMappings()
+						.values();
+
+				for (ComponentPortMapping cpm : componentPortMappings) {
+					System.out.println("Port cardinality value: " + cpm.getCardinalityTerm().getValue());
+				}
+			}
+		}
+	}
+
+	private static void generateMissingPortNames(ArchitectureStyle architectureStyle) {
+
+		/* Iterate in component mappings */
+		for (String compToMap : architectureStyle.getCoordinatorsMapping().keySet()) {
+			ComponentMapping componentMapping = architectureStyle.getCoordinatorsMapping().get(compToMap);
+			/* Iterate in global port mappings */
+			for (String portToMap : componentMapping.getGlobalPortMappings().keySet()) {
+				GlobalPortMapping globalPortMapping = componentMapping.getGlobalPortMappings().get(portToMap);
+				/* Inner port name */
+				String portInnerName = portToMap.split("\\.")[1];
+				for (String mappedComp : globalPortMapping.getComponentPortMappings().keySet()) {
+					ComponentPortMapping componentPortMapping = globalPortMapping.getComponentPortMappings()
+							.get(mappedComp);
+
+					/* If the ports are not generated */
+					if (componentPortMapping.getMappedPorts().size() == 0
+							&& componentPortMapping.getCardinalityTerm().isCalculated()) {
+						/* Generate port names */
+						for (int i = 0; i < componentPortMapping.getCardinalityTerm().getValue(); i++) {
+							componentPortMapping.getMappedPorts().add(mappedComp + "." + portInnerName + (i + 1));
+						}
+					}
+
+				}
+			}
+		}
+	}
+
 	/****************************************************************************/
 	/* PUBLIC METHODS */
-	/**
-	 * @throws TestFailedException
-	 * @throws Z3Exception
-	 *************************************************************************/
+	/***************************************************************************/
 
 	public static void calculateVariables(ArchitectureStyle architectureStyle,
 			ArchitectureOperands architectureOperands) throws Z3Exception, TestFailException {
@@ -60,6 +129,8 @@ public class ArchitectureStyleSolver {
 		/* Map of all variables */
 		Map<String, NameValue> variables = new HashMap<String, NameValue>();
 
+		/* Map of variables in Z3 */
+		Map<String, ArithExpr> variableEpressions = new HashMap<String, ArithExpr>();
 		/* List of all constraints in the model */
 		List<BoolExpr> constraints = new LinkedList<BoolExpr>();
 
@@ -94,6 +165,7 @@ public class ArchitectureStyleSolver {
 				/* If multiplicity is variable */
 				if (!multiplicityTerm.isCalculated()) {
 					variables.put(multiplicityTerm.getName(), multiplicityTerm);
+					variableEpressions.put(multiplicityTerm.getName(), multiplicityExpr);
 				} else {
 					/* Add constraint for equality */
 					IntNum value = ctx.mkInt(multiplicityTerm.getValue());
@@ -103,6 +175,7 @@ public class ArchitectureStyleSolver {
 				/* If degree is variable */
 				if (!degreeTerm.isCalculated()) {
 					variables.put(degreeTerm.getName(), degreeTerm);
+					variableEpressions.put(degreeTerm.getName(), degreeExp);
 				} else {
 					/* Add constraint for equality */
 					IntNum value = ctx.mkInt(degreeTerm.getValue());
@@ -136,7 +209,7 @@ public class ArchitectureStyleSolver {
 				Collection<ComponentPortMapping> componentPortMappings = globalPortMapping.getComponentPortMappings()
 						.values();
 				/* Array of port cardinalities */
-				ArithExpr[] portCardinalitiesExpr = new ArithExpr[componentCardinality.getValue()];
+				ArithExpr[] portCardinalitiesExpr = new ArithExpr[componentPortMappings.size()];
 
 				/* Counter */
 				int i = 0;
@@ -151,6 +224,7 @@ public class ArchitectureStyleSolver {
 					if (!cpm.getCardinalityTerm().isCalculated()) {
 						/* Add in the list of variables */
 						variables.put(cpm.getCardinalityTerm().getName(), cpm.getCardinalityTerm());
+						variableEpressions.put(cpm.getCardinalityTerm().getName(), portCardExpr);
 					} else {
 						/* Make equality constrain */
 						constraints.add(ctx.mkEq(portCardExpr, ctx.mkInt(cpm.getCardinalityTerm().getValue())));
@@ -158,6 +232,7 @@ public class ArchitectureStyleSolver {
 
 					/* Add in the list of port card. expressions */
 					portCardinalitiesExpr[i] = portCardExpr;
+					i++;
 				}
 
 				/* Make sum of cardinalities */
@@ -189,6 +264,16 @@ public class ArchitectureStyleSolver {
 		/* The final constraint */
 		BoolExpr finalConstraint = ctx.mkAnd(arrayConstraints);
 		Model model = Check(ctx, finalConstraint, Status.SATISFIABLE);
+
+		/* Insert values for variables */
+		for (String name : variableEpressions.keySet()) {
+			variables.get(name)
+					.setValue(Integer.parseInt(model.evaluate(variableEpressions.get(name), false).toString()));
+		}
+
+		/* Generate the missing ports */
+		generateMissingPortNames(architectureStyle);
+
 	}
 
 	public static Model Check(Context ctx, BoolExpr f, Status sat) throws Z3Exception, TestFailException {
@@ -201,5 +286,4 @@ public class ArchitectureStyleSolver {
 		else
 			return null;
 	}
-
 }

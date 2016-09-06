@@ -58,7 +58,6 @@ public class ArchitectureStyleExtractor {
 
 		/* Iterate coordinators names */
 		for (String s : architectureStyle.getCoordinators()) {
-			/* Set the flag to false */
 			flag = false;
 
 			/* Iterate components */

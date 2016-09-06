@@ -1,5 +1,5 @@
-operands:B1,B2
-coordinators:C
+operands:B2,B1
+coordinators:C1
 path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/Mutex/MutexInstance.bip
-interactions:C.take B2.begin,C.take B1.begin,C.release B1.finish,C.release B2.finish
-ports:C.take,C.release,B1.begin,B1.finish,B2.begin,B2.finish
+interactions:
+ports:C1.take2,C1.take1,C1.release2,C1.release1,B2.begin,B2.finish,B1.begin,B1.finish

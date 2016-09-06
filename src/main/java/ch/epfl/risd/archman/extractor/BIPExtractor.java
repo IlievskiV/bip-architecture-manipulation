@@ -539,6 +539,20 @@ public class BIPExtractor {
 		return types;
 	}
 
+	public static ComponentType getComponentTypeByName(BIPFileModel bipFileModel, String componentTypeName)
+			throws ArchitectureExtractorException {
+		/* Get all component types in the BIP system */
+		List<ComponentType> allComponentTypes = getAllComponentTypes(bipFileModel);
+
+		/* Iterate over them */
+		for (ComponentType type : allComponentTypes) {
+			if (type.getName().equals(componentTypeName))
+				return type;
+		}
+
+		throw new ComponentTypeNotFoundException("The atom type with a name " + componentTypeName + " is not found");
+	}
+
 	public static List<String> getAllComponentTypesNames(BIPFileModel bipFileModel)
 			throws ArchitectureExtractorException {
 		/* Get all component types in the architecture */
@@ -836,18 +850,29 @@ public class BIPExtractor {
 		/* Get all ports in the architecture */
 		List<Port> ports = BIPExtractor.getAllPorts(bipFileModel);
 
-		System.out.println("Size of all ports: " + ports.size());
-		System.out.println("Actual name of the port: " + name);
-
 		/* Iterate ports */
 		for (Port p : ports) {
-			System.out.println("Name of the port: " + p.getName());
 			if (p.getName().equals(name)) {
 				return p;
 			}
 		}
 
 		throw new PortNotFoundException("A port with the name " + name + " does not exist");
+	}
+
+	public static Port getPortInComponentByName(Component component, String portName)
+			throws ArchitectureExtractorException {
+		/* Get all ports in the component */
+		List<Port> allComponentPorts = getComponentPorts(component);
+
+		/* Iterate to find match */
+		for (Port p : allComponentPorts) {
+			if (p.getName().equals(portName))
+				return p;
+		}
+
+		/* If the port type with the given name is not found */
+		throw new PortTypeNotFoundException("The port type with name " + portName + "is not found");
 	}
 
 	public static PortType getPortTypeByName(BIPFileModel bipFileModel, String name)

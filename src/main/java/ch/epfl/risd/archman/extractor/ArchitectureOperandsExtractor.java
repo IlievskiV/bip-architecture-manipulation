@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
+import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.model.ArchitectureOperands;
 import ch.epfl.risd.archman.model.ComponentMapping;
 import ch.epfl.risd.archman.model.GlobalPortMapping;
@@ -29,7 +30,37 @@ public class ArchitectureOperandsExtractor {
 	 */
 	public static List<Component> getArchitectureOperands(ArchitectureOperands architectureOperands)
 			throws ArchitectureExtractorException {
-		return null;
+
+		/* Initialize the list of operands */
+		List<Component> operands = new LinkedList<Component>();
+		/* Get the list of all components */
+		List<Component> allComponents = BIPExtractor.getAllComponents(architectureOperands.getBipFileModel());
+
+		/* Flag for the existence of the coordinator in the BIP model */
+		boolean flag;
+
+		for (String key : architectureOperands.getOperandsMapping().keySet()) {
+			for (String s : architectureOperands.getOperandsMapping().get(key).getMappedComponents()) {
+				flag = false;
+
+				/* Iterate all components */
+				for (Component c : allComponents) {
+					if (c.getName().equals(s)) {
+						flag = true;
+						operands.add(c);
+						break;
+					}
+				}
+
+				/* If the coordinator does not exist */
+				if (!flag) {
+					throw new ComponentNotFoundException("Operand " + s + " does not exist");
+				}
+			}
+		}
+
+		return operands;
+
 	}
 
 	/**

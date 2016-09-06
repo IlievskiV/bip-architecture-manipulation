@@ -466,7 +466,7 @@ public class ArchitectureInstanceBuilder {
 				String interfaceName = ((DefinitionBindingImpl) p.getBinding()).getDefinition().getName();
 
 				PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName,
-						portType, ((DefinitionBindingImpl) p.getBinding()).getDefinition().getExposedVariable());
+						portType);
 
 				DefinitionBinding binding = (DefinitionBinding) ArchitectureInstanceBuilder
 						.createDefinitionBinding(portDefinition);
@@ -482,7 +482,7 @@ public class ArchitectureInstanceBuilder {
 
 				/* Create new port definition but with different type */
 				PortDefinition newPortDefinition = ArchitectureInstanceBuilder.createPortDefinition(pd.getName(),
-						portType, pd.getExposedVariable());
+						portType);
 
 				/* Add it to the list */
 				copyPortDefinitions.add(newPortDefinition);
@@ -595,7 +595,7 @@ public class ArchitectureInstanceBuilder {
 							.getExposedVariable();
 
 					PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(interfaceName,
-							portType, exposedVariables);
+							portType);
 
 					DefinitionBinding binding = (DefinitionBinding) ArchitectureInstanceBuilder
 							.createDefinitionBinding(portDefinition);
@@ -758,8 +758,7 @@ public class ArchitectureInstanceBuilder {
 			DefinitionBinding tempDefinitionBinding = (DefinitionBinding) binding;
 			PortDefinition tempDefinition = tempDefinitionBinding.getDefinition();
 
-			PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(innerName, type,
-					tempDefinition.getExposedVariable());
+			PortDefinition portDefinition = ArchitectureInstanceBuilder.createPortDefinition(innerName, type);
 			portBinding = ArchitectureInstanceBuilder.createDefinitionBinding(portDefinition);
 
 		} else if (portBindingType == PortBindingType.EXPORT_BINDING) {
@@ -982,7 +981,7 @@ public class ArchitectureInstanceBuilder {
 
 				/* Create new port definition */
 				PortDefinition newPortDefinition = ArchitectureInstanceBuilder.createPortDefinition(pd.getName(),
-						exportedPortType, pd.getExposedVariable());
+						exportedPortType);
 				/* Set the new port definition */
 				copy.setPortDefinition(newPortDefinition);
 			}
@@ -1052,13 +1051,13 @@ public class ArchitectureInstanceBuilder {
 			allStates.addAll(initialStates);
 			allStates.addAll(states);
 
-			/* Check every Transition */
-			for (Transition transition : transitions) {
-				if (!checkTransitionStates(transition, allStates)) {
-					throw new IllegalTransitionStatesException(
-							"The Transition is operating with States, not defined in the corresponding Atom Type");
-				}
-			}
+//			/* Check every Transition */
+//			for (Transition transition : transitions) {
+//				if (!checkTransitionStates(transition, allStates)) {
+//					throw new IllegalTransitionStatesException(
+//							"The Transition is operating with States, not defined in the corresponding Atom Type");
+//				}
+//			}
 
 			net.getTransition().addAll(transitions);
 		}
@@ -1077,15 +1076,13 @@ public class ArchitectureInstanceBuilder {
 		return dataParameter;
 	}
 
-	public static PortDefinition createPortDefinition(String interfaceName, PortType type, List<Variable> variables) {
+	public static PortDefinition createPortDefinition(String interfaceName, PortType type) {
 		/* First create Port Definition */
 		PortDefinition portDefinition = Factories.BEHAVIORS_FACTORY.createPortDefinition();
 		/* set port type to the port definition */
 		portDefinition.setType(type);
 		/* Set the interface name */
 		portDefinition.setName(interfaceName);
-		/* Set variables */
-		portDefinition.getExposedVariable().addAll(variables);
 
 		return portDefinition;
 	}
@@ -1153,16 +1150,16 @@ public class ArchitectureInstanceBuilder {
 		return states;
 	}
 
-	public static Transition createTransition(PortDefinitionReference portDefinitionReference, State origin,
-			State destination, Expression guard, Action action) {
+	public static Transition createTransition(PortDefinitionReference portDefinitionReference, List<State> origins,
+			List<State> destinations, Expression guard, Action action) {
 		/* Create new transition */
 		Transition transition = Factories.BEHAVIORS_FACTORY.createTransition();
 		/* set port reference */
 		transition.setTrigger(portDefinitionReference);
 		/* set origin */
-		transition.getOrigin().add(origin);
+		transition.getOrigin().addAll(origins);
 		/* set destination */
-		transition.getDestination().add(destination);
+		transition.getDestination().addAll(destinations);
 		/* set guard of the transition */
 		if (guard != null) {
 			transition.setGuard(guard);

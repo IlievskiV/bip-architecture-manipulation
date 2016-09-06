@@ -1,28 +1,28 @@
 model MutualExclusion
   compound type Mutex
-    component Coordinator C
-    component Operand B1
+    component Coordinator1 C1
     component Operand B2
-    connector beginConnector B_to_C_begin_1(C.take, B2.begin)
-    connector beginConnector B_to_C_begin_2(C.take, B1.begin)
-    connector finishConnector B_to_C_finish_1(C.release, B1.finish)
-    connector finishConnector B_to_C_finish_2(C.release, B2.finish)
+    component Operand B1
   end
 
   port type BeginPort
   port type FinishPort
-  atomic type Coordinator
-    export port BeginPort take()
-    export port FinishPort release()
-    place taken
+  atomic type Coordinator1
+    export port BeginPort take2()
+    export port BeginPort take1()
+    export port FinishPort release2()
+    export port FinishPort release1()
     place free
+    place taken
     initial to free
-    on take
+    on take2
       from free to taken
-    on release
+    on take1
+      from free to taken
+    on release2
       from taken to free
-
-
+    on release1
+      from taken to free
   end
 
   atomic type Operand
@@ -35,16 +35,6 @@ model MutualExclusion
       from sleep to work
     on finish
       from work to sleep
-
-
-  end
-
-  connector type beginConnector(BeginPort b, BeginPort t)
-    define  b t
-  end
-
-  connector type finishConnector(FinishPort f, FinishPort r)
-    define  f r
   end
 
   component Mutex mutex
