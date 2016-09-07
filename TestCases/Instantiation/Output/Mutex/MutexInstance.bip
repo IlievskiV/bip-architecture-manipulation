@@ -3,6 +3,10 @@ model MutualExclusion
     component Coordinator1 C1
     component Operand B2
     component Operand B1
+    connector beginConnector B_to_C_begin1(C1.take2, B2.begin)
+    connector beginConnector B_to_C_begin2(C1.take1, B1.begin)
+    connector finishConnector B_to_C_finish1(C1.release2, B2.finish)
+    connector finishConnector B_to_C_finish2(C1.release1, B1.finish)
   end
 
   port type BeginPort
@@ -23,6 +27,10 @@ model MutualExclusion
       from taken to free
     on release1
       from taken to free
+
+
+
+
   end
 
   atomic type Operand
@@ -35,6 +43,14 @@ model MutualExclusion
       from sleep to work
     on finish
       from work to sleep
+  end
+
+  connector type beginConnector(BeginPort take1, BeginPort begin1)
+    define  take1 begin1
+  end
+
+  connector type finishConnector(FinishPort release1, FinishPort finish1)
+    define  release1 finish1
   end
 
   component Mutex mutex

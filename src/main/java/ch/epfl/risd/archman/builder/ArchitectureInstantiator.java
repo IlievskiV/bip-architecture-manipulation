@@ -1,7 +1,9 @@
 package ch.epfl.risd.archman.builder;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +16,14 @@ import ch.epfl.risd.archman.checker.BIPChecker;
 import ch.epfl.risd.archman.exceptions.ArchitectureBuilderException;
 import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
+import ch.epfl.risd.archman.exceptions.IllegalPortParameterReferenceException;
 import ch.epfl.risd.archman.exceptions.IllegalTransitionPortException;
 import ch.epfl.risd.archman.exceptions.IllegalTransitionStatesException;
 import ch.epfl.risd.archman.exceptions.InvalidAtomTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidComponentNameException;
+import ch.epfl.risd.archman.exceptions.InvalidConnectorTypeNameException;
 import ch.epfl.risd.archman.exceptions.InvalidPortNameException;
+import ch.epfl.risd.archman.exceptions.InvalidPortParameterNameException;
 import ch.epfl.risd.archman.exceptions.InvalidStateNameException;
 import ch.epfl.risd.archman.exceptions.InvalidVariableNameException;
 import ch.epfl.risd.archman.exceptions.ListEmptyException;
@@ -31,7 +36,10 @@ import ch.epfl.risd.archman.model.ArchitectureOperands;
 import ch.epfl.risd.archman.model.ArchitectureStyle;
 import ch.epfl.risd.archman.model.ComponentMapping;
 import ch.epfl.risd.archman.model.ComponentPortMapping;
+import ch.epfl.risd.archman.model.ConnectorTuple;
 import ch.epfl.risd.archman.model.GlobalPortMapping;
+import ch.epfl.risd.archman.model.PortTuple;
+import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
 import ch.epfl.risd.archman.solver.ArchitectureStyleSolver;
 import ujf.verimag.bip.Core.Behaviors.AtomType;
 import ujf.verimag.bip.Core.Behaviors.ComponentType;
@@ -43,9 +51,17 @@ import ujf.verimag.bip.Core.Behaviors.PortDefinitionReference;
 import ujf.verimag.bip.Core.Behaviors.PortType;
 import ujf.verimag.bip.Core.Behaviors.State;
 import ujf.verimag.bip.Core.Behaviors.Transition;
+import ujf.verimag.bip.Core.Interactions.ActualPortParameter;
 import ujf.verimag.bip.Core.Interactions.Component;
 import ujf.verimag.bip.Core.Interactions.CompoundType;
+import ujf.verimag.bip.Core.Interactions.ConnectorType;
 import ujf.verimag.bip.Core.Interactions.ExportBinding;
+import ujf.verimag.bip.Core.Interactions.InteractionSpecification;
+import ujf.verimag.bip.Core.Interactions.PartElementReference;
+import ujf.verimag.bip.Core.Interactions.PortParameter;
+import ujf.verimag.bip.Core.Interactions.PortParameterReference;
+import ujf.verimag.bip.Core.PortExpressions.ACExpression;
+import ujf.verimag.bip.Core.PortExpressions.ACFusion;
 
 /**
  * 
@@ -413,6 +429,312 @@ public class ArchitectureInstantiator {
 		}
 	}
 
+	/**
+	 * Helper method to fill in the list of actual port parameters and port
+	 * parameters depending on the port tuple. The lists are passed by
+	 * reference.
+	 * 
+	 * @throws ArchitectureExtractorException
+	 */
+	public static List<PortParameter> createPortParams(ArchitectureStyle architectureStyle,
+			ArchitectureInstance instance, List<PortTuple> portTuples) throws ArchitectureExtractorException {
+
+		/* Initialize the result */
+		List<PortParameter> result = new LinkedList<PortParameter>();
+
+		/* Iterate over coordinator port tuples */
+		for (PortTuple portTuple : portTuples) {
+			/* Get the name of the port instance in the component */
+			String componentPortInstanceName = portTuple.getPortInstanceName().split("\\.")[1];
+			/* Get the type name of the port in the style */
+			String componentPortTypeName = BIPExtractor
+					.getPortByName(architectureStyle.getBipFileModel(), componentPortInstanceName).getType().getName();
+			/* Get the port type in the instance */
+			PortType componentPortType = BIPExtractor.getPortTypeByName(instance.getBipFileModel(),
+					componentPortTypeName);
+
+			/* Create the port parameters */
+			for (int i = 0; i < portTuple.getCalculatedMultiplicity(); i++) {
+				result.add(ArchitectureInstanceBuilder.createPortParameter(componentPortType,
+						componentPortInstanceName + (i + 1)));
+			}
+		}
+
+		return result;
+
+	}
+
+	/**
+	 * Helper method to create AC fusion from the port parameters
+	 */
+	public static ACFusion createConnectorTypeFusion(List<PortParameter> portParameters) {
+		/* Create a list of port parameter references */
+		List<PortParameterReference> portParameterReferences = new LinkedList<PortParameterReference>();
+		for (PortParameter pp : portParameters) {
+
+			PortParameterReference portParameterReference = ArchitectureInstanceBuilder
+					.createPortParameterReference(pp);
+			portParameterReferences.add(portParameterReference);
+		}
+
+		/* Create a list of AC Expressions */
+		List<ACExpression> expressions = new LinkedList<ACExpression>();
+		expressions.addAll(portParameterReferences);
+
+		/* Create the ACFusion */
+		ACFusion acFusion = ArchitectureInstanceBuilder.createACFusion(expressions);
+
+		return acFusion;
+	}
+
+	/**
+	 * Helper method to create all connector types in the instance
+	 */
+	public static void plugAllConnectorTypes(ArchitectureStyle architectureStyle, ArchitectureInstance instance)
+			throws ArchitectureExtractorException, InvalidConnectorTypeNameException, InvalidPortParameterNameException,
+			IllegalPortParameterReferenceException {
+
+		/* Get the list of all Connector Tuples */
+		List<ConnectorTuple> connectorTuples = architectureStyle.getConnectorsTuples();
+
+		/* Iterate over the connector tuples */
+		for (ConnectorTuple connectorTuple : connectorTuples) {
+			/* Get the coordinator port tuples */
+			List<PortTuple> coordinatorPortTuples = connectorTuple.getCoordinatorPortTuples();
+			/* Get the operand port tuples */
+			List<PortTuple> operandPortTuples = connectorTuple.getOperandPortTuples();
+
+			/* Initialize list of port parameters */
+			List<PortParameter> portParameters = new LinkedList<PortParameter>();
+			portParameters.addAll(createPortParams(architectureStyle, instance, coordinatorPortTuples));
+			portParameters.addAll(createPortParams(architectureStyle, instance, operandPortTuples));
+
+			/* Create the AC fusion */
+			ACFusion acFusion = createConnectorTypeFusion(portParameters);
+
+			/* The name of the connector instance */
+			String connectorInstanceName = connectorTuple.getConnectorInstanceName();
+			/* The name of the connector type */
+			String connectorTypeName = BIPExtractor
+					.getConnectorByName(architectureStyle.getBipFileModel(), connectorInstanceName).getType().getName();
+
+			/* Create an empty list of interactions */
+			List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
+
+			/* Create the connector type */
+			ArchitectureInstanceBuilder.createConnectorType(instance, connectorTypeName, portParameters, acFusion,
+					interactionSpecifications, null);
+		}
+
+	}
+
+	/**
+	 * Helper method to calculate the matching factor
+	 */
+	public static int calculateMatchingFactor(PortTuple portTuple, Map<String, ComponentMapping> componentMappings) {
+		/* Degree and Multiplicity of the port */
+		int degree = portTuple.getCalculatedDegree();
+		int multiplicity = portTuple.getCalculatedMultiplicity();
+
+		/* Calculate sum of the port cardinalities */
+		int sumOfPortCardinalities = 0;
+
+		/* Get the mappings of the component where the port belongs */
+		String portInstanceName = portTuple.getPortInstanceName();
+		String componentName = portInstanceName.split("\\.")[0];
+		ComponentMapping componentMapping = componentMappings.get(componentName);
+
+		/* Get global port mappings */
+		GlobalPortMapping globalPortMapping = componentMapping.getGlobalPortMappings().get(portInstanceName);
+		/* Take the collection of all port mappings to each mapped component */
+		Collection<ComponentPortMapping> componentPortMappings = globalPortMapping.getComponentPortMappings().values();
+
+		/* Iterate over them */
+		for (ComponentPortMapping cpm : componentPortMappings) {
+			sumOfPortCardinalities += cpm.getCardinalityTerm().getValue();
+		}
+
+		return (sumOfPortCardinalities * degree) / multiplicity;
+	}
+
+	/**
+	 * Helper method to create "map of credits", where the credit is equal to
+	 * the degree
+	 */
+	public static Map<String, Integer> createMapOfCredits(ArchitectureStyle architectureStyle,
+			ArchitectureOperands architectureOperands, ConnectorTuple connectorTuple) {
+		/* Initialize the resulting map */
+		Map<String, Integer> result = new HashMap<String, Integer>();
+
+		/* Get all port tuples */
+		List<PortTuple> portTuples = connectorTuple.getPortTuples();
+		/* Iterate over them */
+		for (PortTuple portTuple : portTuples) {
+			/* The degree will be the credit */
+			int degree = portTuple.getCalculatedDegree();
+
+			/* The name of the component where the port belongs */
+			String portInstanceName = portTuple.getPortInstanceName();
+			String compInstanceName = portInstanceName.split("\\.")[0];
+
+			/* The mappings where the port belongs */
+			ComponentMapping componentMapping;
+			GlobalPortMapping globalPortMapping;
+
+			/* If the port tuple is coordinator tuple */
+			if (portTuple.getType() == PortTupleType.COORDINATOR_TUPLE) {
+				componentMapping = architectureStyle.getCoordinatorsMapping().get(compInstanceName);
+				globalPortMapping = componentMapping.getGlobalPortMappings().get(portInstanceName);
+			} else {
+				componentMapping = architectureOperands.getOperandsMapping().get(compInstanceName);
+				globalPortMapping = componentMapping.getGlobalPortMappings().get(portInstanceName);
+			}
+
+			/* Take the collection of all port mappings */
+			Collection<ComponentPortMapping> componentPortMappings = globalPortMapping.getComponentPortMappings()
+					.values();
+
+			/* Iterate over them to make the map */
+			for (ComponentPortMapping cpm : componentPortMappings) {
+				/* Iterate over the mapped ports */
+				for (String mappedPort : cpm.getMappedPorts()) {
+					/* Put the credit */
+					result.put(mappedPort, degree);
+				}
+			}
+
+		}
+
+		return result;
+	}
+
+	public static List<ActualPortParameter> createActualPortParams(ArchitectureInstance instance,
+			List<PortTuple> portTuples, Map<String, ComponentMapping> componentMappings,
+			Map<String, Integer> mapOfCredits) throws ArchitectureExtractorException {
+
+		/* Initialize the result */
+		List<ActualPortParameter> result = new LinkedList<ActualPortParameter>();
+
+		/* Iterate over port tuples */
+		for (PortTuple portTuple : portTuples) {
+
+			/* Get the multiplicity of the port tuple */
+			int multiplicity = portTuple.getCalculatedMultiplicity();
+
+			/* Get the mappings of the component where the port belongs */
+			String portInstanceName = portTuple.getPortInstanceName();
+			String compInstanceName = portInstanceName.split("\\.")[0];
+			ComponentMapping componentMapping = componentMappings.get(compInstanceName);
+
+			/* Get global port mappings */
+			GlobalPortMapping globalPortMapping = componentMapping.getGlobalPortMappings().get(portInstanceName);
+
+			/*
+			 * Take the collection of all port mappings to each mapped component
+			 */
+			Collection<ComponentPortMapping> componentPortMappings = globalPortMapping.getComponentPortMappings()
+					.values();
+
+			/* Initialize the counter */
+			int counter = 0;
+
+			/*
+			 * The map of credits is still the same. That is why this is working
+			 */
+
+			/* Iterate over them */
+			for (ComponentPortMapping cpm : componentPortMappings) {
+				/* Iterate over port mappings */
+				for (String mappedPort : cpm.getMappedPorts()) {
+					/* Create actual port parameter */
+					if (mapOfCredits.get(mappedPort) > 0) {
+
+						PartElementReference per = ArchitectureInstanceBuilder.createPartElementReference(
+								BIPExtractor.getComponentByName(instance.getBipFileModel(), cpm.getMappedComponent()));
+						Port p = BIPExtractor.getPortByName(instance.getBipFileModel(), mappedPort.split("\\.")[1]);
+						ActualPortParameter app = ArchitectureInstanceBuilder.createInnerPortReference(per, p);
+						result.add(app);
+
+						/* Decrement the credit */
+						mapOfCredits.put(mappedPort, mapOfCredits.get(mappedPort) - 1);
+
+						/* Increment the counter */
+						counter++;
+
+						/* Jump to the next component */
+						break;
+					}
+				}
+
+				if (counter == multiplicity) {
+					break;
+				}
+			}
+
+			System.err.println("Counter: " + counter);
+
+		}
+
+		return result;
+
+	}
+
+	public static void createAllConnectorInstances(ArchitectureStyle architectureStyle,
+			ArchitectureOperands architectureOperands, ArchitectureInstance instance)
+			throws ArchitectureExtractorException {
+
+		/* Get the list of all Connector Tuples */
+		List<ConnectorTuple> connectorTuples = architectureStyle.getConnectorsTuples();
+
+		/* Iterate over the connector tuples */
+		for (ConnectorTuple connectorTuple : connectorTuples) {
+
+			/* Create map of credits for each mapped port */
+			Map<String, Integer> mapOfCredits = createMapOfCredits(architectureStyle, architectureOperands,
+					connectorTuple);
+
+			/* Calculate the matching factor */
+			int matchingFactor;
+			if (connectorTuple.getPortTuples().get(0).getType() == PortTupleType.COORDINATOR_TUPLE) {
+				matchingFactor = calculateMatchingFactor(connectorTuple.getPortTuples().get(0),
+						architectureStyle.getCoordinatorsMapping());
+			} else {
+				matchingFactor = calculateMatchingFactor(connectorTuple.getPortTuples().get(0),
+						architectureOperands.getOperandsMapping());
+			}
+
+			/* Get the coordinator port tuples */
+			List<PortTuple> coordinatorPortTuples = connectorTuple.getCoordinatorPortTuples();
+			/* Get the operand port tuples */
+			List<PortTuple> operandPortTuples = connectorTuple.getOperandPortTuples();
+
+			/* Get the name of the connector instance */
+			String connectorInstanceName = connectorTuple.getConnectorInstanceName();
+			/* Get the connector type */
+			String connectorTypeName = BIPExtractor
+					.getConnectorByName(architectureStyle.getBipFileModel(), connectorInstanceName).getType().getName();
+			ConnectorType connectorType = BIPExtractor.getConnectorTypeByName(instance.getBipFileModel(),
+					connectorTypeName);
+
+			for (int i = 0; i < matchingFactor; i++) {
+
+				/* The map of credits is still the same */
+
+				/* Create actual port parameters */
+				List<ActualPortParameter> actualPortParameters = new LinkedList<ActualPortParameter>();
+				actualPortParameters.addAll(createActualPortParams(instance, coordinatorPortTuples,
+						architectureStyle.getCoordinatorsMapping(), mapOfCredits));
+				actualPortParameters.addAll(createActualPortParams(instance, operandPortTuples,
+						architectureOperands.getOperandsMapping(), mapOfCredits));
+				/* create connector instance */
+				ArchitectureInstanceBuilder.createConnectorInstance(instance, connectorInstanceName + (i + 1),
+						connectorType, instance.getBipFileModel().getRootType(), actualPortParameters);
+			}
+
+		}
+
+	}
+
 	/****************************************************************************/
 	/* PUBLIC METHODS */
 	/***************************************************************************/
@@ -453,6 +775,12 @@ public class ArchitectureInstantiator {
 
 		/* 5. Take all operands and plug them */
 		plugAllOperands(architectureOperands, instance);
+
+		/* 6. Plug all connectors */
+		plugAllConnectorTypes(architectureStyle, instance);
+
+		/* 7. Create all connector instances */
+		createAllConnectorInstances(architectureStyle, architectureOperands, instance);
 
 		// /* Calculate the predicate */
 		// instance.setCharacteristicPredicate(
