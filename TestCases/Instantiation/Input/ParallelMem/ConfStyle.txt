@@ -1,5 +1,7 @@
 path:/TestCases/Instantiation/Input/ParallelMem/SaveToMem.bip
 coordinators:C
+coordinator_cardinality:C 1
 operands:B
 ports:C.write,B.saveToMem,B.success,B.fail
-connectors:actionStart C.write 1 n B.saveToMem 1 1
+connectors:actionStart C.write 1 d_C.write B.saveToMem 1 1
+coordinator_ports_cardinality:C.write 1

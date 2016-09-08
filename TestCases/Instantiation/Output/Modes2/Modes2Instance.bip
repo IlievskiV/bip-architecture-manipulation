@@ -1,67 +1,59 @@
 model ModeControl2
   compound type ModeControl2
-    component Coordinator C
+    component Coordinator1 C1
     component Housekeeping HK
     component LogType Log
-    connector ModeSwitchConnector switchToMode1(C.toMode1)
-    connector ModeSwitchConnector switchToMode2(C.toMode2)
-    connector ActionStartConnector actionStart1(C.inMode1, HK.saveToMem, Log.log)
-    connector ActionStartConnector actionStart2(C.inMode2, HK.sendToGround, Log.log)
-    connector ActionEndConnector actionEnd1(HK.success_1, Log.log)
-    connector ActionEndConnector actionEnd2(HK.fail_1, Log.log)
+    connector ModeSwitchConnector switchToMode11(C1.toMode11)
+    connector ModeSwitchConnector switchToMode21(C1.toMode21)
+    connector ActionStartConnector actionStart11(C1.inMode11, HK.saveToMem, Log.log1)
+    connector ActionStartConnector actionStart21(C1.inMode21, HK.sendToGround, Log.log1)
+    connector ActionEndConnector actionEnd11(HK.success, Log.log2)
+    connector ActionEndConnector actionEnd21(HK.fail, Log.log2)
   end
 
   port type ModeSwitch
   port type ModeAction
   port type ModeStart
   port type ModeEnd
-  atomic type Coordinator
-    export port ModeAction inMode1()
-    export port ModeAction inMode2()
-    export port ModeSwitch toMode1()
-    export port ModeSwitch toMode2()
-    place mode1
+  atomic type Coordinator1
+    export port ModeSwitch toMode11()
+    export port ModeSwitch toMode21()
+    export port ModeAction inMode21()
+    export port ModeAction inMode11()
     place mode2
+    place mode1
     initial to mode1
-    on inMode1
-      from mode1 to mode1
-    on inMode2
-      from mode2 to mode2
-    on toMode1
+    on toMode11
       from mode2 to mode1
-    on toMode2
+    on toMode21
       from mode1 to mode2
-
-
-
-
+    on inMode21
+      from mode2 to mode2
+    on inMode11
+      from mode1 to mode1
   end
 
   atomic type Housekeeping
     export port ModeStart saveToMem()
-    export port ModeEnd success_1()
-    export port ModeEnd fail_1()
     export port ModeStart sendToGround()
-    export port ModeEnd success_2()
-    export port ModeEnd fail_2()
+    export port ModeEnd success()
+    export port ModeEnd fail()
     place idle
     place memory
     place comm
     initial to idle
     on saveToMem
       from idle to memory
-    on success_1
+    on success
       from memory to idle
-    on fail_1
+    on fail
       from memory to idle
     on sendToGround
       from idle to comm
-    on success_2
+    on success
       from comm to idle
-    on fail_2
+    on fail
       from comm to idle
-
-
 
 
 
@@ -69,24 +61,28 @@ model ModeControl2
   end
 
   atomic type LogType
-    export port ModeStart log()
+    export port ModeStart log1()
+    export port ModeEnd log2()
     place idle
     initial to idle
-    on log
+    on log1
+      from idle to idle
+    on log2
       from idle to idle
 
+
   end
 
-  connector type ModeSwitchConnector(ModeSwitch sw)
-    define sw
+  connector type ModeSwitchConnector(ModeSwitch toMode11)
+    define  toMode11
   end
 
-  connector type ActionStartConnector(ModeAction inMode1, ModeStart saveToMem, ModeStart log)
-    define  inMode1 saveToMem log
+  connector type ActionStartConnector(ModeAction inMode11, ModeStart m1b1, ModeStart m1b2)
+    define  inMode11 m1b1 m1b2
   end
 
-  connector type ActionEndConnector(ModeEnd success_1, ModeStart log)
-    define  success_1 log
+  connector type ActionEndConnector(ModeEnd m1e1, ModeEnd m1e2)
+    define  m1e1 m1e2
   end
 
   component ModeControl2 modeControl2

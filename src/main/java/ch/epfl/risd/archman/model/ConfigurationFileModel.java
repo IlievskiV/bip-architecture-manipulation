@@ -140,11 +140,11 @@ public class ConfigurationFileModel {
 
 					/* If the value is missing */
 					if (tokens[1].trim().equals("")) {
-						throw new ConfigurationFileException(
-								"The value of the " + requiredParams.get(indexOfParam) + " parameter is missing");
+						System.out.println(
+								"The value of the " + requiredParams.get(indexOfParam) + " parameter is empty");
 					}
 					/* Insert the value of the parameter */
-					parameters.put(tokens[0], tokens[1]);
+					parameters.put(tokens[0], tokens[1].trim());
 					/* Validate the presence of the parameter */
 					hasParam[indexOfParam] = true;
 

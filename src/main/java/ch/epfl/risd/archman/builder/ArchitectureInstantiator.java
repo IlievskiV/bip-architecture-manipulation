@@ -3,7 +3,6 @@ package ch.epfl.risd.archman.builder;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +71,11 @@ public class ArchitectureInstantiator {
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
 	/****************************************************************************/
+
+	/* Enumeration for the type of credit in the map of credits */
+	public enum CreditType {
+		CREDIT_DEGREE, CREDIT_ONE;
+	}
 
 	/**
 	 * Helper method to plug all ports in the instance from the style and the
@@ -433,8 +437,6 @@ public class ArchitectureInstantiator {
 	 * Helper method to fill in the list of actual port parameters and port
 	 * parameters depending on the port tuple. The lists are passed by
 	 * reference.
-	 * 
-	 * @throws ArchitectureExtractorException
 	 */
 	public static List<PortParameter> createPortParams(ArchitectureStyle architectureStyle,
 			ArchitectureInstance instance, List<PortTuple> portTuples) throws ArchitectureExtractorException {
@@ -499,18 +501,6 @@ public class ArchitectureInstantiator {
 
 		/* Iterate over the connector tuples */
 		for (ConnectorTuple connectorTuple : connectorTuples) {
-			/* Get the coordinator port tuples */
-			List<PortTuple> coordinatorPortTuples = connectorTuple.getCoordinatorPortTuples();
-			/* Get the operand port tuples */
-			List<PortTuple> operandPortTuples = connectorTuple.getOperandPortTuples();
-
-			/* Initialize list of port parameters */
-			List<PortParameter> portParameters = new LinkedList<PortParameter>();
-			portParameters.addAll(createPortParams(architectureStyle, instance, coordinatorPortTuples));
-			portParameters.addAll(createPortParams(architectureStyle, instance, operandPortTuples));
-
-			/* Create the AC fusion */
-			ACFusion acFusion = createConnectorTypeFusion(portParameters);
 
 			/* The name of the connector instance */
 			String connectorInstanceName = connectorTuple.getConnectorInstanceName();
@@ -518,12 +508,28 @@ public class ArchitectureInstantiator {
 			String connectorTypeName = BIPExtractor
 					.getConnectorByName(architectureStyle.getBipFileModel(), connectorInstanceName).getType().getName();
 
-			/* Create an empty list of interactions */
-			List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
+			/* If the connector type not exist */
+			if (!BIPChecker.connectorTypeExists(instance.getBipFileModel(), connectorTypeName)) {
+				/* Get the coordinator port tuples */
+				List<PortTuple> coordinatorPortTuples = connectorTuple.getCoordinatorPortTuples();
+				/* Get the operand port tuples */
+				List<PortTuple> operandPortTuples = connectorTuple.getOperandPortTuples();
 
-			/* Create the connector type */
-			ArchitectureInstanceBuilder.createConnectorType(instance, connectorTypeName, portParameters, acFusion,
-					interactionSpecifications, null);
+				/* Initialize list of port parameters */
+				List<PortParameter> portParameters = new LinkedList<PortParameter>();
+				portParameters.addAll(createPortParams(architectureStyle, instance, coordinatorPortTuples));
+				portParameters.addAll(createPortParams(architectureStyle, instance, operandPortTuples));
+
+				/* Create the AC fusion */
+				ACFusion acFusion = createConnectorTypeFusion(portParameters);
+
+				/* Create an empty list of interactions */
+				List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
+
+				/* Create the connector type */
+				ArchitectureInstanceBuilder.createConnectorType(instance, connectorTypeName, portParameters, acFusion,
+						interactionSpecifications, null);
+			}
 		}
 
 	}
@@ -562,7 +568,7 @@ public class ArchitectureInstantiator {
 	 * the degree
 	 */
 	public static Map<String, Integer> createMapOfCredits(ArchitectureStyle architectureStyle,
-			ArchitectureOperands architectureOperands, ConnectorTuple connectorTuple) {
+			ArchitectureOperands architectureOperands, ConnectorTuple connectorTuple, CreditType creditType) {
 		/* Initialize the resulting map */
 		Map<String, Integer> result = new HashMap<String, Integer>();
 
@@ -570,8 +576,15 @@ public class ArchitectureInstantiator {
 		List<PortTuple> portTuples = connectorTuple.getPortTuples();
 		/* Iterate over them */
 		for (PortTuple portTuple : portTuples) {
-			/* The degree will be the credit */
-			int degree = portTuple.getCalculatedDegree();
+
+			int credit;
+			if (creditType == CreditType.CREDIT_DEGREE) {
+				/* The degree will be the credit */
+				credit = portTuple.getCalculatedDegree();
+			} else {
+				/* The credit will be 1 */
+				credit = 1;
+			}
 
 			/* The name of the component where the port belongs */
 			String portInstanceName = portTuple.getPortInstanceName();
@@ -599,7 +612,7 @@ public class ArchitectureInstantiator {
 				/* Iterate over the mapped ports */
 				for (String mappedPort : cpm.getMappedPorts()) {
 					/* Put the credit */
-					result.put(mappedPort, degree);
+					result.put(mappedPort, credit);
 				}
 			}
 
@@ -691,7 +704,7 @@ public class ArchitectureInstantiator {
 
 			/* Create map of credits for each mapped port */
 			Map<String, Integer> mapOfCredits = createMapOfCredits(architectureStyle, architectureOperands,
-					connectorTuple);
+					connectorTuple, CreditType.CREDIT_DEGREE);
 
 			/* Calculate the matching factor */
 			int matchingFactor;

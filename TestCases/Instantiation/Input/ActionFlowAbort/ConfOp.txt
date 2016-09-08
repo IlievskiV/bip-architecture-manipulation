@@ -1,0 +1,3 @@
+path:/TestCases/Instantiation/Input/ActionFlowAbort/ActionFlowAbort-operands.bip
+operands_mapping:B B1 B2
+ports_mapping:B.actBeginO {B1.actBegin1;B1.actBegin2;B1.actBegin3} {B2.actBegin1;B2.actBegin2;B2.actBegin3},B.actEndO {B1.actEnd1;B1.actEnd2;B1.actEnd3} {B2.actEnd1;B2.actEnd2;B2.actEnd3},B.actAbortO {B1.actAbort1;B1.actAbort2;B1.actAbort3} {B2.actAbort1;B2.actAbort2;B2.actAbort3}

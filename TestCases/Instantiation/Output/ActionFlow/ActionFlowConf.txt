@@ -1,0 +1,5 @@
+operands:B2,B1
+coordinators:C1
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ActionFlow/ActionFlowInstance.bip
+interactions:C1.actBeginC4 B2.actBegin3,C1.actBeginC5 B2.actBegin1,C1.actBeginC6 B2.actBegin2,C1.actBeginC1 B1.actBegin1,C1.actBeginC2 B1.actBegin3,C1.actBeginC3 B1.actBegin2,C1.actEndC1 B2.actEnd1,C1.actEndC4 B2.actEnd2,C1.actEndC5 B2.actEnd3,C1.actEndC2 B1.actEnd2,C1.actEndC3 B1.actEnd3,C1.actEndC6 B1.actEnd1
+ports:C1.actBeginC4,C1.actBeginC5,C1.actBeginC6,C1.actBeginC1,C1.actBeginC2,C1.actBeginC3,C1.actEndC1,C1.actEndC4,C1.actEndC5,C1.actEndC2,C1.actEndC3,C1.actEndC6,B2.actBegin1,B2.actBegin2,B2.actBegin3,B2.actEnd1,B2.actEnd2,B2.actEnd3,B1.actBegin1,B1.actBegin2,B1.actBegin3,B1.actEnd1,B1.actEnd2,B1.actEnd3

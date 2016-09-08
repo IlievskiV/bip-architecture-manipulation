@@ -1,18 +1,18 @@
 model SaveToMem
   compound type SaveToMem
-    component Coordinator C
+    component Coordinator1 C1
     component ParallelMem B1
-    connector ActionStartConnector actionStart_1(C.saveToMemPar, B1.saveToMemPar)
+    connector ActionStartConnector actionStart1(C1.write1, B1.saveToMemPar)
   end
 
   port type Write
   port type ActionStart
   port type ActionEnd
-  atomic type Coordinator
-    export port Write saveToMemPar()
+  atomic type Coordinator1
+    export port Write write1()
     place idle
     initial to idle
-    on saveToMemPar
+    on write1
       from idle to idle
 
   end
@@ -37,9 +37,6 @@ model SaveToMem
       from memory to idle
     on fail
       from memory to idle
-
-
-
   end
 
   connector type ParallelWriteConnector(ActionStart s1, ActionStart s2)
@@ -47,8 +44,8 @@ model SaveToMem
     export port ActionStart saveToMemPar()
   end
 
-  connector type ActionStartConnector(Write w, ActionStart s)
-    define  w s
+  connector type ActionStartConnector(Write write1, ActionStart saveToMem1)
+    define  write1 saveToMem1
   end
 
   component SaveToMem saveToMem1

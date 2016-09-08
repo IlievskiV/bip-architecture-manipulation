@@ -1,3 +1,3 @@
 path:/TestCases/Instantiation/Input/ParallelMem/SaveToMem-operands.bip
 operands_mapping:B B1
-ports_mapping:B.saveToMem B1.saveToMemPar
+ports_mapping:B.saveToMem {B1.saveToMemPar}

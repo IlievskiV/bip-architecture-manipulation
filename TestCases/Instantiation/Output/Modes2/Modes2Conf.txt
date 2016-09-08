@@ -1,5 +1,5 @@
 operands:HK,Log
-coordinators:C
+coordinators:C1
 path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/Modes2/Modes2Instance.bip
-interactions:C.toMode1,C.toMode2,C.inMode1 HK.saveToMem Log.log,C.inMode2 HK.sendToGround Log.log,HK.success_1 Log.log,HK.fail_1 Log.log
-ports:C.inMode1,C.inMode2,C.toMode1,C.toMode2,HK.saveToMem,HK.success_1,HK.fail_1,HK.sendToGround,HK.success_2,HK.fail_2,Log.log
+interactions:C1.toMode11,C1.toMode21,C1.inMode11 HK.saveToMem Log.log1,C1.inMode21 HK.sendToGround Log.log1,HK.success Log.log2,HK.fail Log.log2
+ports:C1.toMode11,C1.toMode21,C1.inMode21,C1.inMode11,HK.saveToMem,HK.sendToGround,HK.success,HK.fail,Log.log1,Log.log2

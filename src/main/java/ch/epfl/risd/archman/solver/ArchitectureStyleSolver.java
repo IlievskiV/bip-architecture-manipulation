@@ -168,7 +168,7 @@ public class ArchitectureStyleSolver {
 					variableEpressions.put(multiplicityTerm.getName(), multiplicityExpr);
 				} else {
 					/* Add constraint for equality */
-					IntNum value = ctx.mkInt(multiplicityTerm.getValue());
+					IntExpr value = ctx.mkInt(multiplicityTerm.getValue());
 					constraints.add(ctx.mkEq(multiplicityExpr, value));
 				}
 
@@ -178,7 +178,7 @@ public class ArchitectureStyleSolver {
 					variableEpressions.put(degreeTerm.getName(), degreeExp);
 				} else {
 					/* Add constraint for equality */
-					IntNum value = ctx.mkInt(degreeTerm.getValue());
+					IntExpr value = ctx.mkInt(degreeTerm.getValue());
 					constraints.add(ctx.mkEq(degreeExp, value));
 				}
 
@@ -209,7 +209,7 @@ public class ArchitectureStyleSolver {
 				Collection<ComponentPortMapping> componentPortMappings = globalPortMapping.getComponentPortMappings()
 						.values();
 				/* Array of port cardinalities */
-				ArithExpr[] portCardinalitiesExpr = new ArithExpr[componentPortMappings.size()];
+				IntExpr[] portCardinalitiesExpr = new IntExpr[componentPortMappings.size()];
 
 				/* Counter */
 				int i = 0;
@@ -247,11 +247,17 @@ public class ArchitectureStyleSolver {
 				ArithExpr matchingFactor = ctx.mkDiv(ctx.mkMul(new ArithExpr[] { sumOfPortCard, degreeExp }),
 						multiplicityExpr);
 				matchingFactors.add(matchingFactor);
+
 			}
 
-			/* Make all matching factors equal */
-			for (int i = 1; i < matchingFactors.size(); i++) {
-				constraints.add(ctx.mkEq(matchingFactors.get(i), matchingFactors.get(i - 1)));
+			/* This is not a solution */
+			if (matchingFactors.size() == 1) {
+				constraints.add(ctx.mkGe(matchingFactors.get(0), zero));
+			} else {
+				/* Make all matching factors equal */
+				for (int i = 1; i < matchingFactors.size(); i++) {
+					constraints.add(ctx.mkEq(matchingFactors.get(i), matchingFactors.get(i - 1)));
+				}
 			}
 
 		}
@@ -273,7 +279,9 @@ public class ArchitectureStyleSolver {
 
 		/* Generate the missing ports */
 		generateMissingPortNames(architectureStyle);
-
+		
+		
+		checkNameValues(architectureStyle, architectureOperands);
 	}
 
 	public static Model Check(Context ctx, BoolExpr f, Status sat) throws Z3Exception, TestFailException {

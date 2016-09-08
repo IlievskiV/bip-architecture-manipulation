@@ -1,0 +1,67 @@
+model ActionFlowAbort
+	
+	port type StartPort
+	port type FinishPort
+	port type ActionBegin
+	port type ActionEnd
+	port type ActionAbort
+	
+	atomic type Coordinator
+	
+		port StartPort start()
+		port FinishPort finish()
+		export port ActionBegin actBeginC()
+		export port ActionEnd actEndC()
+		export port ActionAbort actAbortC()
+	
+		place state0, state1, state2, state3
+		initial to state0
+		
+		on start from state0 to state1
+		on actBeginC from state1 to state2
+		on actAbortC from state2 to state0
+		on actEndC from state2 to state3
+		on finish from state3 to state0
+		
+	end
+	
+	atomic type Operand
+		
+		export port ActionBegin actBeginO()		
+		export port ActionEnd actEndO()
+		export port ActionAbort actAbortO()
+
+		
+		place state0, state1
+		initial to state0
+		
+		on actBeginO from state0 to state1
+		on actEndO from state1 to state0
+		on actAbortO from state1 to state0
+		
+	end
+	
+	connector type ActionBeginConnector(ActionBegin a, ActionBegin b)
+		define a b
+	end
+	
+	connector type ActionEndConnector(ActionEnd a, ActionEnd b)
+		define a b
+	end
+	
+	connector type ActionAbortConnector(ActionAbort a, ActionAbort b)
+		define a b
+	end
+	
+	compound type ActionFlowAbortManager
+		component Coordinator C
+		component Operand B
+		
+		connector ActionBeginConnector actionBeginConn(C.actBeginC, B.actBeginO)
+		connector ActionEndConnector actionEndConn(C.actEndC, B.actEndO)
+		connector ActionAbortConnector actionAbortConn(C.actAbortC, B.actAbortO)
+	end
+	
+	component ActionFlowAbortManager manager
+
+end

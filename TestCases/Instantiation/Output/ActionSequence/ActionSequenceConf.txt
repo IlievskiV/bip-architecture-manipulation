@@ -1,5 +1,5 @@
-operands:B1,B2
-coordinators:C
+operands:B2,B1
+coordinators:C1
 path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ActionSequence/ActionSequenceInstance.bip
-interactions:C.a3b B2.a3b,C.a2b B1.a2b,C.a1b B1.a1b,C.a3e B2.a3e,C.a2e B1.a2e,C.a1e B1.a1e
-ports:B1.a1b,B1.a1e,B1.a2b,B1.a2e,B2.a3b,B2.a3e,C.a3b,C.a2b,C.a1b,C.a3e,C.a2e,C.a1e
+interactions:C1.actBeginC1 B2.a3b,C1.actBeginC2 B1.a2b,C1.actBeginC3 B1.a1b,C1.actEndC1 B2.a3e,C1.actEndC2 B1.a2e,C1.actEndC3 B1.a1e
+ports:C1.actBeginC1,C1.actBeginC2,C1.actBeginC3,C1.actEndC1,C1.actEndC2,C1.actEndC3,B2.a3b,B2.a3e,B1.a1b,B1.a1e,B1.a2b,B1.a2e

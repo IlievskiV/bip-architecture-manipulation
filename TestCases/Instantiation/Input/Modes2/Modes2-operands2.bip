@@ -5,32 +5,33 @@ model ModeControl2Operands
 
 	atomic type Housekeeping		
 		export port ModeStart saveToMem()
-		export port ModeEnd success_1()
-		export port ModeEnd fail_1()
-
 		export port ModeStart sendToGround()
-		export port ModeEnd success_2()
-		export port ModeEnd fail_2()
+		
+		export port ModeEnd success()
+		export port ModeEnd fail()
 
 		place idle, memory, comm
 		initial to idle
 
 		on saveToMem from idle to memory
-		on success_1 from memory to idle
-		on fail_1 from memory to idle
+		on success from memory to idle
+		on fail from memory to idle
 
 		on sendToGround from idle to comm
-		on success_2 from comm to idle
-		on fail_2 from comm to idle
+		on success from comm to idle
+		on fail from comm to idle
 	end
 
 	atomic type LogType
-	    export port ModeStart log()
+	
+	    export port ModeStart log1()
+	    export port ModeEnd log2()
 
 		place idle
 		initial to idle
 
-		on log from idle to idle
+		on log1 from idle to idle
+		on log2 from idle to idle
 	end
 
 	compound type ModeControl2Operands

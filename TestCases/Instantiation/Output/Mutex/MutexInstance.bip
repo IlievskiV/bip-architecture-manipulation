@@ -43,6 +43,8 @@ model MutualExclusion
       from sleep to work
     on finish
       from work to sleep
+
+
   end
 
   connector type beginConnector(BeginPort take1, BeginPort begin1)

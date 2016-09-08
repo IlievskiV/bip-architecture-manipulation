@@ -1,0 +1,173 @@
+model ActionFlowAbort
+  compound type ActionFlowAbortManager
+    component Coordinator1 C1
+    component Operand B2
+    component Operand B1
+    connector ActionBeginConnector actionBeginConn1(C1.actBeginC4, B2.actBegin3)
+    connector ActionBeginConnector actionBeginConn2(C1.actBeginC5, B2.actBegin1)
+    connector ActionBeginConnector actionBeginConn3(C1.actBeginC6, B2.actBegin2)
+    connector ActionBeginConnector actionBeginConn4(C1.actBeginC1, B1.actBegin1)
+    connector ActionBeginConnector actionBeginConn5(C1.actBeginC2, B1.actBegin3)
+    connector ActionBeginConnector actionBeginConn6(C1.actBeginC3, B1.actBegin2)
+    
+    
+    connector ActionEndConnector actionEndConn1(C1.actEndC1, B2.actEnd1)
+    connector ActionEndConnector actionEndConn2(C1.actEndC4, B2.actEnd2)
+    connector ActionEndConnector actionEndConn3(C1.actEndC5, B2.actEnd3)
+    connector ActionEndConnector actionEndConn4(C1.actEndC2, B1.actEnd2)
+    connector ActionEndConnector actionEndConn5(C1.actEndC3, B1.actEnd3)
+    connector ActionEndConnector actionEndConn6(C1.actEndC6, B1.actEnd1)
+    
+    
+    
+    connector ActionAbortConnector actionAbortConn1(C1.actAbortC1, B2.actAbort3)
+    connector ActionAbortConnector actionAbortConn2(C1.actAbortC2, B2.actAbort2)
+    connector ActionAbortConnector actionAbortConn3(C1.actAbortC3, B2.actAbort1)
+    connector ActionAbortConnector actionAbortConn4(C1.actAbortC4, B1.actAbort3)
+    connector ActionAbortConnector actionAbortConn5(C1.actAbortC5, B1.actAbort1)
+    connector ActionAbortConnector actionAbortConn6(C1.actAbortC6, B1.actAbort2)
+  end
+
+  port type StartPort
+  port type FinishPort
+  port type ActionBegin
+  port type ActionEnd
+  port type ActionAbort
+  atomic type Coordinator1
+    export port ActionBegin actBeginC4()
+    export port ActionBegin actBeginC5()
+    export port ActionBegin actBeginC6()
+    export port ActionBegin actBeginC1()
+    export port ActionBegin actBeginC2()
+    export port ActionBegin actBeginC3()
+    
+    
+    export port ActionEnd actEndC1()
+    export port ActionEnd actEndC4()
+    export port ActionEnd actEndC5()
+    export port ActionEnd actEndC2()
+    export port ActionEnd actEndC3()
+    export port ActionEnd actEndC6()
+    
+    
+    export port ActionAbort actAbortC1()
+    export port ActionAbort actAbortC2()
+    export port ActionAbort actAbortC3()
+    export port ActionAbort actAbortC4()
+    export port ActionAbort actAbortC5()
+    export port ActionAbort actAbortC6()
+    
+    
+    place state1
+    place state2
+    place state3
+    place state0
+    initial to state0
+    
+    
+    on actBeginC4
+      from state1 to state2
+    on actBeginC5
+      from state1 to state2
+    on actBeginC6
+      from state1 to state2
+    on actBeginC1
+      from state1 to state2
+    on actBeginC2
+      from state1 to state2
+    on actBeginC3
+      from state1 to state2
+      
+      
+    on actEndC1
+      from state2 to state3
+    on actEndC4
+      from state2 to state3
+    on actEndC5
+      from state2 to state3
+    on actEndC2
+      from state2 to state3
+    on actEndC3
+      from state2 to state3
+    on actEndC6
+      from state2 to state3
+      
+      
+    on actAbortC1
+      from state2 to state0
+    on actAbortC2
+      from state2 to state0
+    on actAbortC3
+      from state2 to state0
+    on actAbortC4
+      from state2 to state0
+    on actAbortC5
+      from state2 to state0
+    on actAbortC6
+      from state2 to state0
+
+
+  end
+
+  atomic type Operand
+  
+    export port ActionBegin actBegin1()
+    export port ActionBegin actBegin2()
+    export port ActionBegin actBegin3()
+    
+    
+    export port ActionEnd actEnd1()
+    export port ActionEnd actEnd2()
+    export port ActionEnd actEnd3()
+    
+    
+    export port ActionAbort actAbort1()
+    export port ActionAbort actAbort2()
+    export port ActionAbort actAbort3()
+    
+    
+    place state0
+    place state1
+    place state2
+    place state3
+    initial to state0
+    
+    
+    on actBegin1
+      from state0 to state1
+    on actEnd1
+      from state1 to state0
+    on actAbort1
+      from state1 to state0
+      
+      
+    on actBegin2
+      from state0 to state2
+    on actEnd2
+      from state2 to state0      
+    on actAbort2
+      from state2 to state0
+      
+    on actBegin3
+      from state0 to state3
+    on actEnd3
+      from state3 to state0
+    on actAbort3
+      from state3 to state0
+
+  end
+
+  connector type ActionBeginConnector(ActionBegin actBeginC1, ActionBegin actBeginO1)
+    define  actBeginC1 actBeginO1
+  end
+
+  connector type ActionEndConnector(ActionEnd actEndC1, ActionEnd actEndO1)
+    define  actEndC1 actEndO1
+  end
+
+  connector type ActionAbortConnector(ActionAbort actAbortC1, ActionAbort actAbortO1)
+    define  actAbortC1 actAbortO1
+  end
+
+  component ActionFlowAbortManager manager
+end

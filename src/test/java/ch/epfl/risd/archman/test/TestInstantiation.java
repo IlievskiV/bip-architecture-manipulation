@@ -41,6 +41,14 @@ public class TestInstantiation {
 	private static final String PAR_MEM_ARCH_STYLE_CONF = "/ParallelMem/ConfStyle.txt";
 	private static final String PAR_MEM_ARCH_OP_CONF = "/ParallelMem/ConfOp.txt";
 
+	// Action Flow
+	private static final String ACT_FLOW_ARCH_STYLE_CONF = "/ActionFlow/ConfStyle.txt";
+	private static final String ACT_FLOW_ARCH_OP_CONF = "/ActionFlow/ConfOp.txt";
+
+	// Action Flow Abort
+	private static final String ACT_FLOW_ABORT_ARCH_STYLE_CONF = "/ActionFlowAbort/ConfStyle.txt";
+	private static final String ACT_FLOW_ABORT_ARCH_OP_CONF = "/ActionFlowAbort/ConfOp.txt";
+
 	/* Output files */
 
 	// Mutual Exclusion
@@ -58,6 +66,14 @@ public class TestInstantiation {
 	// Parallel Memory
 	private static final String PAR_MEM_OUTPUT_BIP = "/ParallelMem/SaveToMemInstance.bip";
 	private static final String PAR_MEM_SEQ_OUTPUT_CONF = "/ParallelMem/SaveToMemConf.txt";
+
+	// Action Flow
+	private static final String ACT_FLOW_OUTPUT_BIP = "/ActionFlow/ActionFlowInstance.bip";
+	private static final String ACT_FLOW_OUTPUT_CONF = "/ActionFlow/ActionFlowConf.txt";
+
+	// Action Flow Abort
+	private static final String ACT_FLOW_ABORT_OUTPUT_BIP = "/ActionFlowAbort/ActionFlowAbortInstance.bip";
+	private static final String ACT_FLOW_ABORT_OUTPUT_CONF = "/ActionFlowAbort/ActionFlowAbortConf.bip";
 
 	/* Flags */
 	private static final String INSTANTIATION_FLAG = "-instantiation";
@@ -142,13 +158,50 @@ public class TestInstantiation {
 				outputConfFilePath);
 	}
 
+	public static void testActionFlow() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + ACT_FLOW_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + ACT_FLOW_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + ACT_FLOW_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + ACT_FLOW_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
+	public static void testActionFlowAbort() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + ACT_FLOW_ABORT_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + ACT_FLOW_ABORT_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + ACT_FLOW_ABORT_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + ACT_FLOW_ABORT_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
 	public static void main(String[] args) {
 
 		try {
-			TestInstantiation.testMutex();
-			//TestInstantiation.testModes2();
-			//TestInstantiation.testActionSequence();
-			//TestInstantiation.testParallelMem();
+			// TestInstantiation.testMutex();
+			// TestInstantiation.testModes2();
+			// TestInstantiation.testActionSequence();
+			// TestInstantiation.testParallelMem();
+			// TestInstantiation.testActionFlow();
+
+			TestInstantiation.testActionFlowAbort();
 		} catch (Z3Exception | TestFailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
