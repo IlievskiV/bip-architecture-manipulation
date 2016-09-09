@@ -1,0 +1,137 @@
+model BufferManagement
+  compound type BufferManagementRoot
+    component BufferManager1 C1
+    
+    component Consumer Cons1
+    component Consumer Cons2
+    
+    component Producer Prod1
+    component Producer Prod2
+    
+    component ProducerConsumer ProdCons1
+    component ProducerConsumer ProdCons2
+    
+    connector EmptyConnector emptyConn1(C1.empty1)
+    connector FullConnector fullConn1(C1.full1)
+    
+    connector ConsumeConnector consumeConn21(C1.get1, ProdCons1.consumePC)
+    connector ConsumeConnector consumeConn22(C1.get1, ProdCons2.consumePC)
+    
+    connector ProduceConnector produceConn21(C1.put1, ProdCons1.producePC)
+    connector ProduceConnector produceConn22(C1.put1, ProdCons2.producePC)
+  end
+
+  port type PutPort
+  port type GetPort
+  port type EmptyPort
+  port type FullPort
+  port type ConsumePort
+  port type ProducePort
+  atomic type BufferManager1
+    export port EmptyPort empty1()
+    export port PutPort put1()
+    export port FullPort full1()
+    export port GetPort get1()
+    place state0
+    place state1
+    place state2
+    place state3
+    place state4
+    place state5
+    place state6
+    place state7
+    place state8
+    place state9
+    place state10
+    initial to state0
+    on empty1
+      from state0 to state0
+    on put1
+      from state0 to state1
+    on put1
+      from state1 to state2
+    on put1
+      from state2 to state3
+    on put1
+      from state3 to state4
+    on put1
+      from state4 to state5
+    on put1
+      from state5 to state6
+    on put1
+      from state6 to state7
+    on put1
+      from state7 to state8
+    on put1
+      from state8 to state9
+    on put1
+      from state9 to state10
+    on full1
+      from state10 to state10
+    on get1
+      from state1 to state0
+    on get1
+      from state2 to state1
+    on get1
+      from state3 to state2
+    on get1
+      from state4 to state3
+    on get1
+      from state5 to state4
+    on get1
+      from state6 to state5
+    on get1
+      from state7 to state6
+    on get1
+      from state8 to state7
+    on get1
+      from state9 to state8
+    on get1
+      from state10 to state9
+  end
+
+  atomic type Consumer
+    export port ConsumePort consume()
+    place state0
+    initial to state0
+    on consume
+      from state0 to state0
+  end
+
+  atomic type Producer
+    export port ProducePort produce()
+    place state0
+    initial to state0
+    on produce
+      from state0 to state0
+  end
+
+  atomic type ProducerConsumer
+    export port ConsumePort consumePC()
+    export port ProducePort producePC()
+    place state0
+    initial to state0
+    on consumePC
+      from state0 to state0
+    on producePC
+      from state0 to state0
+  end
+
+  connector type EmptyConnector(EmptyPort empty1)
+    define  empty1
+  end
+
+  connector type FullConnector(FullPort full1)
+    define  full1
+  end
+
+  connector type ConsumeConnector(GetPort get1, ConsumePort consume1)
+    define  get1 consume1
+  end
+
+  connector type ProduceConnector(PutPort put1, ProducePort produce1)
+    define  put1 produce1
+  end
+
+  component BufferManagementRoot root
+end

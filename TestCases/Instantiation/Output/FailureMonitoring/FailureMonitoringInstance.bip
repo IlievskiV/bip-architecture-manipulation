@@ -1,0 +1,80 @@
+model FailureMonitoring
+  compound type FailureMonitoringRoot
+    component FailureMonitor1 C1
+    component FailureMonitor1 C2
+    component Operand B2
+    component Operand B1
+    connector FailureConnector failureConn1(C1.failureC1, B2.failO)
+    connector FailureConnector failureConn2(C2.failureC1, B1.failO)
+    connector ResumeConnector resumeConn1(C1.resumeC1, B2.resumeO)
+    connector ResumeConnector resumeConn2(C2.resumeC1, B1.resumeO)
+    connector FinishConnector finishConn1(B2.finishO)
+    connector FinishConnector finishConn2(B1.finishO)
+    connector AskConnector askConn1(C1.askC1)
+    connector AskConnector askConn2(C2.askC1)
+    connector ResetConnector resetConn1(C1.resetC1)
+    connector ResetConnector resetConn2(C2.resetC1)
+  end
+
+  port type FailurePort
+  port type ResumePort
+  port type AskPort
+  port type ResetPort
+  port type FinishPort
+  
+  atomic type FailureMonitor1
+    export port ResumePort resumeC1()
+    export port ResetPort resetC1()
+    export port FailurePort failureC1()
+    export port AskPort askC1()
+    place anomaly
+    place nominal
+    place critical_failure
+    initial to nominal
+    on resumeC1
+      from anomaly to nominal
+    on resetC1
+      from critical_failure to nominal
+    on failureC1
+      from nominal to anomaly
+    on askC1
+      from anomaly to critical_failure
+  end
+
+  atomic type Operand
+    export port FailurePort failO()
+    export port ResumePort resumeO()
+    export port FinishPort finishO()
+    place working
+    place problem
+    initial to working
+    on finishO
+      from working to working
+    on failO
+      from working to problem
+    on resumeO
+      from problem to working
+  end
+
+  connector type FailureConnector(FailurePort failureC1, FailurePort failO1)
+    define  failureC1 failO1
+  end
+
+  connector type ResumeConnector(ResumePort resumeC1, ResumePort resumeO1)
+    define  resumeC1 resumeO1
+  end
+
+  connector type FinishConnector(FinishPort finishO1)
+    define  finishO1
+  end
+
+  connector type AskConnector(AskPort askC1)
+    define  askC1
+  end
+
+  connector type ResetConnector(ResetPort resetC1)
+    define  resetC1
+  end
+
+  component FailureMonitoringRoot root
+end

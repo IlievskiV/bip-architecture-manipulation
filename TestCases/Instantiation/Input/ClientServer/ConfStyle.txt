@@ -1,0 +1,7 @@
+path:/TestCases/Instantiation/Input/ClientServer/ClientServer.bip
+coordinators:
+coordinator_cardinality:
+operands:S,C
+ports:S.offer1,S.offer2,C.use1,C.use2
+connectors:offerConn1 S.offer1 1 n C.use1 1 k,offerConn2 S.offer2 1 n C.use2 1 k
+coordinator_ports_cardinality:

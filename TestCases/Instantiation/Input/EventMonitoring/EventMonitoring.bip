@@ -1,0 +1,57 @@
+model EventMonitoring
+	
+	port type ObservePort
+	port type ReportPort
+	port type SendPort
+	port type GetPort
+	
+	atomic type EventMonitor
+		export port ObservePort observe()
+		export port ReportPort report()
+		
+		place state0, state1
+		initial to state0
+		
+		on observe from state0 to state1
+		on report from state1 to state0
+	end
+	
+	atomic type Operand1
+		export port SendPort sendEvent()
+		
+		place state0
+		initial to state0
+		
+		on sendEvent from state0 to state0
+	end
+	
+	atomic type Operand2
+		export port GetPort getReport()
+		
+		place state0
+		initial to state0
+		
+		on getReport from state0 to state0
+	end
+	
+	
+	connector type ObserveConnector(ObservePort observe, SendPort send)
+		define observe send
+	end
+	
+	connector type ReportConnector(ReportPort report, GetPort get)
+		define report get
+	end
+	
+	compound type EventMonitoringRoot
+		component EventMonitor C
+		component Operand1 B
+		component Operand2 S
+		
+		connector ObserveConnector observeConn(C.observe, B.sendEvent)
+		connector ReportConnector reportConn(C.report, S.getReport)
+	end
+	
+	component EventMonitoringRoot root
+
+end

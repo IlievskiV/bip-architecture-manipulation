@@ -48,6 +48,11 @@ public final class HelperMethods {
 	public static String[] splitConcatenatedString(String concatenatedString, String delim) {
 		/* Split the string and return tokens */
 		String[] tokens = concatenatedString.split(delim);
+
+		if (tokens.length == 1 && tokens[0].trim().equals("")) {
+			return new String[0];
+		}
+
 		return tokens;
 	}
 
@@ -72,7 +77,7 @@ public final class HelperMethods {
 
 		return result;
 	}
-	
+
 	/**
 	 * This method checks whether the provided string is number or not
 	 * 

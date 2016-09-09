@@ -1,0 +1,3 @@
+path:/TestCases/Instantiation/Input/EventMonitoring/EventMonitoring-operands.bip
+operands_mapping:B B1 B2 B3,S S1
+ports_mapping:B.sendEvent {B1.sendEvent} {B2.sendEvent} {B3.sendEvent},S.getReport {S1.getReport}

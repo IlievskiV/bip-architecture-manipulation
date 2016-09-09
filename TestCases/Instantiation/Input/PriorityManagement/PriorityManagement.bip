@@ -1,0 +1,72 @@
+model PriorityManagement
+
+	port type InitPort
+	port type SuccessPort
+	port type FailPort
+	
+	port type ActionPort
+	port type NoActionPort
+	
+	atomic type PriorityManager
+		export port InitPort init()
+		export port SuccessPort success()
+		export port FailPort fail()
+		export port ActionPort actionC()
+		export port NoActionPort noActionC()
+		
+		place nok, state0, state1, state2
+		initial to state0
+		
+		on init from state0 to state1
+		on actionC from state1 to state2
+		on success from state2 to state0
+		on noActionC from state1 to nok
+		on fail from nok to state0
+	end
+	
+	atomic type Operand
+		export port ActionPort actionO()
+		export port NoActionPort noActionO()
+	
+		place state0, state1
+		initial to state0
+		
+		on actionO from state0 to state1
+		on noActionO from state1 to state0
+	end
+	
+	connector type InitConnector(InitPort init)
+		define init
+	end
+	
+	connector type SuccessConnector(SuccessPort success)
+		define success
+	end
+	
+	connector type FailConnector(FailPort fail)
+		define fail
+	end
+	
+	connector type ActionConnector(ActionPort a1, ActionPort a2)
+		define a1 a2
+	end
+	
+	connector type NoActionConnector(NoActionPort na1, NoActionPort na2)
+		define na1 na2
+	end
+	
+	compound type PriorityManagementRoot
+		component PriorityManager C
+		component Operand B
+		
+		connector InitConnector initConn(C.init)
+		connector SuccessConnector successConn(C.success)
+		connector FailConnector failConn(C.fail)
+		
+		connector ActionConnector actionConn(C.actionC, B.actionO)
+		connector NoActionConnector noActionConn(C.noActionC, B.noActionO)
+	end
+	
+	component PriorityManagementRoot root
+	
+end

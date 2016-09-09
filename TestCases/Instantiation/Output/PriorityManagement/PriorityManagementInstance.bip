@@ -1,0 +1,98 @@
+model PriorityManagement
+  compound type PriorityManagementRoot
+    component PriorityManager1 C1
+    component Operand B2
+    component Operand B3
+    component Operand B1
+    connector InitConnector initConn1(C1.init1)
+    connector SuccessConnector successConn1(C1.success1)
+    connector FailConnector failConn1(C1.fail1)
+    
+    
+    connector ActionConnector actionConn1(C1.actionC3, B2.actionO)
+    connector ActionConnector actionConn2(C1.actionC1, B3.actionO)
+    connector ActionConnector actionConn3(C1.actionC2, B1.actionO)
+    
+    
+    
+    connector NoActionConnector noActionConn1(C1.noActionC1, B2.noActionO)
+    connector NoActionConnector noActionConn2(C1.noActionC3, B3.noActionO)
+    connector NoActionConnector noActionConn3(C1.noActionC2, B1.noActionO)
+  end
+
+  port type InitPort
+  port type SuccessPort
+  port type FailPort
+  port type ActionPort
+  port type NoActionPort
+  atomic type PriorityManager1
+    export port NoActionPort noActionC1()
+    export port NoActionPort noActionC3()
+    export port NoActionPort noActionC2()
+    export port InitPort init1()
+    export port FailPort fail1()
+    export port SuccessPort success1()
+    export port ActionPort actionC3()
+    export port ActionPort actionC1()
+    export port ActionPort actionC2()
+    place state1
+    place nok
+    place state0
+    place state2
+    initial to state0
+    on noActionC1
+      from state1 to nok
+    on noActionC3
+      from state1 to nok
+    on noActionC2
+      from state1 to nok
+    on init1
+      from state0 to state1
+    on fail1
+      from nok to state0
+    on success1
+      from state2 to state0
+    on actionC3
+      from state1 to state2
+    on actionC1
+      from state1 to state2
+    on actionC2
+      from state1 to state2
+  end
+
+  atomic type Operand
+    export port ActionPort actionO()
+    export port NoActionPort noActionO()
+    place state0
+    place state1
+    initial to state0
+    on actionO
+      from state0 to state1
+    on noActionO
+      from state1 to state0
+
+
+  end
+
+  connector type InitConnector(InitPort init1)
+    define  init1
+  end
+
+  connector type SuccessConnector(SuccessPort success1)
+    define  success1
+  end
+
+  connector type FailConnector(FailPort fail1)
+    define  fail1
+  end
+
+  connector type ActionConnector(ActionPort actionC1, ActionPort actionO1)
+    define  actionC1 actionO1
+  end
+
+  connector type NoActionConnector(NoActionPort noActionC1, NoActionPort noActionO1)
+    define  noActionC1 noActionO1
+  end
+
+  component PriorityManagementRoot root
+end

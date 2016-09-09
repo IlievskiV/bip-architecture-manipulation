@@ -1,0 +1,73 @@
+model FailureMonitoring
+	
+	port type FailurePort
+	port type ResumePort
+	port type AskPort
+	port type ResetPort
+	port type FinishPort
+	
+	atomic type FailureMonitor
+		
+		export port FailurePort failureC()
+		export port ResumePort resumeC()
+		export port AskPort askC()
+		export port ResetPort resetC()
+		
+		place nominal, anomaly, critical_failure
+		initial to nominal
+		
+		on failureC from nominal to anomaly
+		on resumeC from anomaly to nominal
+		on askC from anomaly to critical_failure
+		on resetC from critical_failure to nominal
+		
+	end
+	
+	atomic type Operand
+		
+		export port FailurePort failO()
+		export port ResumePort resumeO()
+		export port FinishPort finishO()
+		
+		place working, problem
+		initial to working
+		
+		on finishO from working to working
+		on failO from working to problem
+		on resumeO from problem to working
+		
+	end
+	
+	connector type FailureConnector(FailurePort f1, FailurePort f2)
+		define f1' f2
+	end
+	
+	connector type ResumeConnector(ResumePort r1, ResumePort r2)
+		define r1' r2
+	end
+	
+	connector type FinishConnector(FinishPort f)
+		define f'
+	end
+	
+	connector type AskConnector(AskPort a)
+		define a
+	end
+	
+	connector type ResetConnector(ResetPort r)
+		define r
+	end
+	
+	compound type FailureMonitoringRoot
+		component FailureMonitor C
+		component Operand B
+		
+		connector FailureConnector failureConn(B.failO, C.failureC)
+		connector ResumeConnector resumeConn(B.resumeO, C.resumeC)
+		connector FinishConnector finishConn(B.finishO)
+		connector AskConnector askConn(C.askC)
+		connector ResetConnector resetConn(C.resetC)
+	end
+	
+	component FailureMonitoringRoot root
+end

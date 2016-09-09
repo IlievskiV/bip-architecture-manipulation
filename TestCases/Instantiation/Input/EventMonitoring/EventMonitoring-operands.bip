@@ -1,0 +1,33 @@
+model EventMonitoringOperands
+	
+	port type SendPort
+	port type GetPort
+	
+	atomic type Operand1
+		export port SendPort sendEvent()
+		
+		place state0
+		initial to state0
+		
+		on sendEvent from state0 to state0
+	end
+	
+	atomic type Operand2
+		export port GetPort getReport()
+		
+		place state0
+		initial to state0
+		
+		on getReport from state0 to state0
+	end
+	
+	
+	compound type EventMonitoringOperandsRoot
+		component Operand1 B1
+		component Operand1 B2
+		component Operand1 B3
+		component Operand2 S1
+	end
+	
+	component EventMonitoringOperandsRoot root
+end

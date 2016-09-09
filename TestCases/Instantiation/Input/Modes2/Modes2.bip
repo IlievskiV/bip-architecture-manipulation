@@ -54,7 +54,7 @@ model ModeControl2
 
 	connector type ActionEndConnector (ModeEnd action)
 	        define action
-        end
+    end
 
 	compound type ModeControl2
 		component Coordinator C

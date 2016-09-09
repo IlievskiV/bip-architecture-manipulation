@@ -1,0 +1,51 @@
+model ModeManagementOperands
+	
+	port type ModeStart
+	port type ModeEnd
+	
+	port type ModeSwitch
+	
+	atomic type Operand1
+		export port ModeStart m1b()
+		export port ModeEnd m1e()
+		
+		export port ModeStart m2b()
+		export port ModeEnd m2e()
+		
+		export port ModeStart m3b()
+		export port ModeEnd m3e()
+
+		place wait, mode1, mode2, mode3
+		initial to wait	
+
+		on m1b from wait to mode1
+		on m1e from mode1 to wait
+		
+		on m2b from wait to mode2
+		on m2e from mode2 to wait
+		
+		on m3b from wait to mode3
+		on m3e from mode3 to wait
+	end
+	
+	atomic type Operand2
+		export port ModeSwitch changeMode()
+		
+		place state0
+		initial to state0
+		
+		on changeMode from state0 to state0
+	end
+	
+	compound type ModeManagementOperandsRoot
+		component Operand1 B11
+		component Operand1 B12
+		
+		component Operand2 B21
+		component Operand2 B22
+		component Operand2 B23
+	end
+	
+	component ModeManagementOperandsRoot root
+
+end

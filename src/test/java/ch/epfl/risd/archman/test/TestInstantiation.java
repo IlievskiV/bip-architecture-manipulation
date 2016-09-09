@@ -49,6 +49,30 @@ public class TestInstantiation {
 	private static final String ACT_FLOW_ABORT_ARCH_STYLE_CONF = "/ActionFlowAbort/ConfStyle.txt";
 	private static final String ACT_FLOW_ABORT_ARCH_OP_CONF = "/ActionFlowAbort/ConfOp.txt";
 
+	// Failure Monitoring
+	private static final String FAIL_MONIT_ARCH_STYLE_CONF = "/FailureMonitoring/ConfStyle.txt";
+	private static final String FAIL_MONIT_ARCH_OP_CONF = "/FailureMonitoring/ConfOp.txt";
+
+	// Buffer Management
+	private static final String BUFF_MNG_ARCH_STYLE_CONF = "/BufferManagement/ConfStyle.txt";
+	private static final String BUFF_MNG_ARCH_OP_CONF = "/BufferManagement/ConfOp.txt";
+
+	// Event Monitoring
+	private static final String EVNT_MONIT_ARCH_STYLE_CONF = "/EventMonitoring/ConfStyle.txt";
+	private static final String EVNT_MONIT_ARCH_OP_CONF = "/EventMonitoring/ConfOp.txt";
+
+	// Priority Management
+	private static final String PRIOR_MNG_ARCH_STYLE_CONF = "/PriorityManagement/ConfStyle.txt";
+	private static final String PRIOR_MNG_ARCH_OP_CONF = "/PriorityManagement/ConfOp.txt";
+
+	// Mode Management
+	private static final String MODE_MNG_ARCH_STYLE_CONF = "/ModeManagement/ConfStyle.txt";
+	private static final String MODE_MNG_ARCH_OP_CONF = "/ModeManagement/ConfOp.txt";
+
+	// Client-Server
+	private static final String CL_SVR_ARCH_STYLE_CONF = "/ClientServer/ConfStyle.txt";
+	private static final String CL_SRV_ARCH_OP_CONF = "/ClientServer/ConfOp.txt";
+
 	/* Output files */
 
 	// Mutual Exclusion
@@ -74,6 +98,30 @@ public class TestInstantiation {
 	// Action Flow Abort
 	private static final String ACT_FLOW_ABORT_OUTPUT_BIP = "/ActionFlowAbort/ActionFlowAbortInstance.bip";
 	private static final String ACT_FLOW_ABORT_OUTPUT_CONF = "/ActionFlowAbort/ActionFlowAbortConf.bip";
+
+	// Failure Monitoring
+	private static final String FAIL_MONIT_OUTPUT_BIP = "/FailureMonitoring/FailureMonitoringInstance.bip";
+	private static final String FAIL_MONIT_OUTPUT_CONF = "/FailureMonitoring/FailureMonitoringConf.txt";
+
+	// Buffer Management
+	private static final String BUFF_MNG_OUTPUT_BIP = "/BufferManagement/BufferManagementInstance.bip";
+	private static final String BUFF_MNG_OUTPUT_CONF = "/BufferManagement/BufferManagementConf.txt";
+
+	// Event Monitoring
+	private static final String EVNT_MONIT_OUTPUT_BIP = "/EventMonitoring/EventMonitoringInstance.bip";
+	private static final String EVNT_MONIT_OUTPUT_CONF = "/EventMonitoring/EventMonitoringConf.txt";
+
+	// Priority Management
+	private static final String PRIOR_MNG_OUTPUT_BIP = "/PriorityManagement/PriorityManagementInstance.bip";
+	private static final String PRIOR_MNG_OUTPUT_CONF = "/PriorityManagement/PriorityManagementConf.txt";
+
+	// Mode management
+	private static final String MODE_MNG_OUTPUT_BIP = "/ModeManagement/ModeManagementInstance.bip";
+	private static final String MODE_MNG_OUTPUT_CONF = "/ModeManagement/ModeManagementConf.txt";
+
+	// Client-Server
+	private static final String CL_SRV_OUTPUT_BIP = "/ClientServer/ClientServerInstance.bip";
+	private static final String CL_SRV_OUTPUT_CONF = "/ClientServer/ClientServerConf.txt";
 
 	/* Flags */
 	private static final String INSTANTIATION_FLAG = "-instantiation";
@@ -192,6 +240,108 @@ public class TestInstantiation {
 				outputConfFilePath);
 	}
 
+	public static void testFailureMonitoring() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + FAIL_MONIT_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + FAIL_MONIT_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + FAIL_MONIT_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + FAIL_MONIT_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
+	public static void testBufferManagement() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + BUFF_MNG_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + BUFF_MNG_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + BUFF_MNG_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + BUFF_MNG_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
+	public static void testEventMonitoring() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + EVNT_MONIT_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + EVNT_MONIT_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + EVNT_MONIT_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + EVNT_MONIT_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
+	public static void testPriorityManagement() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + PRIOR_MNG_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + PRIOR_MNG_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + PRIOR_MNG_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + PRIOR_MNG_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
+	public static void testModeManagement() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MODE_MNG_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + MODE_MNG_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + MODE_MNG_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + MODE_MNG_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
+	public static void testClientServer() throws Z3Exception, ListEmptyException, TestFailException {
+		String archStyleConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + CL_SVR_ARCH_STYLE_CONF).getAbsolutePath();
+
+		String archOpConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_INPUT_FILES + CL_SRV_ARCH_OP_CONF).getAbsolutePath();
+
+		String outputBipFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + CL_SRV_OUTPUT_BIP).getAbsolutePath();
+
+		String outputConfFilePath = new File(PARENT,
+				BASE_TEST_DIRECTORY + INSTANTIATION_OUTPUT_FILES + CL_SRV_OUTPUT_CONF).getAbsolutePath();
+
+		TestInstantiation.testInstantiation(archStyleConfFilePath, archOpConfFilePath, outputBipFilePath,
+				outputConfFilePath);
+	}
+
 	public static void main(String[] args) {
 
 		try {
@@ -200,8 +350,13 @@ public class TestInstantiation {
 			// TestInstantiation.testActionSequence();
 			// TestInstantiation.testParallelMem();
 			// TestInstantiation.testActionFlow();
-
-			TestInstantiation.testActionFlowAbort();
+			// TestInstantiation.testActionFlowAbort();
+			// TestInstantiation.testFailureMonitoring();
+			// TestInstantiation.testBufferManagement();
+			// TestInstantiation.testEventMonitoring();
+			// TestInstantiation.testPriorityManagement();
+			// TestInstantiation.testModeManagement();
+			TestInstantiation.testClientServer();
 		} catch (Z3Exception | TestFailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

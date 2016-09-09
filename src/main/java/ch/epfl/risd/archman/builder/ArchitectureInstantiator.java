@@ -684,8 +684,6 @@ public class ArchitectureInstantiator {
 				}
 			}
 
-			System.err.println("Counter: " + counter);
-
 		}
 
 		return result;

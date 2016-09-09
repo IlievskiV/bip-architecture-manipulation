@@ -1,0 +1,7 @@
+path:/TestCases/Instantiation/Input/EventMonitoring/EventMonitoring.bip
+coordinators:C
+coordinator_cardinality:C 1
+operands:B,S
+ports:C.observe,C.report,B.sendEvent,S.getReport
+connectors:observeConn C.observe 1 n B.sendEvent 1 1,reportConn C.report 1 1 S.getReport 1 1
+coordinator_ports_cardinality:C.observe 1,C.report 1

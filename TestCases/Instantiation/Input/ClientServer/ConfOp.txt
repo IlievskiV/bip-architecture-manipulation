@@ -1,0 +1,3 @@
+path:/TestCases/Instantiation/Input/ClientServer/ClientServer-operands.bip
+operands_mapping:S S1,C C1 C2 C3
+ports_mapping:S.offer1 {S1.offer11;S1.offer12;S1.offer13},S.offer2 {S1.offer21;S1.offer22},C.use1 {C1.use11;C1.use12} {C2.use11;C2.use12} {C3.use11;C3.use12},C.use2 {C1.use21;C1.use22;C1.use23} {C2.use21;C2.use22;C2.use23} {C3.use21;C3.use22;C3.use23}

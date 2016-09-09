@@ -1,0 +1,3 @@
+path:/TestCases/Instantiation/Input/FailureMonitoring/FailureMonitoring-operands.bip
+operands_mapping:B B1 B2
+ports_mapping:B.failO {B1.failO} {B2.failO},B.resumeO {B1.resumeO} {B2.resumeO},B.finishO {B1.finishO} {B2.finishO}

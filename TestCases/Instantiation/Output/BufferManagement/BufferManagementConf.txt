@@ -1,0 +1,5 @@
+operands:Cons1,Cons2,Prod1,Prod2,ProdCons1,ProdCons2
+coordinators:C1
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/BufferManagement/BufferManagementInstance.bip
+interactions:C1.empty1,C1.full1,C1.get1 ProdCons1.consumePC,C1.get1 ProdCons2.consumePC,C1.put1 ProdCons1.producePC,C1.put1 ProdCons2.producePC
+ports:C1.empty1,C1.put1,C1.full1,C1.get1,Cons1.consume,Cons2.consume,Prod1.produce,Prod2.produce,ProdCons1.consumePC,ProdCons1.producePC,ProdCons2.consumePC,ProdCons2.producePC

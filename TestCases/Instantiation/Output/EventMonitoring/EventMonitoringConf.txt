@@ -1,0 +1,5 @@
+operands:B2,B3,B1,S1
+coordinators:C1
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/EventMonitoring/EventMonitoringInstance.bip
+interactions:C1.observe1 B2.sendEvent,C1.observe1 B3.sendEvent,C1.observe1 B1.sendEvent,C1.report1 S1.getReport
+ports:C1.observe1,C1.report1,B2.sendEvent,B3.sendEvent,B1.sendEvent,S1.getReport

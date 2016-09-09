@@ -1,0 +1,43 @@
+model ClientServer
+	
+	port type OfferPort
+	port type UsePort
+	
+	atomic type Server
+		export port OfferPort offer1()
+		export port OfferPort offer2()
+		
+		place state0
+		initial to state0
+		
+		on offer1 from state0 to state0
+		on offer2 from state0 to state0
+	end
+	
+	atomic type Client
+		export port UsePort use1()
+		export port UsePort use2()
+		
+		place state0
+		initial to state0
+		
+		on use1 from state0 to state0
+		on use2 from state0 to state0
+	end
+	
+	connector type OfferConnector(OfferPort offer, UsePort use1)
+		define offer use1
+	end
+	
+	compound type ClientServerRoot
+		component Server S
+		component Client C
+		
+		connector OfferConnector offerConn1(S.offer1, C.use1)
+		connector OfferConnector offerConn2(S.offer2, C.use2)
+		
+	end
+	
+	component ClientServerRoot root
+
+end

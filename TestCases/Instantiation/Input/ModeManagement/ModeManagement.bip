@@ -1,0 +1,63 @@
+model ModeManagement
+	
+	port type ModeSwitch
+	port type ModeAction
+	
+	port type ModeStart
+	port type ModeEnd
+	
+	atomic type ModeManager
+		export port ModeAction inMode1()
+		export port ModeSwitch toMode1()
+		
+		place mode1
+		initial to mode1
+		
+		on inMode1 from mode1 to mode1
+		on toMode1 from mode1 to mode1
+	end
+	
+	atomic type Operand1
+		export port ModeStart m1b()
+		export port ModeEnd m1e()
+
+		place wait, mode1
+		initial to wait	
+
+		on m1b from wait to mode1
+		on m1e from mode1 to wait
+	end
+	
+	atomic type Operand2
+		export port ModeSwitch changeMode()
+		
+		place state0
+		initial to state0
+		
+		on changeMode from state0 to state0
+	end
+	
+	connector type ActionStartConnector(ModeAction ma, ModeStart ms)
+		define ma ms
+	end
+	
+	connector type ActionEndConnector(ModeEnd me)
+	        define me
+    end
+    
+    connector type ModeSwitchConnector(ModeSwitch sw1, ModeSwitch sw2)
+	        define sw1' sw2
+	end
+	
+	compound type ModeManagementRoot
+		component ModeManager C
+		component Operand1 B1
+		component Operand2 B2
+		
+		connector ModeSwitchConnector switchToMode1(B2.changeMode, C.toMode1)
+		connector ActionStartConnector actionStart1(C.inMode1, B1.m1b)		
+		connector ActionEndConnector actionEnd1(B1.m1e)
+	end
+	
+	component ModeManagementRoot root
+end

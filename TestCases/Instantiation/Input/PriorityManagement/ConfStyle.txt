@@ -1,0 +1,7 @@
+path:/TestCases/Instantiation/Input/PriorityManagement/PriorityManagement.bip
+coordinators:C
+coordinator_cardinality:C 1
+operands:B
+ports:C.init,C.success,C.fail,C.actionC,C.noActionC,B.actionO,B.noActionO
+connectors:initConn C.init 1 1,successConn C.success 1 1,failConn C.fail 1 1,actionConn C.actionC 1 1 B.actionO 1 1,noActionConn C.noActionC 1 1 B.noActionO 1 1
+coordinator_ports_cardinality:C.actionC n,C.noActionC n,C.init 1,C.success 1,C.fail 1

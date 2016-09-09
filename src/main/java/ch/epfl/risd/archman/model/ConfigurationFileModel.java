@@ -138,13 +138,15 @@ public class ConfigurationFileModel {
 				/* If the current field exists */
 				if (indexOfParam != -1) {
 
-					/* If the value is missing */
-					if (tokens[1].trim().equals("")) {
+					if (tokens.length == 1) {
 						System.out.println(
 								"The value of the " + requiredParams.get(indexOfParam) + " parameter is empty");
+						parameters.put(tokens[0], "");
+					} else {
+						/* Insert the value of the parameter */
+						parameters.put(tokens[0], tokens[1].trim());
 					}
-					/* Insert the value of the parameter */
-					parameters.put(tokens[0], tokens[1].trim());
+
 					/* Validate the presence of the parameter */
 					hasParam[indexOfParam] = true;
 

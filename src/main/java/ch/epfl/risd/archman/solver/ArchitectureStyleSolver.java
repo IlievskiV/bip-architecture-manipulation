@@ -189,7 +189,9 @@ public class ArchitectureStyleSolver {
 				/* The mappings where the port belongs */
 				ComponentMapping componentMapping;
 				GlobalPortMapping globalPortMapping;
-
+				
+				System.err.println(portInstanceName);
+				
 				/* If the port tuple is coordinator tuple */
 				if (portTuple.getType() == PortTupleType.COORDINATOR_TUPLE) {
 					componentMapping = architectureStyle.getCoordinatorsMapping().get(compInstanceName);

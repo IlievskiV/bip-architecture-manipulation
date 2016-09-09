@@ -1,0 +1,3 @@
+path:/TestCases/Instantiation/Input/PriorityManagement/PriorityManagement-operands.bip
+operands_mapping:B B1 B2 B3
+ports_mapping:B.actionO {B1.actionO} {B2.actionO} {B3.actionO},B.noActionO {B1.noActionO} {B2.noActionO} {B3.noActionO}

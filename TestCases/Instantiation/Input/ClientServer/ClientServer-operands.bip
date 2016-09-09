@@ -1,0 +1,53 @@
+model ClientServerComponents
+	
+	port type OfferPort
+	port type UsePort
+	
+	atomic type Server
+		export port OfferPort offer11()
+		export port OfferPort offer12()
+		export port OfferPort offer13()
+		
+		export port OfferPort offer21()
+		export port OfferPort offer22()
+		
+		place state0
+		initial to state0
+		
+		on offer11 from state0 to state0
+		on offer12 from state0 to state0
+		on offer13 from state0 to state0
+		
+		on offer21 from state0 to state0
+		on offer22 from state0 to state0
+	end
+	
+	atomic type Client
+		export port UsePort use11()
+		export port UsePort use12()
+		
+		
+		export port UsePort use21()
+		export port UsePort use22()
+		export port UsePort use23()
+		
+		place state0
+		initial to state0
+		
+		on use11 from state0 to state0
+		on use12 from state0 to state0
+		
+		on use21 from state0 to state0
+		on use22 from state0 to state0
+		on use23 from state0 to state0
+	end
+	
+	compound type ClientServerComponentsRoot
+		component Server S1
+		component Client C1
+		component Client C2
+		component Client C3
+	end
+	
+	component ClientServerComponentsRoot root
+end

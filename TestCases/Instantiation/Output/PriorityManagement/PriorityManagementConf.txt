@@ -1,0 +1,5 @@
+operands:B2,B3,B1
+coordinators:C1
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/PriorityManagement/PriorityManagementInstance.bip
+interactions:C1.init1,C1.success1,C1.fail1,C1.actionC3 B2.actionO,C1.actionC1 B3.actionO,C1.actionC2 B1.actionO,C1.noActionC1 B2.noActionO,C1.noActionC3 B3.noActionO,C1.noActionC2 B1.noActionO
+ports:C1.noActionC1,C1.noActionC3,C1.noActionC2,C1.init1,C1.fail1,C1.success1,C1.actionC3,C1.actionC1,C1.actionC2,B2.actionO,B2.noActionO,B3.actionO,B3.noActionO,B1.actionO,B1.noActionO
