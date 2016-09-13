@@ -110,8 +110,7 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 		/* Split the concatenated string of port cardinalities */
 		List<String[]> portCardinalities = HelperMethods.splitConcatenatedString(coordPortCardStr, delim1, delim2);
-		
-		
+
 		/* Map of the cardinalities for each component */
 		Map<String, Integer> cardinalityMap = new HashMap<String, Integer>();
 		for (String[] tokens : coordCardinalities) {

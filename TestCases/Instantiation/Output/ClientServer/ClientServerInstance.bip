@@ -1,0 +1,107 @@
+model ClientServer
+  compound type ClientServerRoot
+    component Server S1
+    component Client C3
+    component Client C1
+    component Client C2
+    connector OfferConnector offerConn11(S1.offer12, C3.use11)
+    connector OfferConnector offerConn12(S1.offer12, C3.use11)
+    connector OfferConnector offerConn13(S1.offer12, C3.use11)
+    connector OfferConnector offerConn14(S1.offer12, C3.use12)
+    connector OfferConnector offerConn15(S1.offer12, C3.use12)
+    connector OfferConnector offerConn16(S1.offer12, C3.use12)
+    
+    
+    connector OfferConnector offerConn17(S1.offer11, C1.use11)
+    connector OfferConnector offerConn18(S1.offer11, C1.use11)
+    connector OfferConnector offerConn19(S1.offer11, C1.use11)
+    connector OfferConnector offerConn110(S1.offer11, C1.use12)
+    connector OfferConnector offerConn111(S1.offer11, C1.use12)
+    connector OfferConnector offerConn112(S1.offer11, C1.use12)
+    
+    connector OfferConnector offerConn113(S1.offer13, C2.use12)
+    connector OfferConnector offerConn114(S1.offer13, C2.use12)
+    connector OfferConnector offerConn115(S1.offer13, C2.use12)
+    connector OfferConnector offerConn116(S1.offer13, C2.use11)
+    connector OfferConnector offerConn117(S1.offer13, C2.use11)
+    connector OfferConnector offerConn118(S1.offer13, C2.use11)
+    
+    connector OfferConnector offerConn21(S1.offer22, C3.use22)
+    connector OfferConnector offerConn22(S1.offer22, C3.use22)
+    connector OfferConnector offerConn23(S1.offer22, C3.use21)
+    connector OfferConnector offerConn24(S1.offer22, C3.use21)
+    connector OfferConnector offerConn25(S1.offer22, C3.use23)
+    connector OfferConnector offerConn26(S1.offer22, C3.use23)
+    connector OfferConnector offerConn27(S1.offer22, C1.use22)
+    connector OfferConnector offerConn28(S1.offer22, C1.use22)
+    connector OfferConnector offerConn29(S1.offer22, C1.use21)
+    
+    connector OfferConnector offerConn210(S1.offer21, C1.use21)
+    connector OfferConnector offerConn211(S1.offer21, C1.use23)
+    connector OfferConnector offerConn212(S1.offer21, C1.use23)
+    connector OfferConnector offerConn213(S1.offer21, C2.use23)
+    connector OfferConnector offerConn214(S1.offer21, C2.use23)
+    connector OfferConnector offerConn215(S1.offer21, C2.use22)
+    connector OfferConnector offerConn216(S1.offer21, C2.use22)
+    connector OfferConnector offerConn217(S1.offer21, C2.use21)
+    connector OfferConnector offerConn218(S1.offer21, C2.use21)
+  end
+
+  port type OfferPort
+  port type UsePort
+  atomic type Server
+    export port OfferPort offer11()
+    export port OfferPort offer12()
+    export port OfferPort offer13()
+    export port OfferPort offer21()
+    export port OfferPort offer22()
+    place state0
+    initial to state0
+    on offer11
+      from state0 to state0
+    on offer12
+      from state0 to state0
+    on offer13
+      from state0 to state0
+    on offer21
+      from state0 to state0
+    on offer22
+      from state0 to state0
+
+
+
+
+
+  end
+
+  atomic type Client
+    export port UsePort use11()
+    export port UsePort use12()
+    export port UsePort use21()
+    export port UsePort use22()
+    export port UsePort use23()
+    place state0
+    initial to state0
+    on use11
+      from state0 to state0
+    on use12
+      from state0 to state0
+    on use21
+      from state0 to state0
+    on use22
+      from state0 to state0
+    on use23
+      from state0 to state0
+
+
+
+
+
+  end
+
+  connector type OfferConnector(OfferPort offer11, UsePort use11)
+    define  offer11 use11
+  end
+
+  component ClientServerRoot root
+end

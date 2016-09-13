@@ -1,7 +1,7 @@
 path:/TestCases/Instantiation/Input/ModeManagement/ModeManagement.bip
 coordinators:C
 coordinator_cardinality:C 1
-operands:B1 B2
+operands:B1,B2
 ports:C.inMode1,C.toMode1,B1.m1b,B1.m1e,B2.changeMode
-connectors:switchToMode1 B2.changeMode 1 1 C.toMode1 1 1,actionEnd1 B1.m1e 1 1,actionStart1 C.inMode1 1 1 B1.m1b n 1
+connectors:switchToMode1 B2.changeMode' 1 1 C.toMode1 1 1,actionEnd1 B1.m1e 1 1,actionStart1 C.inMode1 1 1 B1.m1b n 1
 coordinator_ports_cardinality:C.inMode1 3,C.toMode1 3

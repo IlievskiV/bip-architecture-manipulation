@@ -254,7 +254,7 @@ public class ArchitectureStyleSolver {
 
 			/* This is not a solution */
 			if (matchingFactors.size() == 1) {
-				constraints.add(ctx.mkGe(matchingFactors.get(0), zero));
+				constraints.add(ctx.mkGt(matchingFactors.get(0), zero));
 			} else {
 				/* Make all matching factors equal */
 				for (int i = 1; i < matchingFactors.size(); i++) {

@@ -1,0 +1,5 @@
+operands:S1,C3,C1,C2
+coordinators:
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ClientServer/ClientServerInstance.bip
+interactions:S1.offer12 C3.use11,S1.offer12 C3.use11,S1.offer12 C3.use11,S1.offer12 C3.use12,S1.offer12 C3.use12,S1.offer12 C3.use12,S1.offer11 C1.use11,S1.offer11 C1.use11,S1.offer11 C1.use11,S1.offer11 C1.use12,S1.offer11 C1.use12,S1.offer11 C1.use12,S1.offer13 C2.use12,S1.offer13 C2.use12,S1.offer13 C2.use12,S1.offer13 C2.use11,S1.offer13 C2.use11,S1.offer13 C2.use11,S1.offer22 C3.use22,S1.offer22 C3.use22,S1.offer22 C3.use21,S1.offer22 C3.use21,S1.offer22 C3.use23,S1.offer22 C3.use23,S1.offer22 C1.use22,S1.offer22 C1.use22,S1.offer22 C1.use21,S1.offer21 C1.use21,S1.offer21 C1.use23,S1.offer21 C1.use23,S1.offer21 C2.use23,S1.offer21 C2.use23,S1.offer21 C2.use22,S1.offer21 C2.use22,S1.offer21 C2.use21,S1.offer21 C2.use21
+ports:S1.offer11,S1.offer12,S1.offer13,S1.offer21,S1.offer22,C3.use11,C3.use12,C3.use21,C3.use22,C3.use23,C1.use11,C1.use12,C1.use21,C1.use22,C1.use23,C2.use11,C2.use12,C2.use21,C2.use22,C2.use23

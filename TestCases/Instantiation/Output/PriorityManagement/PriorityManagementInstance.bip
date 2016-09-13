@@ -7,14 +7,9 @@ model PriorityManagement
     connector InitConnector initConn1(C1.init1)
     connector SuccessConnector successConn1(C1.success1)
     connector FailConnector failConn1(C1.fail1)
-    
-    
     connector ActionConnector actionConn1(C1.actionC3, B2.actionO)
     connector ActionConnector actionConn2(C1.actionC1, B3.actionO)
     connector ActionConnector actionConn3(C1.actionC2, B1.actionO)
-    
-    
-    
     connector NoActionConnector noActionConn1(C1.noActionC1, B2.noActionO)
     connector NoActionConnector noActionConn2(C1.noActionC3, B3.noActionO)
     connector NoActionConnector noActionConn3(C1.noActionC2, B1.noActionO)
@@ -58,6 +53,15 @@ model PriorityManagement
       from state1 to state2
     on actionC2
       from state1 to state2
+
+
+
+
+
+
+
+
+
   end
 
   atomic type Operand

@@ -1,22 +1,16 @@
 model BufferManagement
   compound type BufferManagementRoot
     component BufferManager1 C1
-    
     component Consumer Cons1
     component Consumer Cons2
-    
     component Producer Prod1
     component Producer Prod2
-    
     component ProducerConsumer ProdCons1
     component ProducerConsumer ProdCons2
-    
     connector EmptyConnector emptyConn1(C1.empty1)
     connector FullConnector fullConn1(C1.full1)
-    
     connector ConsumeConnector consumeConn21(C1.get1, ProdCons1.consumePC)
     connector ConsumeConnector consumeConn22(C1.get1, ProdCons2.consumePC)
-    
     connector ProduceConnector produceConn21(C1.put1, ProdCons1.producePC)
     connector ProduceConnector produceConn22(C1.put1, ProdCons2.producePC)
   end
@@ -88,6 +82,10 @@ model BufferManagement
       from state9 to state8
     on get1
       from state10 to state9
+
+
+
+
   end
 
   atomic type Consumer
@@ -96,6 +94,7 @@ model BufferManagement
     initial to state0
     on consume
       from state0 to state0
+
   end
 
   atomic type Producer
@@ -104,6 +103,7 @@ model BufferManagement
     initial to state0
     on produce
       from state0 to state0
+
   end
 
   atomic type ProducerConsumer
@@ -115,6 +115,8 @@ model BufferManagement
       from state0 to state0
     on producePC
       from state0 to state0
+
+
   end
 
   connector type EmptyConnector(EmptyPort empty1)

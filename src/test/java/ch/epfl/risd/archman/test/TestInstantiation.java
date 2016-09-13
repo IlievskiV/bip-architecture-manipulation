@@ -355,8 +355,8 @@ public class TestInstantiation {
 			// TestInstantiation.testBufferManagement();
 			// TestInstantiation.testEventMonitoring();
 			// TestInstantiation.testPriorityManagement();
-			// TestInstantiation.testModeManagement();
-			TestInstantiation.testClientServer();
+			TestInstantiation.testModeManagement();
+			// TestInstantiation.testClientServer();
 		} catch (Z3Exception | TestFailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

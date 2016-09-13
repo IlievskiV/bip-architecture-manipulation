@@ -1,0 +1,5 @@
+operands:B21,B22,B23,B11,B12
+coordinators:C1
+path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/ModeManagement/ModeManagementInstance.bip
+interactions:C1.toMode13 B21.changeMode,C1.toMode12 B22.changeMode,C1.toMode11 B23.changeMode,B11.m3e,B11.m1e,B11.m2e,B12.m1e,B12.m2e,B12.m3e,C1.inMode13 B11.m2b B12.m1b,C1.inMode11 B11.m3b B12.m2b,C1.inMode12 B11.m1b B12.m3b
+ports:C1.toMode13,C1.toMode12,C1.toMode11,C1.inMode13,C1.inMode11,C1.inMode12,B21.changeMode,B22.changeMode,B23.changeMode,B11.m1b,B11.m1e,B11.m2b,B11.m2e,B11.m3b,B11.m3e,B12.m1b,B12.m1e,B12.m2b,B12.m2e,B12.m3b,B12.m3e

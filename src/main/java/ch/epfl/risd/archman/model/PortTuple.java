@@ -37,6 +37,9 @@ public class PortTuple {
 	/* The type of the tuple */
 	protected PortTupleType type;
 
+	/* Flag for the trigger port */
+	protected boolean isTrigger;
+
 	/****************************************************************************/
 	/* PUBLIC METHODS */
 	/***************************************************************************/
@@ -52,7 +55,16 @@ public class PortTuple {
 	 *            - The degree of the port
 	 */
 	public PortTuple(String portInstanceName, String multiplicity, String degree, PortTupleType type) {
-		this.portInstanceName = portInstanceName;
+
+		/* If the port is trigger */
+		if (portInstanceName.charAt(portInstanceName.length() - 1) == '\'') {
+			this.portInstanceName = portInstanceName.substring(0, portInstanceName.length() - 1);
+			this.isTrigger = true;
+		} else {
+			this.portInstanceName = portInstanceName;
+			this.isTrigger = false;
+		}
+
 		this.type = type;
 
 		/* Check whether the multiplicity is constant or variable */
@@ -183,4 +195,10 @@ public class PortTuple {
 		return this.degreeTerm.getValue();
 	}
 
+	public boolean isTrigger() {
+		return isTrigger;
+	}
+	
+	
+	
 }

@@ -1,0 +1,110 @@
+model ModeManagement
+  compound type ModeManagementRoot
+    component ModeManager1 C1
+    component Operand2 B21
+    component Operand2 B22
+    component Operand2 B23
+    component Operand1 B11
+    component Operand1 B12
+    connector ModeSwitchConnector switchToMode11(C1.toMode13, B21.changeMode)
+    connector ModeSwitchConnector switchToMode12(C1.toMode12, B22.changeMode)
+    connector ModeSwitchConnector switchToMode13(C1.toMode11, B23.changeMode)
+    connector ActionEndConnector actionEnd11(B11.m3e)
+    connector ActionEndConnector actionEnd12(B11.m1e)
+    connector ActionEndConnector actionEnd13(B11.m2e)
+    connector ActionEndConnector actionEnd14(B12.m1e)
+    connector ActionEndConnector actionEnd15(B12.m2e)
+    connector ActionEndConnector actionEnd16(B12.m3e)
+    connector ActionStartConnector actionStart11(C1.inMode13, B11.m2b, B12.m1b)
+    connector ActionStartConnector actionStart12(C1.inMode11, B11.m3b, B12.m2b)
+    connector ActionStartConnector actionStart13(C1.inMode12, B11.m1b, B12.m3b)
+  end
+
+  port type ModeSwitch
+  port type ModeAction
+  port type ModeStart
+  port type ModeEnd
+  atomic type ModeManager1
+    export port ModeSwitch toMode13()
+    export port ModeSwitch toMode12()
+    export port ModeSwitch toMode11()
+    export port ModeAction inMode13()
+    export port ModeAction inMode11()
+    export port ModeAction inMode12()
+    place mode1
+    initial to mode1
+    on toMode13
+      from mode1 to mode1
+    on toMode12
+      from mode1 to mode1
+    on toMode11
+      from mode1 to mode1
+    on inMode13
+      from mode1 to mode1
+    on inMode11
+      from mode1 to mode1
+    on inMode12
+      from mode1 to mode1
+
+
+
+
+
+
+  end
+
+  atomic type Operand2
+    export port ModeSwitch changeMode()
+    place state0
+    initial to state0
+    on changeMode
+      from state0 to state0
+
+  end
+
+  atomic type Operand1
+    export port ModeStart m1b()
+    export port ModeEnd m1e()
+    export port ModeStart m2b()
+    export port ModeEnd m2e()
+    export port ModeStart m3b()
+    export port ModeEnd m3e()
+    place wait
+    place mode1
+    place mode2
+    place mode3
+    initial to wait
+    on m1b
+      from wait to mode1
+    on m1e
+      from mode1 to wait
+    on m2b
+      from wait to mode2
+    on m2e
+      from mode2 to wait
+    on m3b
+      from wait to mode3
+    on m3e
+      from mode3 to wait
+
+
+
+
+
+
+  end
+
+  connector type ModeSwitchConnector(ModeSwitch toMode11, ModeSwitch changeMode1)
+    define  toMode11 changeMode1'
+  end
+
+  connector type ActionEndConnector(ModeEnd m1e1)
+    define  m1e1
+  end
+
+  connector type ActionStartConnector(ModeAction inMode11, ModeStart m1b1, ModeStart m1b2)
+    define  inMode11 m1b1 m1b2
+  end
+
+  component ModeManagementRoot root
+end

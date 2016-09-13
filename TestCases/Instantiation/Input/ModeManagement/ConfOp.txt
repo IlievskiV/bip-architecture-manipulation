@@ -1,3 +1,3 @@
 path:/TestCases/Instantiation/Input/ModeManagement/ModeManagement-operands.bip
 operands_mapping:B1 B11 B12,B2 B21 B22 B23
-ports_mapping:B1.m1b {B11.m1b;B11.m2b;B11.m3b} {B12.m1b;B12.m2b;B12.m3b},B1.m1e {B11.m1e;B11.m2e;B11.m3e} {B12.m1e;B12.m2e;B12.m3e},B2.changeMode {B21.changeMode} {B22.changeMode} {B21.changeMode}
+ports_mapping:B1.m1b {B11.m1b;B11.m2b;B11.m3b} {B12.m1b;B12.m2b;B12.m3b},B1.m1e {B11.m1e;B11.m2e;B11.m3e} {B12.m1e;B12.m2e;B12.m3e},B2.changeMode {B21.changeMode} {B22.changeMode} {B23.changeMode}

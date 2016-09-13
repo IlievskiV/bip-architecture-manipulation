@@ -61,6 +61,7 @@ import ujf.verimag.bip.Core.Interactions.PortParameter;
 import ujf.verimag.bip.Core.Interactions.PortParameterReference;
 import ujf.verimag.bip.Core.PortExpressions.ACExpression;
 import ujf.verimag.bip.Core.PortExpressions.ACFusion;
+import ujf.verimag.bip.Core.PortExpressions.ACTypingKind;
 
 /**
  * 
@@ -434,17 +435,14 @@ public class ArchitectureInstantiator {
 	}
 
 	/**
-	 * Helper method to fill in the list of actual port parameters and port
-	 * parameters depending on the port tuple. The lists are passed by
-	 * reference.
+	 * Helper method for creating port parameters and port parameter references.
+	 * The lists are passed by reference.
 	 */
-	public static List<PortParameter> createPortParams(ArchitectureStyle architectureStyle,
-			ArchitectureInstance instance, List<PortTuple> portTuples) throws ArchitectureExtractorException {
+	public static void createPortParamsAndReference(ArchitectureStyle architectureStyle, ArchitectureInstance instance,
+			List<PortTuple> portTuples, List<PortParameter> portParameters, List<ACExpression> portParameterReferences)
+			throws ArchitectureExtractorException {
 
-		/* Initialize the result */
-		List<PortParameter> result = new LinkedList<PortParameter>();
-
-		/* Iterate over coordinator port tuples */
+		/* Iterate over the port tuples */
 		for (PortTuple portTuple : portTuples) {
 			/* Get the name of the port instance in the component */
 			String componentPortInstanceName = portTuple.getPortInstanceName().split("\\.")[1];
@@ -457,27 +455,25 @@ public class ArchitectureInstantiator {
 
 			/* Create the port parameters */
 			for (int i = 0; i < portTuple.getCalculatedMultiplicity(); i++) {
-				result.add(ArchitectureInstanceBuilder.createPortParameter(componentPortType,
-						componentPortInstanceName + (i + 1)));
+				PortParameter pp = ArchitectureInstanceBuilder.createPortParameter(componentPortType,
+						componentPortInstanceName + (i + 1));
+				portParameters.add(pp);
+
+				PortParameterReference ppr = ArchitectureInstanceBuilder.createPortParameterReference(pp);
+
+				if (portTuple.isTrigger()) {
+					portParameterReferences.add(ArchitectureInstanceBuilder.createACTyping(ACTypingKind.TRIG, ppr));
+				} else {
+					portParameterReferences.add(ArchitectureInstanceBuilder.createACTyping(ACTypingKind.SYNC, ppr));
+				}
 			}
 		}
-
-		return result;
-
 	}
 
 	/**
-	 * Helper method to create AC fusion from the port parameters
+	 * Helper method to create AC fusion from the port parameter references
 	 */
-	public static ACFusion createConnectorTypeFusion(List<PortParameter> portParameters) {
-		/* Create a list of port parameter references */
-		List<PortParameterReference> portParameterReferences = new LinkedList<PortParameterReference>();
-		for (PortParameter pp : portParameters) {
-
-			PortParameterReference portParameterReference = ArchitectureInstanceBuilder
-					.createPortParameterReference(pp);
-			portParameterReferences.add(portParameterReference);
-		}
+	public static ACFusion createConnectorTypeFusion(List<ACExpression> portParameterReferences) {
 
 		/* Create a list of AC Expressions */
 		List<ACExpression> expressions = new LinkedList<ACExpression>();
@@ -517,11 +513,16 @@ public class ArchitectureInstantiator {
 
 				/* Initialize list of port parameters */
 				List<PortParameter> portParameters = new LinkedList<PortParameter>();
-				portParameters.addAll(createPortParams(architectureStyle, instance, coordinatorPortTuples));
-				portParameters.addAll(createPortParams(architectureStyle, instance, operandPortTuples));
+				/* Initialize the list of port parameter references */
+				List<ACExpression> portParameterReferences = new LinkedList<ACExpression>();
+
+				createPortParamsAndReference(architectureStyle, instance, coordinatorPortTuples, portParameters,
+						portParameterReferences);
+				createPortParamsAndReference(architectureStyle, instance, operandPortTuples, portParameters,
+						portParameterReferences);
 
 				/* Create the AC fusion */
-				ACFusion acFusion = createConnectorTypeFusion(portParameters);
+				ACFusion acFusion = createConnectorTypeFusion(portParameterReferences);
 
 				/* Create an empty list of interactions */
 				List<InteractionSpecification> interactionSpecifications = new LinkedList<InteractionSpecification>();
