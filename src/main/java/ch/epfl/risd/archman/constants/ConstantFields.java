@@ -45,6 +45,12 @@ public final class ConstantFields {
 	public static final String COORD_PORTS_CARDINALITY_PARAM = "coordinator_ports_cardinality";
 
 	/*
+	 * The name of the ADDITIONAL CONSTRAINTS parameter in the configuration
+	 * file
+	 */
+	public static final String ADDITIONAL_CONSTRAINTS_PARAM = "additional_constraints";
+
+	/*
 	 * The name of the ARCH_STYLE_CONF_FILE_PATH parameter in the test
 	 * configuration file
 	 */
@@ -74,6 +80,7 @@ public final class ConstantFields {
 			add(PORTS_PARAM);
 			add(COORD_PORTS_CARDINALITY_PARAM);
 			add(CONNECTORS_PARAM);
+			add(ADDITIONAL_CONSTRAINTS_PARAM);
 		}
 	};
 

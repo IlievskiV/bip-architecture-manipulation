@@ -48,11 +48,11 @@ model MutualExclusion
   end
 
   connector type beginConnector(BeginPort take1, BeginPort begin1)
-    define  take1' begin1'
+    define  take1 begin1
   end
 
   connector type finishConnector(FinishPort release1, FinishPort finish1)
-    define  release1' finish1'
+    define  release1 finish1
   end
 
   component Mutex mutex

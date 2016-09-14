@@ -129,6 +129,10 @@ public class ArchitectureStyleSolver {
 		/* Map of all variables */
 		Map<String, NameValue> variables = new HashMap<String, NameValue>();
 
+		/* Map of variables in the additional constraints */
+		Map<String, ArithExpr> additionalConstraints = new HashMap<String, ArithExpr>();
+		Map<String, Integer> mapOfOccurences = architectureStyle.getOccurrencesOfVariables();
+
 		/* Map of variables in Z3 */
 		Map<String, ArithExpr> variableEpressions = new HashMap<String, ArithExpr>();
 		/* List of all constraints in the model */
@@ -166,6 +170,11 @@ public class ArchitectureStyleSolver {
 				if (!multiplicityTerm.isCalculated()) {
 					variables.put(multiplicityTerm.getName(), multiplicityTerm);
 					variableEpressions.put(multiplicityTerm.getName(), multiplicityExpr);
+
+					/* If in the map of additional constraints */
+					if (mapOfOccurences.containsKey(multiplicityTerm.getName())) {
+						additionalConstraints.put(multiplicityTerm.getName(), multiplicityExpr);
+					}
 				} else {
 					/* Add constraint for equality */
 					IntExpr value = ctx.mkInt(multiplicityTerm.getValue());
@@ -176,6 +185,12 @@ public class ArchitectureStyleSolver {
 				if (!degreeTerm.isCalculated()) {
 					variables.put(degreeTerm.getName(), degreeTerm);
 					variableEpressions.put(degreeTerm.getName(), degreeExp);
+
+					/* If in the map of additional constraints */
+					if (mapOfOccurences.containsKey(degreeTerm.getName())) {
+						additionalConstraints.put(degreeTerm.getName(), degreeExp);
+					}
+
 				} else {
 					/* Add constraint for equality */
 					IntExpr value = ctx.mkInt(degreeTerm.getValue());
@@ -189,9 +204,9 @@ public class ArchitectureStyleSolver {
 				/* The mappings where the port belongs */
 				ComponentMapping componentMapping;
 				GlobalPortMapping globalPortMapping;
-				
+
 				System.err.println(portInstanceName);
-				
+
 				/* If the port tuple is coordinator tuple */
 				if (portTuple.getType() == PortTupleType.COORDINATOR_TUPLE) {
 					componentMapping = architectureStyle.getCoordinatorsMapping().get(compInstanceName);
@@ -227,6 +242,12 @@ public class ArchitectureStyleSolver {
 						/* Add in the list of variables */
 						variables.put(cpm.getCardinalityTerm().getName(), cpm.getCardinalityTerm());
 						variableEpressions.put(cpm.getCardinalityTerm().getName(), portCardExpr);
+
+						/* If in the map of additional constraints */
+						if (mapOfOccurences.containsKey(cpm.getCardinalityTerm().getName())) {
+							additionalConstraints.put(cpm.getCardinalityTerm().getName(), portCardExpr);
+						}
+
 					} else {
 						/* Make equality constrain */
 						constraints.add(ctx.mkEq(portCardExpr, ctx.mkInt(cpm.getCardinalityTerm().getValue())));
@@ -264,6 +285,21 @@ public class ArchitectureStyleSolver {
 
 		}
 
+		/* Take the additional constraints */
+		List<String> listOfAdditionalConst = architectureStyle.getAdditionalConstraints();
+		/* Strings for splitting */
+		String equal = "=";
+		String mathOperation = "[*+/-]";
+
+		for (String constraint : listOfAdditionalConst) {
+			String[] tokens = constraint.split(equal);
+			String leftSide = tokens[0];
+			String rightSide = tokens[1];
+			
+			/*  */
+			String[] leftSideTokens = leftSide.split(mathOperation);
+		}
+
 		BoolExpr[] arrayConstraints = new BoolExpr[constraints.size()];
 		for (int i = 0; i < constraints.size(); i++) {
 			arrayConstraints[i] = constraints.get(i);
@@ -281,8 +317,7 @@ public class ArchitectureStyleSolver {
 
 		/* Generate the missing ports */
 		generateMissingPortNames(architectureStyle);
-		
-		
+
 		checkNameValues(architectureStyle, architectureOperands);
 	}
 

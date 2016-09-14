@@ -54,7 +54,8 @@ public class PortTuple {
 	 * @param degree
 	 *            - The degree of the port
 	 */
-	public PortTuple(String portInstanceName, String multiplicity, String degree, PortTupleType type) {
+	public PortTuple(String portInstanceName, String multiplicity, String degree, PortTupleType type,
+			String connectorInstanceName) {
 
 		/* If the port is trigger */
 		if (portInstanceName.charAt(portInstanceName.length() - 1) == '\'') {
@@ -69,17 +70,19 @@ public class PortTuple {
 
 		/* Check whether the multiplicity is constant or variable */
 		if (HelperMethods.isNumeric(multiplicity)) {
-			this.multiplicityTerm = new NameValue(MULT_DEFAULT_NAME_PREFIX + portInstanceName,
+			this.multiplicityTerm = new NameValue(
+					MULT_DEFAULT_NAME_PREFIX + portInstanceName + "_" + connectorInstanceName,
 					Integer.parseInt(multiplicity));
 		} else {
-			this.multiplicityTerm = new NameValue(MULT_DEFAULT_NAME_PREFIX + portInstanceName);
+			this.multiplicityTerm = new NameValue(multiplicity);
 		}
 
 		/* Check whether the degree is parametric or not */
 		if (HelperMethods.isNumeric(degree)) {
-			this.degreeTerm = new NameValue(DEG_DEFAULT_NAME_PREFIX + portInstanceName, Integer.parseInt(degree));
+			this.degreeTerm = new NameValue(DEG_DEFAULT_NAME_PREFIX + portInstanceName + "_" + connectorInstanceName,
+					Integer.parseInt(degree));
 		} else {
-			this.degreeTerm = new NameValue(DEG_DEFAULT_NAME_PREFIX + portInstanceName);
+			this.degreeTerm = new NameValue(degree);
 		}
 
 	}
@@ -198,7 +201,5 @@ public class PortTuple {
 	public boolean isTrigger() {
 		return isTrigger;
 	}
-	
-	
-	
+
 }

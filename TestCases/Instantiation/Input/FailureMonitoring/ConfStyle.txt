@@ -5,3 +5,4 @@ operands:B
 ports:C.failureC,C.resumeC,C.askC,C.resetC,B.failO,B.resumeO,B.finishO
 connectors:failureConn B.failO' 1 1 C.failureC 1 1,resumeConn B.resumeO' 1 1 C.resumeC 1 1,finishConn B.finishO' 1 1,askConn C.askC 1 1,resetConn C.resetC 1 1
 coordinator_ports_cardinality:C.failureC 1 1,C.resumeC 1 1,C.askC 1 1,C.resetC 1 1
+additional_constraints:

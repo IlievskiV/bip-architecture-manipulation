@@ -1,17 +1,13 @@
 package ch.epfl.risd.archman.model;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
 import com.microsoft.z3.Z3Exception;
@@ -22,11 +18,9 @@ import ch.epfl.risd.archman.exceptions.ArchitectureExtractorException;
 import ch.epfl.risd.archman.exceptions.ComponentNotFoundException;
 import ch.epfl.risd.archman.exceptions.ConfigurationFileException;
 import ch.epfl.risd.archman.exceptions.ConnectorNotFoundException;
-import ch.epfl.risd.archman.exceptions.PortNotFoundException;
 import ch.epfl.risd.archman.exceptions.TestFailException;
 import ch.epfl.risd.archman.helper.HelperMethods;
 import ch.epfl.risd.archman.model.PortTuple.PortTupleType;
-import ch.epfl.risd.archman.solver.ArchitectureStyleSolver;
 
 /**
  * 
@@ -50,8 +44,14 @@ public class ArchitectureStyle extends ArchitectureEntity {
 	/* Mapping of the coordinators in the style */
 	protected Map<String, ComponentMapping> coordinatorsMapping;
 
-	/* The set of all connectors in the style */
+	/* The list of all connectors in the style */
 	protected List<ConnectorTuple> connectorTuples;
+
+	/* The list of all additional constraints */
+	protected List<String> additionalConstraints;
+
+	/* Map of occurrences of the variables in the additional constraints */
+	protected Map<String, Integer> occurrencesOfVariables;
 
 	/****************************************************************************/
 	/* PRIVATE(UTILITY) METHODS */
@@ -84,6 +84,14 @@ public class ArchitectureStyle extends ArchitectureEntity {
 				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_CARDINALITY_PARAM),
 				this.archEntityConfigFile.getParameters().get(ConstantFields.COORD_PORTS_CARDINALITY_PARAM), delim1,
 				delim2);
+
+		/* Get the additional constraints */
+		this.additionalConstraints = new LinkedList<String>(Arrays.asList(HelperMethods.splitConcatenatedString(
+				this.archEntityConfigFile.getParameters().get(ConstantFields.ADDITIONAL_CONSTRAINTS_PARAM), delim1)));
+
+		/* Build the map of occurrences */
+		this.occurrencesOfVariables = this.buildMapOfOccurrences(this.additionalConstraints);
+
 	}
 
 	/**
@@ -215,10 +223,11 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 				/* Type of the tuple */
 				if (this.coordinators.contains(componentName)) {
-					portTuples.add(
-							new PortTuple(portInstanceName, multiplicity, degree, PortTupleType.COORDINATOR_TUPLE));
+					portTuples.add(new PortTuple(portInstanceName, multiplicity, degree,
+							PortTupleType.COORDINATOR_TUPLE, connectorInstanceName));
 				} else if (this.operands.contains(componentName)) {
-					portTuples.add(new PortTuple(portInstanceName, multiplicity, degree, PortTupleType.OPERAND_TUPLE));
+					portTuples.add(new PortTuple(portInstanceName, multiplicity, degree, PortTupleType.OPERAND_TUPLE,
+							connectorInstanceName));
 				} else {
 					System.out.println("Something is wrong");
 				}
@@ -226,6 +235,49 @@ public class ArchitectureStyle extends ArchitectureEntity {
 
 			/* Create the connector tuple */
 			result.add(new ConnectorTuple(connectorInstanceName, portTuples));
+		}
+
+		return result;
+	}
+
+	/**
+	 * Helper method to build the map of occurrences of the variables in the
+	 * additional constraints.
+	 */
+	protected Map<String, Integer> buildMapOfOccurrences(List<String> additionalConstraints) {
+		/* Initialize the resulting map */
+		Map<String, Integer> result = new HashMap<String, Integer>();
+
+		/* Strings for splitting */
+		String equal = "=";
+		String mathOperation = "[*+/-]";
+
+		/* Iterate over the constraints */
+		for (String constraint : additionalConstraints) {
+			/* Split on the equal sign */
+			String[] tokens = constraint.split(equal);
+			String leftSide = tokens[0];
+			String rightSide = tokens[1];
+
+			/* Split the left side */
+			String[] leftSideTokens = leftSide.split(mathOperation);
+			for (String leftSideToken : leftSideTokens) {
+				/* If the token is variable */
+				if (!HelperMethods.isNumeric(leftSideToken)) {
+					/* Update the occurrence */
+					result.put(leftSideToken, result.getOrDefault(leftSideToken, 0) + 1);
+				}
+			}
+
+			/* Split the right side */
+			String[] rightSideTokens = rightSide.split(mathOperation);
+			for (String rightSideToken : rightSideTokens) {
+				/* If the token is variable */
+				if (!HelperMethods.isNumeric(rightSideToken)) {
+					/* Update the occurrence */
+					result.put(rightSideToken, result.getOrDefault(rightSideToken, 0) + 1);
+				}
+			}
 		}
 
 		return result;
@@ -321,6 +373,21 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		return connectorTuples;
 	}
 
+	/**
+	 * @return the additional constraints
+	 */
+	public List<String> getAdditionalConstraints() {
+		return additionalConstraints;
+	}
+
+	/**
+	 * @return the map of occurrences of the variables in the additional
+	 *         constraints
+	 */
+	public Map<String, Integer> getOccurrencesOfVariables() {
+		return occurrencesOfVariables;
+	}
+
 	/* Test the methods provided here (passed) */
 	public static void main(String[] args) {
 
@@ -334,7 +401,8 @@ public class ArchitectureStyle extends ArchitectureEntity {
 			ArchitectureStyle architectureStyle = new ArchitectureStyle(path1);
 			ArchitectureOperands architectureOperands = new ArchitectureOperands(pathOp);
 
-			ArchitectureStyleSolver.calculateVariables(architectureStyle, architectureOperands);
+			// ArchitectureStyleSolver.calculateVariables(architectureStyle,
+			// architectureOperands);
 
 			for (String key1 : architectureStyle.coordinatorsMapping.keySet()) {
 
@@ -397,9 +465,6 @@ public class ArchitectureStyle extends ArchitectureEntity {
 		} catch (ArchitectureExtractorException e) {
 			e.printStackTrace();
 		} catch (Z3Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TestFailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

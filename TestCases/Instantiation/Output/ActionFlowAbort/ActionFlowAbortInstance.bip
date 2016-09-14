@@ -9,17 +9,12 @@ model ActionFlowAbort
     connector ActionBeginConnector actionBeginConn4(C1.actBeginC1, B1.actBegin1)
     connector ActionBeginConnector actionBeginConn5(C1.actBeginC2, B1.actBegin3)
     connector ActionBeginConnector actionBeginConn6(C1.actBeginC3, B1.actBegin2)
-    
-    
     connector ActionEndConnector actionEndConn1(C1.actEndC1, B2.actEnd1)
     connector ActionEndConnector actionEndConn2(C1.actEndC4, B2.actEnd2)
     connector ActionEndConnector actionEndConn3(C1.actEndC5, B2.actEnd3)
     connector ActionEndConnector actionEndConn4(C1.actEndC2, B1.actEnd2)
     connector ActionEndConnector actionEndConn5(C1.actEndC3, B1.actEnd3)
     connector ActionEndConnector actionEndConn6(C1.actEndC6, B1.actEnd1)
-    
-    
-    
     connector ActionAbortConnector actionAbortConn1(C1.actAbortC1, B2.actAbort3)
     connector ActionAbortConnector actionAbortConn2(C1.actAbortC2, B2.actAbort2)
     connector ActionAbortConnector actionAbortConn3(C1.actAbortC3, B2.actAbort1)
@@ -40,31 +35,23 @@ model ActionFlowAbort
     export port ActionBegin actBeginC1()
     export port ActionBegin actBeginC2()
     export port ActionBegin actBeginC3()
-    
-    
     export port ActionEnd actEndC1()
     export port ActionEnd actEndC4()
     export port ActionEnd actEndC5()
     export port ActionEnd actEndC2()
     export port ActionEnd actEndC3()
     export port ActionEnd actEndC6()
-    
-    
     export port ActionAbort actAbortC1()
     export port ActionAbort actAbortC2()
     export port ActionAbort actAbortC3()
     export port ActionAbort actAbortC4()
     export port ActionAbort actAbortC5()
     export port ActionAbort actAbortC6()
-    
-    
     place state1
     place state2
     place state3
     place state0
     initial to state0
-    
-    
     on actBeginC4
       from state1 to state2
     on actBeginC5
@@ -77,8 +64,6 @@ model ActionFlowAbort
       from state1 to state2
     on actBeginC3
       from state1 to state2
-      
-      
     on actEndC1
       from state2 to state3
     on actEndC4
@@ -91,8 +76,6 @@ model ActionFlowAbort
       from state2 to state3
     on actEndC6
       from state2 to state3
-      
-      
     on actAbortC1
       from state2 to state0
     on actAbortC2
@@ -107,53 +90,65 @@ model ActionFlowAbort
       from state2 to state0
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   end
 
   atomic type Operand
-  
     export port ActionBegin actBegin1()
     export port ActionBegin actBegin2()
     export port ActionBegin actBegin3()
-    
-    
     export port ActionEnd actEnd1()
     export port ActionEnd actEnd2()
     export port ActionEnd actEnd3()
-    
-    
     export port ActionAbort actAbort1()
     export port ActionAbort actAbort2()
     export port ActionAbort actAbort3()
-    
-    
     place state0
     place state1
     place state2
     place state3
     initial to state0
-    
-    
     on actBegin1
       from state0 to state1
     on actEnd1
       from state1 to state0
     on actAbort1
       from state1 to state0
-      
-      
     on actBegin2
       from state0 to state2
     on actEnd2
-      from state2 to state0      
+      from state2 to state0
     on actAbort2
       from state2 to state0
-      
     on actBegin3
       from state0 to state3
     on actEnd3
       from state3 to state0
     on actAbort3
       from state3 to state0
+
+
+
+
+
+
+
+
 
   end
 

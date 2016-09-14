@@ -90,10 +90,10 @@ public class ComponentMapping {
 						GlobalPortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + j,
 						currentMappedPorts.get(j - 1).size());
 				/* Get the name of the component where the ports map */
-				String componentName = currentMappedPorts.get(j-1).iterator().next().split("\\.")[0];
+				String componentName = currentMappedPorts.get(j - 1).iterator().next().split("\\.")[0];
 
 				componentPortMappings.put(componentName,
-						new ComponentPortMapping(componentName, currentMappedPorts.get(j-1), currCardinalityTerm));
+						new ComponentPortMapping(componentName, currentMappedPorts.get(j - 1), currCardinalityTerm));
 			}
 
 			/* Add new port mapping */
@@ -175,8 +175,7 @@ public class ComponentMapping {
 				/* Otherwise, the set will be empty */
 				else {
 					/* Create cardinality term without value */
-					currCardinalityTerm = new NameValue(
-							GlobalPortMapping.PORT_CARD_DEFAULT_NAME_PREFIX + currPortToMap + "_" + (j + 1));
+					currCardinalityTerm = new NameValue(c);
 				}
 
 				componentPortMapping.put(componentToMap + (j + 1),

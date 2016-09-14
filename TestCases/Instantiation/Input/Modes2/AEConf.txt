@@ -3,5 +3,6 @@ coordinators:C
 coordinator_cardinality:C 1
 operands:B
 ports:C.inMode1,C.inMode2,C.toMode1,C.toMode2,B.m1b,B.m1e,B.m2b,B.m2e
-connectors:switchToMode1 C.toMode1 1 1,switchToMode2 C.toMode2 1 1,actionStart1 C.inMode1 1 1 B.m1b m_B.m1b 1,actionStart2 C.inMode2 1 1 B.m2b m_B.m2b 1,actionEnd1 B.m1e 2 1,actionEnd2 B.m2e 2 1
+connectors:switchToMode1 C.toMode1 1 1,switchToMode2 C.toMode2 1 1,actionStart1 C.inMode1 1 1 B.m1b mult_B.m1b 1,actionStart2 C.inMode2 1 1 B.m2b mult_B.m2b 1,actionEnd1 B.m1e 2 1,actionEnd2 B.m2e 2 1
 coordinator_ports_cardinality:C.inMode1 1,C.inMode2 1,C.toMode1 1,C.toMode2 1
+additional_constraints:

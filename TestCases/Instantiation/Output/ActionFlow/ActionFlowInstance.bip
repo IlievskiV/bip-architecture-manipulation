@@ -9,8 +9,6 @@ model ActionFlow
     connector ActionBeginConnector actionBeginConn4(C1.actBeginC1, B1.actBegin1)
     connector ActionBeginConnector actionBeginConn5(C1.actBeginC2, B1.actBegin3)
     connector ActionBeginConnector actionBeginConn6(C1.actBeginC3, B1.actBegin2)
-    
-    
     connector ActionEndConnector actionEndConn1(C1.actEndC1, B2.actEnd1)
     connector ActionEndConnector actionEndConn2(C1.actEndC4, B2.actEnd2)
     connector ActionEndConnector actionEndConn3(C1.actEndC5, B2.actEnd3)
@@ -64,6 +62,18 @@ model ActionFlow
       from state2 to state3
     on actEndC6
       from state2 to state3
+
+
+
+
+
+
+
+
+
+
+
+
   end
 
   atomic type Operand
@@ -90,6 +100,12 @@ model ActionFlow
       from state0 to state3
     on actEnd3
       from state3 to state0
+
+
+
+
+
+
   end
 
   connector type ActionBeginConnector(ActionBegin actBeginC1, ActionBegin actBeginO1)

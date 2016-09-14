@@ -572,8 +572,6 @@ public class ArchitectureInstanceBuilder {
 				/* Initialize the port type */
 				PortType portType;
 
-				System.err.println("Port name: " + p.getName() + " component type name: " + type.getName());
-
 				/* If the port type does not exist */
 				if (!BIPChecker.portTypeExists(architectureInstance.getBipFileModel(), p.getType())) {
 					portType = ArchitectureInstanceBuilder.copyPortType(architectureInstance, p.getType());
@@ -893,14 +891,31 @@ public class ArchitectureInstanceBuilder {
 		/* Set the input ports */
 		connector.getActualPort().addAll(actualPortParameters);
 
-		System.err.println(actualPortParameters.size());
+		/* Take the fusion and the expression in it */
+		ACFusion acFusion = (ACFusion) type.getDefinition();
+		List<ACExpression> expressions = acFusion.getOperand();
 
 		/* Create the interaction */
 		StringBuilder interaction = new StringBuilder();
-		for (ActualPortParameter app : actualPortParameters) {
+
+		for (int i = 0; i < actualPortParameters.size(); i++) {
+			ActualPortParameter app = actualPortParameters.get(i);
 			interaction.append(((InnerPortReference) app).getTargetInstance().getTargetPart().getName() + "."
-					+ ((InnerPortReference) app).getTargetPort().getName()).append(" ");
+					+ ((InnerPortReference) app).getTargetPort().getName());
+
+			ACTyping typing = (ACTyping) expressions.get(i);
+			if (typing.getType() == ACTypingKind.TRIG) {
+				interaction.append("'");
+			}
+
+			interaction.append(" ");
 		}
+		//
+		// for (ActualPortParameter app : actualPortParameters) {
+		// interaction.append(((InnerPortReference)
+		// app).getTargetInstance().getTargetPart().getName() + "."
+		// + ((InnerPortReference) app).getTargetPort().getName()).append(" ");
+		// }
 
 		/* Set the interaction */
 		interaction.setLength(interaction.length() - 1);
@@ -946,8 +961,26 @@ public class ArchitectureInstanceBuilder {
 
 			/* copy the port parameters */
 			copy.getPortParameter().addAll(copyPortParameters);
+
+			/* Get the fusion and its expressions */
+			ACFusion acFusion = (ACFusion) type.getDefinition();
+			List<ACExpression> expressions = acFusion.getOperand();
+
+			/* New expressions, transform to typing */
+			List<ACExpression> newExpressions = new LinkedList<ACExpression>();
+			for (ACExpression e : expressions) {
+				if (e instanceof PortParameterReference) {
+					newExpressions.add(ArchitectureInstanceBuilder.createACTyping(ACTypingKind.SYNC, e));
+				} else {
+					newExpressions.add(e);
+				}
+			}
+
+			/* Create new definition */
+			ACFusion newDefinition = ArchitectureInstanceBuilder.createACFusion(newExpressions);
+
 			/* copy the definition */
-			copy.setDefinition(type.getDefinition());
+			copy.setDefinition(newDefinition);
 			/* copy the interactions */
 			copy.getInteractionSpecification().addAll(type.getInteractionSpecification());
 
@@ -1051,13 +1084,14 @@ public class ArchitectureInstanceBuilder {
 			allStates.addAll(initialStates);
 			allStates.addAll(states);
 
-//			/* Check every Transition */
-//			for (Transition transition : transitions) {
-//				if (!checkTransitionStates(transition, allStates)) {
-//					throw new IllegalTransitionStatesException(
-//							"The Transition is operating with States, not defined in the corresponding Atom Type");
-//				}
-//			}
+			// /* Check every Transition */
+			// for (Transition transition : transitions) {
+			// if (!checkTransitionStates(transition, allStates)) {
+			// throw new IllegalTransitionStatesException(
+			// "The Transition is operating with States, not defined in the
+			// corresponding Atom Type");
+			// }
+			// }
 
 			net.getTransition().addAll(transitions);
 		}
@@ -1559,8 +1593,5 @@ public class ArchitectureInstanceBuilder {
 			return null;
 		}
 	}
-	
-	
-	
-	
+
 }

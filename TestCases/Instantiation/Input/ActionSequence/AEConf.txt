@@ -5,3 +5,4 @@ operands:B
 ports:C.actBeginC,C.actEndC,B.actBeginO,B.actEndO
 connectors:B_to_C_begin B.actBeginO 1 1 C.actBeginC 1 1,B_to_C_finish B.actEndO 1 1 C.actEndC 1 1
 coordinator_ports_cardinality:C.actBeginC 3,C.actEndC 3
+additional_constraints:

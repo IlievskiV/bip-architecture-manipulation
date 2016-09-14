@@ -345,17 +345,16 @@ public class TestInstantiation {
 	public static void main(String[] args) {
 
 		try {
-			// TestInstantiation.testMutex();
+			TestInstantiation.testMutex();
 			// TestInstantiation.testModes2();
 			// TestInstantiation.testActionSequence();
-			// TestInstantiation.testParallelMem();
 			// TestInstantiation.testActionFlow();
 			// TestInstantiation.testActionFlowAbort();
 			// TestInstantiation.testFailureMonitoring();
 			// TestInstantiation.testBufferManagement();
 			// TestInstantiation.testEventMonitoring();
 			// TestInstantiation.testPriorityManagement();
-			TestInstantiation.testModeManagement();
+			// TestInstantiation.testModeManagement();
 			// TestInstantiation.testClientServer();
 		} catch (Z3Exception | TestFailException e) {
 			// TODO Auto-generated catch block

@@ -3,36 +3,26 @@ model ActionSequence
     component Coordinator1 C1
     component Operand_2 B2
     component Operand_1 B1
-    
     connector beginConnector B_to_C_begin1(C1.actBeginC1, B2.a3b)
     connector beginConnector B_to_C_begin2(C1.actBeginC2, B1.a2b)
     connector beginConnector B_to_C_begin3(C1.actBeginC3, B1.a1b)
-    
-    
     connector finishConnector B_to_C_finish1(C1.actEndC1, B2.a3e)
     connector finishConnector B_to_C_finish2(C1.actEndC2, B1.a2e)
     connector finishConnector B_to_C_finish3(C1.actEndC3, B1.a1e)
   end
 
-
-
   port type ActionBeginPort
   port type ActionEndPort
-  
-  
   atomic type Coordinator1
     export port ActionBeginPort actBeginC1()
     export port ActionBeginPort actBeginC2()
     export port ActionBeginPort actBeginC3()
-    
     export port ActionEndPort actEndC1()
     export port ActionEndPort actEndC2()
     export port ActionEndPort actEndC3()
-    
     place next
     place wait
     initial to next
-    
     on actBeginC1
       from next to wait
     on actBeginC2
@@ -45,6 +35,12 @@ model ActionSequence
       from wait to next
     on actEndC3
       from wait to next
+
+
+
+
+
+
   end
 
   atomic type Operand_2
@@ -57,6 +53,7 @@ model ActionSequence
       from sleep to work
     on a3e
       from work to sleep
+
 
   end
 
@@ -76,6 +73,10 @@ model ActionSequence
       from sleep to work
     on a2e
       from work to sleep
+
+
+
+
   end
 
   connector type beginConnector(ActionBeginPort actBeginC1, ActionBeginPort actBeginO1)

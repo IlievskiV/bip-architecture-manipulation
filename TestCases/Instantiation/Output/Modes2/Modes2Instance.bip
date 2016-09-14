@@ -31,6 +31,10 @@ model ModeControl2
       from mode2 to mode2
     on inMode11
       from mode1 to mode1
+
+
+
+
   end
 
   atomic type Housekeeping

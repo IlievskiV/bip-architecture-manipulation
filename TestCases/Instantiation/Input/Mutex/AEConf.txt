@@ -3,5 +3,6 @@ coordinators:C
 coordinator_cardinality:C 1
 operands:B
 ports:C.take,C.release,B.begin,B.finish
-connectors:B_to_C_begin B.begin 1 1 C.take 1 d_C.take,B_to_C_finish B.finish 1 1 C.release 1 d_C.release
-coordinator_ports_cardinality:C.take n,C.release n
+connectors:B_to_C_begin B.begin 1 1 C.take 1 deg_C.take,B_to_C_finish B.finish 1 1 C.release 1 deg_C.release
+coordinator_ports_cardinality:C.take card_C.take,C.release card_C.release
+additional_constraints:

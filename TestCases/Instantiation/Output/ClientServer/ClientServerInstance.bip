@@ -10,22 +10,18 @@ model ClientServer
     connector OfferConnector offerConn14(S1.offer12, C3.use12)
     connector OfferConnector offerConn15(S1.offer12, C3.use12)
     connector OfferConnector offerConn16(S1.offer12, C3.use12)
-    
-    
     connector OfferConnector offerConn17(S1.offer11, C1.use11)
     connector OfferConnector offerConn18(S1.offer11, C1.use11)
     connector OfferConnector offerConn19(S1.offer11, C1.use11)
     connector OfferConnector offerConn110(S1.offer11, C1.use12)
     connector OfferConnector offerConn111(S1.offer11, C1.use12)
     connector OfferConnector offerConn112(S1.offer11, C1.use12)
-    
     connector OfferConnector offerConn113(S1.offer13, C2.use12)
     connector OfferConnector offerConn114(S1.offer13, C2.use12)
     connector OfferConnector offerConn115(S1.offer13, C2.use12)
     connector OfferConnector offerConn116(S1.offer13, C2.use11)
     connector OfferConnector offerConn117(S1.offer13, C2.use11)
     connector OfferConnector offerConn118(S1.offer13, C2.use11)
-    
     connector OfferConnector offerConn21(S1.offer22, C3.use22)
     connector OfferConnector offerConn22(S1.offer22, C3.use22)
     connector OfferConnector offerConn23(S1.offer22, C3.use21)
@@ -35,7 +31,6 @@ model ClientServer
     connector OfferConnector offerConn27(S1.offer22, C1.use22)
     connector OfferConnector offerConn28(S1.offer22, C1.use22)
     connector OfferConnector offerConn29(S1.offer22, C1.use21)
-    
     connector OfferConnector offerConn210(S1.offer21, C1.use21)
     connector OfferConnector offerConn211(S1.offer21, C1.use23)
     connector OfferConnector offerConn212(S1.offer21, C1.use23)

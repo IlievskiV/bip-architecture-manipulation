@@ -418,13 +418,11 @@ public class ArchitectureInstantiator {
 
 		for (Component c : operands) {
 			if (c.getType() instanceof AtomType) {
-
 				AtomType atomType = ArchitectureInstanceBuilder.copyAtomicType(instance, (AtomType) c.getType());
 				/* Make an atomic type instance of the operand */
 				ArchitectureInstanceBuilder.createComponentInstance(instance, c.getName(), atomType,
 						instance.getBipFileModel().getRootType(), false, true);
 			} else {
-				System.err.println("Type: " + c.getType() + ", name: " + c.getName());
 				/* Make a compound type instance of the operand */
 				CompoundType compoundType = ArchitectureInstanceBuilder.copyCompoundType(instance,
 						(CompoundType) c.getType());
@@ -730,8 +728,6 @@ public class ArchitectureInstantiator {
 
 			for (int i = 0; i < matchingFactor; i++) {
 
-				/* The map of credits is still the same */
-
 				/* Create actual port parameters */
 				List<ActualPortParameter> actualPortParameters = new LinkedList<ActualPortParameter>();
 				actualPortParameters.addAll(createActualPortParams(instance, coordinatorPortTuples,
@@ -794,10 +790,9 @@ public class ArchitectureInstantiator {
 		/* 7. Create all connector instances */
 		createAllConnectorInstances(architectureStyle, architectureOperands, instance);
 
-		// /* Calculate the predicate */
-		// instance.setCharacteristicPredicate(
-		// ArchitectureInstance.calculateCharacteristicPredicate(instance.getInteractions(),
-		// instance.getPorts()));
+		/* 8. Calculate the predicate */
+		instance.setCharacteristicPredicate(
+				ArchitectureInstance.calculateCharacteristicPredicate(instance.getInteractions(), instance.getPorts()));
 
 		/* End. Generate BIP file */
 		instance.generateBipFile(pathToSaveBIPFile);

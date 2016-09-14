@@ -1,5 +1,5 @@
 operands:B2,B1
 coordinators:C1,C2
 path:/home/vladimir/workspace/bip-architecture-manipulation/TestCases/Instantiation/Output/FailureMonitoring/FailureMonitoringInstance.bip
-interactions:C1.failureC1 B2.failO,C2.failureC1 B1.failO,C1.resumeC1 B2.resumeO,C2.resumeC1 B1.resumeO,B2.finishO,B1.finishO,C1.askC1,C2.askC1,C1.resetC1,C2.resetC1
+interactions:C1.failureC1 B2.failO',C2.failureC1 B1.failO',C1.resumeC1 B2.resumeO',C2.resumeC1 B1.resumeO',B2.finishO',B1.finishO',C1.askC1,C2.askC1,C1.resetC1,C2.resetC1
 ports:C1.resumeC1,C1.resetC1,C1.failureC1,C1.askC1,C2.resumeC1,C2.resetC1,C2.failureC1,C2.askC1,B2.failO,B2.resumeO,B2.finishO,B1.failO,B1.resumeO,B1.finishO
